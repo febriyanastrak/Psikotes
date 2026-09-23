@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="id" class="bg-slate-900 min-h-screen">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal Psikotes - PT Altrak 1978</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js untuk Grafik HRD -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        altrak: { yellow: '#ffcc00', dark: '#003087', card: '#f0f4ff' },
+                        brand: { blue: '#003087', lightblue: '#0057cc', sky: '#e8f0fe', accent: '#ffcc00' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-color: #f0f4ff;
+        }
+
+        .hide-section {
+            display: none !important;
+        }
+
+        /* Pauli Test Styles */
+        .pauli-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .numpad-btn:active {
+            transform: scale(0.92);
+        }
+
+        .pop-anim {
+            animation: popDown 0.3s ease-out;
+        }
+
+        @keyframes popDown {
+            0% {
+                transform: translateY(-15px) scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translateY(0) scale(1.1);
+                color: #2563eb;
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .corporate-modern-bg {
+            background-color: #e8f0fe;
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(0, 48, 135, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 87, 204, 0.06) 0%, transparent 45%),
+                linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #dce8fc 100%),
+                linear-gradient(to right, rgba(0, 48, 135, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 48, 135, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+        }
+
+        #page-pauli-header {
+            padding-top: max(env(safe-area-inset-top, 0px), 0px);
+        }
+
+        .pauli-stage {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1rem, 4vw, 2.5rem) clamp(0.75rem, 4vw, 1.5rem);
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), clamp(1rem, 4vw, 2.5rem));
+            background: #e8f0fe;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pauli-panel {
+            width: 100%;
+            max-width: 30rem;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid #c7d7f8;
+            border-radius: clamp(1.25rem, 3vw, 1.75rem);
+            box-shadow: 0 20px 50px rgba(0, 48, 135, 0.12);
+            padding: clamp(1.25rem, 4.5vw, 2.25rem) clamp(1rem, 5vw, 2rem) clamp(1.5rem, 4vw, 2.25rem);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pauli-hint {
+            font-size: clamp(0.7rem, 2.4vw, 0.8125rem);
+            text-align: center;
+            color: #4b6491;
+            max-width: 26rem;
+            margin-bottom: clamp(1rem, 4vw, 1.75rem);
+            line-height: 1.5;
+        }
+
+        .pauli-numbers-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(0.65rem, 3.2vw, 1.75rem);
+            width: 100%;
+        }
+
+        .pauli-colw {
+            width: clamp(4.2rem, 19vw, 6rem);
+            flex-shrink: 0;
+        }
+
+        .pauli-cellh {
+            height: clamp(3.6rem, 15vw, 5.5rem) !important;
+        }
+
+        .pauli-num-sm {
+            font-size: clamp(1.5rem, 6.5vw, 2.5rem) !important;
+            line-height: 1;
+        }
+
+        .pauli-num-lg {
+            font-size: clamp(1.75rem, 7.5vw, 3rem) !important;
+            line-height: 1;
+        }
+
+        .pauli-equals-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pauli-equals {
+            font-size: clamp(1.75rem, 6vw, 2.75rem);
+            font-weight: 800;
+            color: #93acd4;
+        }
+
+        .pauli-answer-wrap {
+            margin-top: clamp(1.5rem, 6vw, 2.25rem);
+        }
+
+        .pauli-history-slot {
+            height: clamp(2.25rem, 7vw, 2.75rem);
+        }
+
+        .pauli-history-num {
+            font-size: clamp(1.35rem, 5.5vw, 1.875rem) !important;
+        }
+
+        .pauli-keypad-wrap {
+            width: 100%;
+            max-width: 20rem;
+            margin-top: clamp(1.75rem, 6vw, 2.5rem);
+        }
+
+        .pauli-keypad {
+            background: #e8f0fe;
+            border: 1px solid #c7d7f8;
+            border-radius: clamp(1.25rem, 4vw, 1.75rem);
+            padding: clamp(0.65rem, 3vw, 1.1rem);
+            box-shadow: inset 0 2px 4px rgba(0, 48, 135, 0.08);
+        }
+
+        .pauli-keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.4rem, 2vw, 0.7rem);
+        }
+
+        .numpad-btn {
+            height: clamp(3rem, 11vw, 4.1rem);
+            font-size: clamp(1.1rem, 4.2vw, 1.5rem) !important;
+        }
+
+        .pauli-submit-wrap {
+            width: 100%;
+            max-width: 20rem;
+            margin-top: clamp(1.5rem, 5vw, 2rem);
+        }
+
+        .pauli-progress-track {
+            height: 5px;
+            width: 100%;
+            background: #c7d7f8;
+        }
+
+        .pauli-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ffcc00, #f59e0b);
+            transition: width 1s linear;
+        }
+
+        /* Dashboard Styles */
+        .dash-hero {
+            background: transparent;
+            position: relative;
+        }
+
+        .dash-progress-track {
+            height: 8px;
+            width: 100%;
+            border-radius: 999px;
+            background: rgba(0, 48, 135, 0.12);
+            overflow: hidden;
+        }
+
+        .dash-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #ffcc00, #ffb300);
+            transition: width 0.5s ease;
+        }
+
+        .dash-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: clamp(1.25rem, 3vw, 1.75rem);
+            border: 1px solid #c7d7f8;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+            box-shadow: 0 2px 12px rgba(0, 48, 135, 0.06);
+        }
+
+        .dash-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #c7d7f8;
+        }
+
+        .dash-card.is-active {
+            border-color: #003087;
+            box-shadow: 0 10px 30px rgba(0, 48, 135, 0.15);
+        }
+
+        .dash-card.is-active::before {
+            background: linear-gradient(180deg, #003087, #0057cc);
+        }
+
+        .dash-card.is-done {
+            background: #f0f9f0;
+        }
+
+        .dash-card.is-done::before {
+            background: #22c55e;
+        }
+
+        .dash-card.is-locked {
+            border-color: #e2e8f0;
+            opacity: 0.75;
+        }
+
+        .dash-card.is-locked::before {
+            background: #cbd5e1;
+        }
+
+        .dash-badge {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .is-active .dash-badge {
+            background: rgba(0, 48, 135, 0.1);
+            color: #003087;
+        }
+
+        .is-done .dash-badge {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+        }
+
+        .is-locked .dash-badge {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .dash-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.3rem 0.65rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .tag-active {
+            background: rgba(0, 48, 135, 0.1);
+            color: #003087;
+        }
+
+        .tag-done {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+        }
+
+        .tag-locked {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .dash-btn {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .dash-btn-active {
+            background: linear-gradient(135deg, #003087, #0057cc);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(0, 48, 135, 0.35);
+            cursor: pointer;
+        }
+
+        .dash-btn-active:hover {
+            background: linear-gradient(135deg, #00256b, #0048b0);
+            box-shadow: 0 6px 20px rgba(0, 48, 135, 0.45);
+        }
+
+        .dash-btn-done {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+            cursor: not-allowed;
+        }
+
+        .dash-btn-locked {
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Custom Scrollbar for Modal */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 flex flex-col min-h-screen" style="background-color:#f0f4ff">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-blue-100 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div onclick="handleLogoClick()" title="PT Altrak 1978"
+                class="flex items-center gap-3 select-none cursor-pointer">
+                <!-- Logo Altrak 1978 dari website resmi -->
+                <img src="https://www.altrak1978.co.id/images/logonews.jpg"
+                    alt="PT Altrak 1978"
+                    class="h-9 w-auto object-contain"
+                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <!-- Fallback jika logo gagal dimuat -->
+                <div style="display:none" class="items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center text-white shadow">
+                        <i class="fa-solid fa-briefcase text-base"></i>
+                    </div>
+                    <span class="text-blue-800 font-black text-lg tracking-wider">PT ALTRAK 1978</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="nav-user-info"
+                    class="hide-section bg-blue-50 px-4 py-1.5 rounded-full text-sm font-bold text-blue-800 flex items-center gap-2 border border-blue-200">
+                    <i class="fa-solid fa-user-check text-blue-600"></i>
+                    <span id="nav-user-name">Peserta</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col relative w-full">
+
+        <!-- HALAMAN 1: LOGIN KORPORAT -->
+        <section id="page-login"
+            class="flex-grow flex flex-col items-center justify-center p-4 corporate-modern-bg relative overflow-hidden">
+            <div
+                class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none">
+            </div>
+            <div
+                class="w-full max-w-lg bg-white rounded-3xl shadow-[0_25px_60px_rgba(0,48,135,0.15)] border border-blue-100 overflow-hidden relative z-10">
+                <div
+                    class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 p-8 text-center border-b border-blue-700/50 relative">
+                    <div
+                        class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-400">
+                    </div>
+                    <!-- Logo di card header -->
+                    <div class="flex justify-center mb-4">
+                        <img src="https://www.altrak1978.co.id/images/logonews.jpg"
+                            alt="PT Altrak 1978"
+                            class="h-12 w-auto object-contain brightness-0 invert"
+                            onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display:none" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-700 text-white mb-3 border border-blue-600 shadow-lg">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-black text-white tracking-wide uppercase">REKRUTMEN &amp; PSIKOTES</h2>
+                    <p class="text-xs text-blue-200 font-semibold mt-1 tracking-widest uppercase">PT Altrak 1978 Online
+                        Assessment</p>
+                </div>
+
+                <div class="p-6 sm:p-9">
+                    <form id="loginForm" onsubmit="handleRequestOTP(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nama
+                                Lengkap Sesuai KTP</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-blue-400"><i
+                                        class="fa-solid fa-user"></i></span>
+                                <input type="text" id="inputName" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-blue-50 border border-blue-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition text-sm font-medium"
+                                    placeholder="Contoh: Budi Santoso">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Alamat
+                                Email Aktif</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-blue-400"><i
+                                        class="fa-solid fa-envelope"></i></span>
+                                <input type="email" id="inputEmail" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-blue-50 border border-blue-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition text-sm font-medium"
+                                    placeholder="budi@email.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nomor
+                                WhatsApp / HP</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-blue-400"><i
+                                        class="fa-solid fa-phone"></i></span>
+                                <input type="tel" id="inputPhone" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-blue-50 border border-blue-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition text-sm font-medium"
+                                    placeholder="08123456789">
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full mt-2 bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-blue-700 text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                            <span>Kirim Kode Akses (OTP)</span>
+                            <i class="fa-solid fa-arrow-right-long"></i>
+                        </button>
+                    </form>
+
+                    <div id="otpArea" class="hide-section mt-6 pt-6 border-t border-blue-100">
+                        <label
+                            class="block text-xs font-bold text-blue-700 uppercase tracking-widest text-center mb-2">Verifikasi
+                            Token Keamanan</label>
+                        <input type="text" id="inputOtp" maxlength="6"
+                            class="w-full text-center tracking-[0.5em] font-mono font-black text-3xl px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            placeholder="------">
+                        <button onclick="verifyOTP()"
+                            class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition duration-200">
+                            Masuk ke Portal Tes
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-xs text-blue-400 font-medium relative z-10">
+                &copy; PT Altrak 1978. Human Resources Department. All rights reserved.
+            </div>
+        </section>
+
+        <!-- HALAMAN 2: DASHBOARD -->
+        <section id="page-dashboard" class="hide-section flex-grow w-full corporate-modern-bg">
+            <div class="dash-hero">
+                <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 pt-9 sm:pt-12 pb-20 sm:pb-24">
+                    <h2 class="text-2xl sm:text-3xl font-black text-blue-900">Dashboard Ujian</h2>
+                    <p class="text-blue-700 text-sm sm:text-base mt-2 max-w-md">Kerjakan keempat modul tes di bawah ini
+                        secara berurutan. Modul berikutnya terbuka otomatis setelah modul sebelumnya selesai.</p>
+
+                    <div class="mt-7 sm:mt-9 max-w-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-blue-500 tracking-wide">Progres keseluruhan</span>
+                            <span id="dashProgressLabel" class="text-xs font-black text-blue-700">0 / 4
+                                modul</span>
+                        </div>
+                        <div class="dash-progress-track">
+                            <div id="dashProgressFill" class="dash-progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 -mt-9 sm:-mt-11 pb-12 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div id="card-1" class="dash-card is-active">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="dash-badge"><i class="fa-solid fa-calculator"></i></div>
+                            <span class="dash-tag tag-active">Sedang berlangsung</span>
+                        </div>
+                        <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 1: Pauli (Kraepelin)</h3>
+                        <p class="text-sm text-slate-500 mb-5">Tes kecepatan dan ketahanan kerja via penjumlahan angka.
+                        </p>
+                        <button id="btn-test-1" onclick="showPauliTutorial()" class="dash-btn dash-btn-active">Mulai Tes
+                            1</button>
+                    </div>
+
+                    <div id="card-2" class="dash-card is-locked">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="dash-badge"><i class="fa-solid fa-brain"></i></div>
+                            <span class="dash-tag tag-locked">Terkunci</span>
+                        </div>
+                        <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 2: IST</h3>
+                        <p class="text-sm text-slate-500 mb-5">Tes inteligensi (Verbal, Numerik, Spasial).</p>
+                        <button id="btn-test-2" disabled onclick="simulateTestCompletion(2)"
+                            class="dash-btn dash-btn-locked">Terkunci</button>
+                    </div>
+
+                    <div id="card-3" class="dash-card is-locked">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="dash-badge"><i class="fa-solid fa-compass"></i></div>
+                            <span class="dash-tag tag-locked">Terkunci</span>
+                        </div>
+                        <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 3: PAPI Kostick</h3>
+                        <p class="text-sm text-slate-500 mb-5">Inventori gaya kerja dan kepemimpinan.</p>
+                        <button id="btn-test-3" disabled onclick="simulateTestCompletion(3)"
+                            class="dash-btn dash-btn-locked">Terkunci</button>
+                    </div>
+
+                    <div id="card-4" class="dash-card is-locked">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="dash-badge"><i class="fa-solid fa-chart-pie"></i></div>
+                            <span class="dash-tag tag-locked">Terkunci</span>
+                        </div>
+                        <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 4: DISC</h3>
+                        <p class="text-sm text-slate-500 mb-5">Pemetaan profil perilaku kepribadian dominan.</p>
+                        <button id="btn-test-4" disabled onclick="handleFinalSubmit()"
+                            class="dash-btn dash-btn-locked">Terkunci</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN TUTORIAL TES PAULI -->
+        <section id="page-pauli-tutorial"
+            class="hide-section flex-grow flex items-center justify-center p-4 corporate-modern-bg">
+            <div class="w-full max-w-2xl bg-white border border-blue-100 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <div class="flex items-center gap-3 border-b border-blue-100 pb-4 mb-6">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-blue-700/10 text-blue-700 flex items-center justify-center text-2xl font-black">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-blue-900">Panduan &amp; Contoh Tes Pauli</h2>
+                        <p class="text-xs text-slate-500">Bacalah instruksi di bawah ini dengan teliti sebelum memulai
+                            tes.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-5 text-sm text-slate-600">
+                    <div class="bg-blue-50 p-4 sm:p-5 rounded-2xl border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-2 text-base"><i
+                                class="fa-solid fa-circle-info mr-2"></i>Cara Mengerjakan:</h4>
+                        <ol class="list-decimal list-inside space-y-2 leading-relaxed text-slate-700">
+                            <li>Jumlahkan 2 angka pada kotak gelap yang saling bersinggungan.</li>
+                            <li>Jika hasil penjumlahan adalah puluhan (contoh: 14), ambil angka SATUANNYA saja yaitu 4.
+                            </li>
+                            <li>Tekan tombol angka pada keypad di bawah untuk memasukkan jawaban.</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-blue-100 text-center">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-3">Simulasi
+                            Contoh Soal</span>
+                        <div class="flex items-center justify-center gap-4 text-xl font-bold">
+                            <div class="flex flex-col gap-1 w-16">
+                                <div class="bg-blue-700 text-white py-2 rounded font-black text-2xl">5</div>
+                                <div class="bg-blue-700 text-white py-2 rounded font-black text-2xl">9</div>
+                            </div>
+                            <span class="text-2xl text-slate-400 font-black">+</span>
+                            <div class="text-left">
+                                <div class="text-slate-500 text-xs">5 + 9 = <span class="text-slate-800 font-bold">14</span>
+                                </div>
+                                <div class="text-blue-700 font-extrabold text-lg mt-1">Ketik Angka: <span
+                                        class="bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xl font-black">4</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="text-xs text-slate-500 bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-blue-500 text-base"></i>
+                        <span>Uji coba aktif selama 60 menit.</span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button onclick="showPage('page-dashboard')"
+                        class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">Kembali</button>
+                    <button onclick="startPauliTest()"
+                        class="w-2/3 bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-blue-700 text-white font-black text-base py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                        <span>Saya Paham, Mulai Tes</span>
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN 3: TES PAULI -->
+        <section id="page-pauli" class="hide-section flex-grow flex flex-col" style="background:#e8f0fe">
+            <div id="page-pauli-header"
+                class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-blue-100 shadow-sm">
+                <div class="max-w-3xl mx-auto w-full px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-3">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-700/10 border border-blue-200 flex items-center justify-center text-blue-700">
+                            <i class="fa-solid fa-calculator text-base sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] sm:text-xs text-blue-500 font-bold uppercase tracking-wider">Soal
+                                Dijawab</div>
+                            <div class="text-xl sm:text-2xl font-black text-blue-800 leading-none" id="pauliScore">
+                                0</div>
+                        </div>
+                    </div>
+                    <div
+                        class="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-xl border border-blue-200 shadow-sm">
+                        <i class="fa-solid fa-stopwatch text-blue-500 text-sm sm:text-base"></i>
+                        <span id="pauliTimer"
+                            class="font-mono font-black text-lg sm:text-xl text-blue-800 tracking-wider">60:00</span>
+                    </div>
+                </div>
+                <div class="pauli-progress-track">
+                    <div id="pauliProgressBar" class="pauli-progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="pauli-stage">
+                <div class="pauli-panel">
+                    <p class="pauli-hint">Jumlahkan dua angka pada kotak gelap yang bersinggungan, lalu ketuk angka
+                        satuan dari hasilnya pada keypad di bawah.</p>
+                    <div class="pauli-numbers-row">
+                        <div class="flex flex-col gap-1 pauli-colw">
+                            <div class="pauli-box pauli-cellh bg-blue-50 rounded-lg"><span id="pBox1"
+                                    class="pauli-num-sm font-semibold text-slate-400"></span></div>
+                            <div
+                                class="pauli-box pauli-cellh bg-blue-700 rounded-lg shadow-sm border-b border-blue-900">
+                                <span id="pBox2" class="pauli-num-lg font-black text-white"></span>
+                            </div>
+                            <div
+                                class="pauli-box pauli-cellh bg-blue-700 rounded-lg shadow-sm border-t border-blue-600">
+                                <span id="pBox3" class="pauli-num-lg font-black text-white"></span>
+                            </div>
+                            <div class="pauli-box pauli-cellh bg-blue-50 rounded-lg"><span id="pBox4"
+                                    class="pauli-num-sm font-semibold text-slate-400"></span></div>
+                        </div>
+                        <div class="pauli-equals-wrap"><span class="pauli-equals">=</span></div>
+                        <div class="flex flex-col items-center pauli-colw pauli-answer-wrap relative">
+                            <div id="mainAnswerBox"
+                                class="w-full pauli-box pauli-cellh bg-white border-2 border-blue-300 rounded-2xl shadow-sm pauli-num-lg font-black transition-colors duration-100 flex items-center justify-center text-blue-900">
+                            </div>
+                            <div class="pauli-history-slot w-full flex items-center justify-center mt-1">
+                                <span id="historyAnswer" class="pauli-history-num font-black text-slate-400"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pauli-keypad-wrap">
+                        <div class="pauli-keypad">
+                            <div class="pauli-keypad-grid">
+                                <button onclick="handlePauliInput(7)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">7</button>
+                                <button onclick="handlePauliInput(8)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">8</button>
+                                <button onclick="handlePauliInput(9)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">9</button>
+                                <button onclick="handlePauliInput(4)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">4</button>
+                                <button onclick="handlePauliInput(5)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">5</button>
+                                <button onclick="handlePauliInput(6)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">6</button>
+                                <button onclick="handlePauliInput(1)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">1</button>
+                                <button onclick="handlePauliInput(2)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">2</button>
+                                <button onclick="handlePauliInput(3)"
+                                    class="numpad-btn bg-blue-700 hover:bg-blue-800 text-white font-black rounded-xl shadow border-b-4 border-blue-900 transition-all">3</button>
+                                <button onclick="handlePauliInput(0)"
+                                    class="numpad-btn col-span-3 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-xl shadow border-b-4 border-slate-950 transition-all">0</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pauli-submit-wrap">
+                        <button onclick="finishPauliTest()"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-md border-b-4 border-red-800 transition">
+                            Selesai / Kumpulkan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN 4: PORTAL ADMIN / HRD -->
+        <section id="page-hrd" class="hide-section flex-grow w-full p-6 sm:p-10 bg-slate-950">
+            <div class="max-w-6xl mx-auto">
+                <div
+                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-amber-500/10 text-altrak-yellow flex items-center justify-center text-xl font-black border border-amber-500/20">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black text-white">Dashboard Analitik HRD</h2>
+                            <p class="text-xs text-slate-400">Data & Grafik Performa Tes Pauli Kandidat</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="exportHrdToExcel()"
+                            class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">
+                            <i class="fa-solid fa-file-excel mr-2"></i> Download Excel
+                        </button>
+                        <button onclick="logoutHrd()"
+                            class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-arrow-left mr-2"></i> Keluar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl mb-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h3 class="font-bold text-white text-base whitespace-nowrap">Daftar Kandidat Masuk</h3>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <!-- Kolom Pencarian Baru -->
+                            <div class="relative flex-grow sm:w-64">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i
+                                        class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                                <input type="text" id="hrdSearchInput" onkeyup="filterHrdTable()"
+                                    placeholder="Cari nama kandidat..."
+                                    class="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500">
+                            </div>
+                            <!-- Tombol Perbarui -->
+                            <button onclick="loadHrdData()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition whitespace-nowrap">
+                                <i class="fa-solid fa-rotate mr-1"></i> Perbarui
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Nama Kandidat</th>
+                                    <th class="p-3">Email / WhatsApp</th>
+                                    <th class="p-3">Waktu Selesai</th>
+                                    <th class="p-3 text-center">Total Soal</th>
+                                    <th class="p-3 text-center">Benar / Salah</th>
+                                    <th class="p-3 text-center">Aksi Grafik HRD</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hrdTableBody" class="divide-y divide-slate-800">
+                                <!-- Data dimuat via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN 5: HALAMAN SELESAI / COMPLETION PAGE -->
+        <section id="page-selesai"
+            class="hide-section flex-grow flex flex-col items-center justify-center p-6 relative overflow-hidden"
+            style="background: radial-gradient(ellipse at 50% 0%, #0f2027 0%, #0b0f19 60%, #0b0f19 100%)">
+            <!-- Background decorative blobs -->
+            <div
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-yellow-400/5 rounded-full blur-[100px] pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none">
+            </div>
+
+            <div class="relative z-10 w-full max-w-2xl text-center">
+
+                <!-- Animated checkmark icon -->
+                <div class="relative inline-flex items-center justify-center mb-8">
+                    <div class="absolute w-28 h-28 rounded-full bg-green-500/10 animate-ping opacity-50"
+                        style="animation-duration:2.5s"></div>
+                    <div class="absolute w-24 h-24 rounded-full bg-green-500/15"></div>
+                    <div
+                        class="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-[0_0_40px_rgba(74,222,128,0.4)]">
+                        <i class="fa-solid fa-check text-white text-3xl"></i>
+                    </div>
+                </div>
+
+                <!-- Main heading -->
+                <h1 class="text-4xl sm:text-5xl font-black text-white leading-tight mb-3">
+                    Terima Kasih!<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">Tes Telah
+                        Selesai</span>
+                </h1>
+
+                <!-- Candidate name placeholder -->
+                <p id="selesai-nama" class="text-slate-300 text-lg font-semibold mb-6"></p>
+
+                <!-- Card pesan profesional -->
+                <div
+                    class="bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-6 sm:p-8 mb-8 text-left shadow-xl">
+                    <div class="flex items-start gap-4 mb-5">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-altrak-yellow/10 border border-altrak-yellow/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fa-solid fa-envelope-open-text text-altrak-yellow"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-white font-bold text-lg leading-snug">Pesan dari Tim Rekrutmen PT Altrak
+                                1978</h2>
+                            <p class="text-slate-400 text-sm mt-0.5">Informasi selanjutnya mengenai proses rekrutmen
+                                Anda</p>
+                        </div>
+                    </div>
+                    <div
+                        class="border-t border-slate-700/60 pt-5 space-y-3 text-slate-300 text-sm sm:text-base leading-relaxed">
+                        <p>Jawaban Anda telah <strong class="text-green-400">berhasil tersimpan</strong> di sistem HRD
+                            kami dan akan segera diproses oleh tim psikolog profesional PT Altrak 1978.</p>
+                        <p>Kami menghargai waktu dan kesungguhan Anda dalam mengikuti seluruh rangkaian tes ini. Setiap
+                            jawaban yang Anda berikan akan menjadi bahan evaluasi yang adil dan objektif.</p>
+                        <p class="font-semibold text-slate-200">📞 Harap tunggu informasi lebih lanjut mengenai tahapan
+                            rekrutmen berikutnya melalui <span class="text-altrak-yellow">email atau nomor
+                                WhatsApp</span> yang telah Anda daftarkan.</p>
+                    </div>
+                </div>
+
+                <!-- Info cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-400 text-xl mb-2"></i>
+                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Estimasi Proses</p>
+                        <p class="text-white font-bold text-sm mt-1">3–7 Hari Kerja</p>
+                    </div>
+                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
+                        <i class="fa-solid fa-shield-check text-green-400 text-xl mb-2"></i>
+                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Status Data</p>
+                        <p class="text-white font-bold text-sm mt-1">Tersimpan Aman</p>
+                    </div>
+                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
+                        <i class="fa-solid fa-bullhorn text-amber-400 text-xl mb-2"></i>
+                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Pengumuman via</p>
+                        <p class="text-white font-bold text-sm mt-1">Email / WhatsApp</p>
+                    </div>
+                </div>
+
+                <!-- Footer branding -->
+                <div class="flex items-center justify-center gap-3 text-slate-500 text-sm">
+                    <div class="w-7 h-7 rounded-lg bg-altrak-yellow flex items-center justify-center">
+                        <i class="fa-solid fa-briefcase text-altrak-dark text-xs"></i>
+                    </div>
+                    <span class="font-semibold text-slate-400">PT Altrak 1978 &mdash; Online Assessment System</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL GRAFIK KHUSUS HRD -->
+    <div id="modal-hrd-chart"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+        <div
+            class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full relative text-slate-800 font-sans mx-auto my-auto overflow-hidden flex flex-col max-h-[95vh]">
+            <!-- Header Modal -->
+            <div
+                class="bg-slate-50 border-b border-slate-200 px-6 py-5 flex justify-between items-center sticky top-0 z-10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-2.5 rounded-lg text-white">
+                        <i class="fa-solid fa-chart-area"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800 leading-none">Laporan Analisis Pauli</h2>
+                        <p class="text-xs text-slate-500 mt-1">Grafik Performa & Ketahanan Kerja Kandidat</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-hrd-chart')"
+                    class="text-slate-400 hover:text-slate-800 hover:bg-slate-200 bg-white border border-slate-200 w-9 h-9 rounded-full flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+
+                <!-- Biodata -->
+                <div
+                    class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-start gap-4">
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Nama Lengkap</p>
+                        <p class="text-lg font-bold text-slate-800 capitalize" id="rptName">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kontak (WhatsApp)</p>
+                        <p class="text-base font-semibold text-slate-700" id="rptWa">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tanggal Penyelesaian
+                        </p>
+                        <p class="text-base font-semibold text-slate-700" id="rptDate">-</p>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Total Dijawab</p>
+                        <p class="text-2xl font-black text-blue-600" id="rptJumlah">-</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Jawaban Benar</p>
+                        <p class="text-2xl font-black text-green-500" id="rptBenar">-</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Jawaban Salah</p>
+                        <p class="text-2xl font-black text-red-500" id="rptSalah">-</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Rata-rata</p>
+                        <p class="text-2xl font-black text-slate-700" id="rptAvg">-</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Tertinggi (Max)</p>
+                        <p class="text-2xl font-black text-slate-700" id="rptTinggi">-</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
+                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Terendah (Min)</p>
+                        <p class="text-2xl font-black text-slate-700" id="rptRendah">-</p>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-blue-500"></i> Kurva Performa (Interval 1 - 20)
+                    </h3>
+                    <div class="relative w-full h-[320px]">
+                        <canvas id="hrdPauliChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider">Rincian Data Per Interval
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-sm">
+                            <thead>
+                                <tr id="rptIntervalLabels"
+                                    class="bg-slate-100 text-slate-500 font-semibold text-xs border-b border-slate-200">
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="rptIntervalData" class="font-bold text-slate-700">
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LOGIN HRD (SANDI) -->
+    <div id="modal-hrd-login"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div
+            class="bg-altrak-card border border-slate-800 rounded-3xl shadow-2xl max-w-sm w-full text-center p-7 relative">
+            <div
+                class="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                <i class="fa-solid fa-lock-open"></i>
+            </div>
+            <h3 class="text-xl font-black text-white mb-1">Otorisasi HRD</h3>
+            <p class="text-xs text-slate-400 mb-5">Masukkan sandi rahasia untuk mengakses data & grafik kandidat.</p>
+
+            <input type="password" id="inputHrdPin"
+                class="w-full text-center font-bold text-lg px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-altrak-yellow focus:outline-none mb-4"
+                placeholder="Sandi HRD">
+
+            <div class="flex gap-2">
+                <button onclick="closeModal('modal-hrd-login')"
+                    class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition">Batal</button>
+                <button onclick="verifyHrdLogin()"
+                    class="w-1/2 bg-altrak-yellow hover:bg-yellow-400 text-slate-950 font-extrabold py-3 rounded-xl transition shadow-lg">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS LAINNYA -->
+    <div id="modal-otp"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div
+            class="bg-altrak-card border border-slate-800 rounded-3xl shadow-2xl max-w-sm w-full text-center p-7 relative">
+            <div
+                class="w-16 h-16 bg-amber-500/10 text-altrak-yellow rounded-2xl border border-amber-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h3 class="text-xl font-black text-white mb-1">Simulasi Email HRD</h3>
+            <p class="text-xs text-slate-400 mb-6">Gunakan kode token rahasia berikut untuk verifikasi sesi Anda.</p>
+
+            <div class="bg-slate-900 py-4 rounded-2xl border border-slate-800 mb-6">
+                <span class="block text-[10px] text-slate-500 uppercase font-extrabold tracking-widest mb-1">Kode OTP
+                    Anda:</span>
+                <span id="displayOtpCode"
+                    class="text-4xl font-mono font-black text-altrak-yellow tracking-widest"></span>
+            </div>
+
+            <button onclick="closeModal('modal-otp')"
+                class="w-full bg-altrak-yellow hover:bg-yellow-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition shadow-lg">
+                Tutup & Masukkan Kode
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-message"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="bg-altrak-card border border-slate-800 rounded-3xl shadow-2xl max-w-sm w-full p-7 text-center">
+            <div id="msgIcon"
+                class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <h3 id="msgTitle" class="text-xl font-black text-white mb-2">Informasi</h3>
+            <p id="msgBody" class="text-slate-300 mb-6 font-medium text-sm leading-relaxed"></p>
+
+            <div id="msgBtnContainer" class="flex gap-3">
+                <button id="msgBtnCancel"
+                    class="hide-section w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition">Batal</button>
+                <button id="msgBtnOk"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-loading"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+        <div class="text-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-5xl text-altrak-yellow mb-4"></i>
+            <h3 class="text-lg font-bold text-white">Memproses autentikasi server...</h3>
+            <p class="text-xs text-slate-400 mt-1">Menunggu respon keamanan</p>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // =========================================================================
+        // =========================================================================
+        // KONFIGURASI SUPABASE
+        // =========================================================================
+        const SUPABASE_URL = 'https://rvflmznbihunezzqhobm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_7BSuCbbyMdmtjL--NWiqNQ_-16Ja2gZ';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // =========================================================================
+        const PAULI_DURATION_SECONDS = 3600;
+        const GARIS_INTERVAL_SECONDS = 180;
+
+        let cachedHrdData = [];
+        const LEMBAR_PAULI_ASLI = [
+            9, 5, 7, 9, 6, 2, 4, 8, 1, 4, 8, 7, 5, 9, 9, 3, 3, 5, 7, 2, 2, 3, 9, 5, 8, 7, 7, 6, 9, 5, 4, 9, 6, 6, 7, 7, 3, 2, 4, 9, 2, 2, 4, 7, 0, 8, 9, 3, 2, 7, 6, 9, 4, 7, 4, 5, 3, 9, 6, 9, 2, 1, 8, 4, 2, 6, 9, 7, 5, 9, 6, 5, 4, 9, 2, 2, 3, 4, 5, 3, 6, 6, 2, 5, 8, 3, 7, 9, 8, 5, 5, 6, 4, 8, 2, 7, 3, 5, 2, 4, 3, 8, 7, 6, 3, 9, 4, 4, 7, 9, 5, 7, 7, 4, 6, 7, 2, 9, 9, 3, 2, 8, 8, 6, 0, 9, 6, 8, 3, 4, 2, 5, 6, 9, 7, 3, 5, 4, 6, 7, 9, 5, 2, 4, 4, 8, 9, 3, 6, 6, 5, 7, 6, 2, 3, 8, 5, 9, 2, 8, 8, 7, 2, 6, 4, 9, 9, 8, 4, 3, 9, 4, 5, 3, 7, 8, 2, 2, 7, 5, 5, 8, 6, 3, 3, 2, 9, 7, 7, 4, 1, 8, 2, 3, 6, 6, 4, 7, 6, 8, 7, 2, 5, 7, 9, 6, 5, 4, 9, 5, 8, 4, 6, 9, 2, 7, 3, 4, 5, 6, 7, 7, 8, 5, 3, 9, 7, 4, 3, 2, 2, 6, 3, 8, 9, 3, 5, 5, 2, 9, 8, 8, 6, 2, 8, 3, 3, 7, 5, 9, 9, 4, 4, 2, 0, 6, 2, 4, 2, 5, 6, 4, 7, 2, 4, 8, 9, 6, 8, 3, 4, 5, 9, 7, 9, 9, 3, 6, 7, 3, 8, 2, 2, 3, 5, 4, 6, 5, 2, 6, 9, 4, 7, 6, 6, 8, 5, 7, 4, 9, 5, 5, 8, 6, 2, 0, 6, 2, 4, 2, 5, 6, 4, 7, 2, 4, 8, 9, 6, 8, 3, 4, 5, 9, 7, 9, 9, 3, 6, 7, 3, 8, 2, 2, 3, 5, 4, 6, 5, 2, 8, 9, 4, 7, 6, 6, 8, 5, 7, 4, 9, 5, 5, 8, 6, 3, 3, 9, 2, 8, 4, 4, 3, 7, 7, 5, 3, 2, 9, 8, 8, 7, 1, 5, 4, 2, 3, 4, 8, 9, 2, 7, 2, 6, 3, 7, 9, 9, 5, 7, 8, 5, 3, 8, 8, 6, 4, 2, 5, 6, 7, 4, 4, 3, 6, 8, 4, 5, 2, 8, 7, 5, 5, 9, 4, 6, 2, 7, 7, 3, 9, 9, 7, 8, 2, 2, 4, 7, 6, 6, 5, 8, 3, 9, 2, 9, 6, 0, 7, 2, 6, 9, 2, 5, 9, 8, 3, 4, 8, 5, 3, 6, 8, 8, 9, 3, 7, 5, 2, 4, 4, 5, 8, 4, 2, 7, 3, 5, 6, 9, 7, 7, 7, 6, 2, 2, 3, 9, 8, 6, 5, 4, 9, 6, 6, 4, 3, 3, 8, 7, 4, 6, 3, 2, 5, 5, 7, 8, 2, 9, 9, 7, 1, 4, 9, 5, 6, 4, 8, 4, 7, 9, 3, 7, 9, 2, 8, 6, 5, 4, 4, 5, 8, 3, 3, 2, 7, 4, 3, 6, 6, 8, 5, 2, 6, 6, 5, 7, 6, 2, 9, 7, 3, 5, 5, 9, 8, 7, 2, 4, 6, 3, 8, 9, 9, 4, 2, 2, 3, 4, 8, 7, 7, 5, 3, 9, 8, 8, 2, 0, 9, 6, 2, 6, 7, 2, 5, 7, 8, 4, 2, 2, 8, 7, 5, 4, 3, 9, 3, 5, 6, 7, 3, 3, 4, 5, 2, 9, 8, 6, 4, 7, 9, 2, 3, 6, 8, 9, 4, 4, 8, 3, 7, 7, 4, 6, 5, 8, 8, 2, 4, 9, 9, 7, 8, 5, 5, 3, 2, 7, 6, 6, 9, 5, 1, 6, 2, 8, 6, 7, 8, 2, 5, 8, 3, 6, 8, 4, 7, 6, 5, 4, 2, 5, 9, 7, 3, 4, 8, 9, 5, 5, 6, 9, 4, 5, 2, 6, 7, 8, 3, 9, 5, 5, 6, 9, 4, 5, 2, 6, 7, 2, 2, 3, 7, 4, 9, 8, 5, 3, 3, 9, 6, 6, 4, 3, 2, 2, 9, 6, 7, 4, 8, 2, 3, 7, 2, 9, 7, 5, 4, 8, 6, 5, 3, 3, 9, 6, 6, 4, 2, 7, 9, 9, 5, 3, 5, 3, 7, 6, 9, 2, 6, 4, 7, 4, 5, 8, 9, 3, 5, 7, 9, 6, 5, 3, 6, 7, 4, 8, 3, 3, 7, 7, 4, 4, 8, 8, 2, 6, 9, 9, 2, 3, 2, 9, 4, 2, 5, 4, 6, 3, 7, 4, 8, 2, 8, 4, 6, 3, 3, 5, 8, 6, 3, 6, 8, 4, 5, 3, 3, 3, 6, 3, 4, 2, 4, 7, 9, 8, 8, 3, 7, 7, 2, 5, 9, 4, 8, 5, 8, 9, 2, 5, 4, 7, 7, 4, 6, 4, 9, 9, 4, 6, 5, 9, 3, 2, 1, 3, 7, 5, 9, 8, 5, 8, 8, 3, 6, 4, 9, 8, 9, 6, 6, 7, 2, 2, 2, 7, 6, 3, 3, 6, 4, 5, 0, 3, 6, 2, 5, 5, 6, 9, 2, 2, 2, 4, 7, 4, 6, 7, 4, 2, 5, 6, 8, 4, 7, 3, 5, 9, 8, 9, 9, 8, 8, 4, 8, 4, 8, 2, 2, 7, 8, 8, 3, 6, 7, 5, 6, 2, 2, 9, 3, 2, 4, 7, 4, 2, 9, 5, 8, 7, 9, 6, 3, 9, 5,
+            5, 2, 7, 3, 9, 9, 8, 6, 5, 7, 7, 9, 3, 2, 2, 8, 4, 1, 4, 2, 4, 8, 9, 7, 5, 7, 9, 5, 2, 6, 8, 3, 7, 6, 5, 9, 2, 7, 8, 6, 9, 9, 3, 6, 2, 3, 4, 5, 8, 8, 2, 5, 4, 6, 3, 3, 8, 7, 7, 4, 9, 6, 4, 7, 2, 8, 5, 5, 3, 9, 4, 1, 3, 5, 6, 6, 7, 3, 2, 2, 9, 8, 4, 0, 3, 4, 8, 2, 4, 9, 7, 6, 2, 3, 7, 2, 2, 5, 6, 5, 7, 4, 5, 8, 7, 9, 2, 6, 6, 8, 5, 9, 3, 8, 9, 9, 4, 7, 5, 5, 3, 2, 8, 6, 4, 2, 7, 7, 8, 3, 9, 5, 4, 4, 6, 7, 3, 3, 5, 2, 9, 8, 8, 4, 3, 6, 9, 1, 9, 5, 9, 6, 7, 5, 6, 3, 2, 5, 7, 9, 6, 4, 8, 9, 2, 6, 5, 8, 2, 2, 4, 3, 2, 8, 8, 6, 3, 9, 3, 4, 6, 8, 5, 5, 2, 7, 4, 4, 9, 7, 6, 6, 2, 3, 5, 4, 7, 7, 2, 9, 4, 5, 3, 3,
+            6, 9, 9, 8, 4, 2, 8, 7, 3, 8, 0, 4, 9, 4, 8, 2, 5, 8, 6, 7, 2, 6, 8, 8, 3, 4, 8, 3, 5, 2, 7, 6, 4, 3, 6, 5, 3, 9, 8, 4, 7, 5, 4, 2, 9, 6, 6, 3, 8, 5, 5, 9, 7, 4, 6, 9, 3, 3, 2, 8, 7, 9, 9, 5, 6, 2, 4, 4, 5, 7, 7, 8, 9, 2, 2, 3, 7, 1, 7, 4, 2, 5, 9, 7, 3, 6, 9, 4, 6, 8, 3, 3, 5, 7, 3, 4, 8, 5, 6, 3, 7, 8, 7, 4, 6, 5, 9, 6, 8, 9, 9, 3, 4, 7, 5, 8, 4, 2, 3, 3, 7, 6, 2, 7, 9, 5, 5, 7, 8, 5, 4, 9, 7, 7, 2, 4, 3, 8, 6, 9, 2, 2, 8, 7, 3, 9, 4, 4, 5, 6, 6, 3, 2, 9, 8, 8, 3, 5, 1, 7, 8, 2, 5, 3, 6, 6, 9, 3, 5, 8, 4, 7, 4, 2, 6, 4, 3, 7, 9, 6, 5, 4, 8, 6, 7, 7, 2, 3, 3, 4, 9, 5, 2, 7, 6, 8, 8, 9, 2, 4, 5, 3, 9, 8,
+            5, 5, 6, 3, 2, 9, 4, 4, 6, 2, 2, 8, 7, 5, 9, 9, 7, 3, 8, 0, 3, 6, 8, 3, 4, 5, 7, 6, 3, 5, 9, 4, 2, 4, 7, 9, 2, 5, 6, 7, 4, 3, 2, 6, 9, 5, 8, 8, 7, 5, 3, 8, 6, 6, 4, 9, 7, 2, 8, 5, 5, 4, 8, 3, 9, 9, 6, 8, 2, 2, 3, 9, 8, 4, 4, 6, 5, 2, 7, 7, 8, 9, 3, 3, 7, 1, 6, 2, 5, 7, 9, 4, 8, 8, 2, 7, 7, 3, 5, 2, 3, 2, 4, 7, 5, 8, 6, 9, 8, 4, 5, 3, 7, 4, 6, 3, 8, 8, 7, 6, 5, 9, 7, 2, 9, 5, 6, 6, 7, 3, 6, 4, 8, 3, 9, 9, 5, 4, 4, 9, 2, 2, 6, 8, 5, 5, 7, 8, 9, 3, 3, 4, 0, 1, 3, 8, 2, 7, 4, 3, 6, 5, 9, 5, 8, 6, 4, 9, 3, 4, 6, 7, 9, 6, 6, 2, 5, 4, 2, 3, 9, 7, 8, 5, 2, 6, 8, 4, 4, 5, 7, 3, 8, 9, 4, 7, 6, 3, 3, 2, 8, 7, 7, 5, 5, 6, 9, 9, 2, 2, 4, 3, 1, 2, 9, 8, 8, 3, 5, 1, 6, 4, 8, 4, 5, 3, 2, 5, 9, 6, 6, 8, 9, 3, 4, 2, 7, 9, 4, 8, 6, 2, 8, 3, 5, 2, 6, 7, 7, 5, 3, 7, 6, 9, 9, 8, 5,
+            4, 9, 5, 5, 7, 2, 2, 3, 8, 7, 4, 4, 6, 3, 9, 2, 4, 7, 3, 3, 6, 5, 8, 8, 2, 9, 0, 9, 4, 3, 5, 9, 7, 3, 6, 7, 8, 4, 9, 3, 4, 7, 2, 5, 6, 6, 2, 7, 9, 5, 8, 7, 6, 9, 2, 4, 4, 8, 3, 9, 7, 4, 5, 5, 7, 7, 8, 6, 4, 2, 2, 3, 3, 6, 8, 5, 2, 6, 5, 3, 8, 8, 9, 6, 3, 7, 5, 4, 3, 2, 9, 9, 8, 2, 1, 6, 3, 5, 9, 2, 4, 6, 2, 5, 3, 4, 7, 2, 8, 9, 4, 4, 6, 7, 8, 3, 5, 5, 9, 8, 5, 7, 4, 5, 6, 6, 4, 8, 2, 9, 7, 7, 3, 2, 6, 9, 9, 5, 4, 2, 2, 3, 6, 8, 7, 5, 8, 8, 6, 5, 2, 8, 4, 3, 3, 7, 9, 3, 0, 7, 3, 8, 2, 7, 2, 3, 9, 7, 6, 8, 4, 9, 3, 4, 5, 9, 6, 6, 3, 5, 7, 9, 2, 5, 4, 8, 9, 4, 7, 2, 6, 7, 7, 4, 2, 8, 6, 4, 4, 3, 8, 7, 6, 5, 5, 2, 4, 9, 8, 8, 5, 3, 3, 9, 5, 6, 2, 2, 7, 8, 3, 8, 9, 9, 6, 1, 5, 3, 6, 9, 7, 5, 9, 8, 4, 6, 4, 3, 7, 9, 2, 3, 3, 5, 8, 7, 5, 2, 4, 4, 9, 9, 5, 6, 7, 3, 8, 5, 7, 4, 6, 6, 2, 7, 8, 6, 9, 3, 7, 7, 2, 6, 3, 4, 2, 8, 8, 9, 4, 7, 6, 8, 3, 2, 2, 9, 6, 5, 5, 4, 0, 2, 4, 5, 3, 4, 8, 3, 9, 8, 2, 2, 5, 9, 7, 9, 6, 9, 5, 5, 4, 2, 5, 7, 7, 5, 9, 8, 4, 5, 5, 7, 3, 8, 2, 5, 6, 3, 4, 8, 7, 5, 4, 8, 6, 9, 6, 2, 4, 3, 2, 9, 3, 8, 5, 0, 8, 6, 7, 3, 6, 8, 9, 3, 6, 6, 5, 9, 4, 5, 5, 3, 8, 2, 7, 6, 9, 9, 5, 8, 3, 3, 6, 4, 2, 9, 8, 8, 7, 2, 2, 3, 4, 9, 6, 7, 3, 5, 2, 6, 6, 8, 9, 2, 5, 9, 3, 7, 8, 4, 4, 5, 6, 2, 4, 7, 4, 8, 6, 3, 9, 7, 5, 7, 9, 2, 8, 5, 4, 6, 5, 3, 2, 4, 3, 1, 2, 9, 6, 2, 5, 5, 2, 3, 4, 9, 8, 6, 7, 4, 8, 3, 6, 4, 4, 7, 2, 6, 5, 7, 7, 3, 2, 8, 4, 6, 8,
+            7, 6, 9, 3, 3, 7, 8, 2, 7, 5, 8, 5, 9, 4, 5, 6, 6, 3, 9, 9, 7, 9, 5, 2, 2, 8, 9, 3, 8, 3, 5, 4, 2, 0, 4, 5, 5, 6, 9, 2, 2, 3, 8, 6, 7, 4, 9, 8, 8, 2, 4, 3, 6, 2, 7, 7, 3, 9, 6, 8, 7, 2, 6, 6, 4, 7, 5, 8, 3, 7, 6, 5, 9, 9, 4, 4, 2, 5, 7, 5, 3, 3, 2, 9, 7, 3, 4, 6, 4, 8, 9, 5, 7, 9, 6, 3, 5, 1, 6, 9, 9, 2, 9, 8, 7, 2, 2, 6, 5, 9, 3, 3, 5, 8, 8, 9, 4, 2, 5, 5, 6, 7, 8, 3, 4, 4, 6, 8, 2, 7, 7, 6, 2, 7, 4, 9, 8, 4, 5, 2, 9, 7, 5, 3, 6, 6, 9, 5, 4, 3, 9, 4, 8, 6, 7, 9, 3, 2, 7, 2, 8, 3, 7, 0, 3, 9, 7, 3, 9, 4, 8, 2, 5, 6, 2, 8, 5, 7, 8, 3, 2, 2, 4, 5, 9, 9, 6, 2, 3, 7, 7, 9, 2, 8, 4, 6, 6, 5, 4, 7, 5, 8, 9, 5, 5, 3, 8, 7, 6, 4, 4, 9, 8, 2, 7, 4, 3, 5, 2, 6, 4, 2, 9, 5, 3, 6, 1, 2, 8, 9, 2, 3, 4, 5, 7, 3, 6, 9, 8, 8, 3, 5, 6, 2, 5, 8, 6, 3, 3, 2, 5, 8, 9, 5, 5, 3, 8, 7, 6, 4, 4, 9, 8, 2, 7, 4, 3, 5, 2, 6, 4, 2, 9, 5, 3, 6, 1, 2, 8, 9, 2, 3, 4, 5, 7, 3, 6, 9, 8, 8, 3, 5, 6, 2, 5, 8, 6, 3, 3, 2, 2, 4, 6, 8, 7, 7, 5, 5, 4, 7, 9, 3, 8, 4, 4, 2, 9, 6, 7, 8, 5, 9, 7, 2, 6, 6, 5, 2, 7, 3, 9, 4, 8, 7, 6, 3, 7, 9, 5, 3, 4, 9, 0, 9, 2, 8, 8, 5, 6, 3, 3, 7, 4, 2, 9, 3, 6, 4, 4, 7, 8, 3, 2, 2, 7, 5, 5, 9, 4, 5, 8, 9, 9, 6, 7, 3, 5, 7, 7, 2, 5, 3, 8, 2, 6, 8, 4, 9, 7, 2, 4, 3, 9, 8, 6, 6, 9, 5, 2, 3, 5, 4, 8, 4, 6, 1, 5, 3, 8, 8, 9, 2, 7, 3, 4, 2, 2, 9, 9, 6, 5, 5, 7, 7, 8, 2, 3, 3, 6, 4, 9, 8, 3, 7, 5, 4, 4, 8, 6, 2, 5, 8, 7, 9, 3, 2, 4, 5, 2, 6, 6, 9, 7, 6, 4, 3, 9, 4, 6, 8, 5, 9, 5, 6, 3, 4, 7, 2, 8, 0, 4, 3, 3, 9, 8, 7, 5, 5, 8, 2, 2, 9, 4, 4, 5, 9, 9, 3, 8, 4, 6, 3, 7, 6, 6, 5, 9, 2, 7, 9, 5, 6, 7, 8, 8, 3, 6, 4, 7, 9, 5, 4, 8, 9, 6, 8, 5, 7, 4, 2, 3, 2, 5, 3, 7, 7, 8, 8, 2, 9, 7, 5, 2, 6, 1, 7, 3, 3, 9, 8, 7, 7, 2, 5, 6, 4, 4, 8, 9, 3, 2, 8, 8, 6, 9, 9, 3, 8, 4, 5, 5, 8, 2, 7, 9, 4, 6, 6, 8, 3, 5, 7, 8, 8, 5, 9, 6, 2, 3, 7, 6, 5, 2, 9, 7, 4, 2, 4, 9, 5, 3, 6, 7, 5, 4, 3, 8, 6, 3, 0, 8, 3, 7, 9, 9, 5, 7, 8, 2, 2, 6, 4, 4, 9, 2, 3, 6, 5, 5, 8, 9, 3, 5, 4, 2, 9, 8, 8, 6, 2, 5, 9, 4, 3, 3, 2, 7, 7, 6, 8, 4, 5, 6, 9, 7, 3, 4, 6, 2, 4, 7, 4, 8, 5, 3, 9, 6, 6, 3, 5, 2, 8, 7, 1, 5, 3, 8, 8, 9, 2, 3, 6, 6, 5, 4, 4, 9, 3, 7, 2, 2, 9, 6, 8, 3, 4, 4, 2, 7, 9, 9, 5, 8, 7, 5, 5, 9, 7, 2, 6, 7, 3, 3, 2, 4, 8, 5, 7, 4, 3, 9, 9, 8, 6, 9, 5, 6, 4, 7, 6, 2, 8, 4, 6, 3, 2, 5, 2, 0, 3, 9, 9, 8, 2, 6, 7, 7, 4, 5, 6, 6, 2, 7, 7, 8, 3, 5, 4, 8, 8, 9, 3, 4, 2, 2, 5, 9, 7, 6, 6, 2, 9, 4, 6, 8, 5, 5, 7, 2, 8, 7, 3, 6, 5, 8, 4, 3, 7, 5, 7, 8, 6, 4, 9, 6, 3, 4, 7, 5, 2, 2, 7, 1, 7, 3, 2, 2, 9, 8, 7, 7, 5, 4, 4, 2, 6, 5, 9, 9, 7, 8, 2, 3, 3, 9, 6, 4, 7, 9, 5, 5, 8, 3, 6, 6, 9, 2, 4, 5, 3, 8, 9, 3, 5, 6, 3, 7, 4, 7, 2, 2, 3, 8, 4, 3, 8, 8, 6, 2, 7, 6, 8, 5, 2, 8, 4, 9, 4, 0, 8, 3, 7, 8, 2, 4, 8, 9, 9, 6, 3, 3, 5, 4, 9, 2, 7, 7, 4, 5, 2, 6, 6, 7, 9, 4, 4, 7, 7, 5, 5, 8, 6, 4, 3, 9, 3, 6, 8, 8, 7, 3, 4, 2, 2, 8, 5, 6, 2, 9, 8, 4, 6, 9, 7, 5, 2, 3, 6, 5, 7, 6, 9, 5, 9, 1, 9, 6, 3, 4, 8, 8, 9, 2, 5, 3, 3, 7, 6, 4, 4, 5, 9, 3, 8, 7, 7, 2, 4, 6, 8, 2, 3, 5, 5, 7, 4, 9, 9, 8, 3, 9, 5, 8, 6, 2, 9, 7, 8, 5, 4, 7, 5, 6, 5, 2, 2, 7, 3, 2, 6, 7, 9, 4, 2, 8, 4, 3, 0, 4, 9, 8, 2, 2, 3, 7, 6, 6, 5, 3, 4, 4, 9, 3, 5, 5, 8, 2, 7, 4, 6, 9, 4, 7, 7, 8, 3, 3, 6, 4, 5, 2, 8, 8, 5, 4, 3, 2, 6, 3, 9, 9, 6, 8, 7, 2, 9, 5, 6, 7, 3, 8, 6, 2, 5, 9, 7, 5, 7, 9, 8, 4, 2, 4, 1, 4, 8, 2, 2, 3, 9, 7, 7, 5, 6, 8, 9, 9, 5, 3, 7, 2, 5, 5, 9, 2, 8, 8, 7, 6, 6, 4, 2, 6, 7, 4, 4, 9, 8, 3, 6, 2, 9, 5, 3, 3, 8, 5, 7, 9, 4, 7, 3, 4, 6, 9, 6, 5, 8, 6, 3, 5, 2, 7, 8, 5, 4, 3, 2, 4, 5, 0, 5, 8, 9, 2, 2, 7, 8, 4, 4, 5, 6, 7, 3, 9, 5, 5, 9, 3, 8, 8, 2, 6, 2, 3, 5, 7, 7, 9, 4, 6, 2, 8, 6, 6, 9, 9, 7, 2, 4, 9, 6, 4, 8, 3, 7, 4, 2, 5, 4, 7, 6, 5, 2, 3, 4, 3, 2, 9, 8, 7, 5, 3, 6, 8, 1, 9, 2, 2, 7, 3, 5, 4, 4, 8, 7, 7, 2, 8, 9, 3, 3, 2, 6, 5, 5, 7, 3, 9, 6, 7, 4, 4, 3, 6, 9, 7, 5, 2, 4, 7, 9, 2, 5, 6, 8, 3, 3, 8, 5, 4, 2, 0, 2, 9, 9, 5, 7, 8, 8, 3, 6, 4, 4, 2, 8, 7, 7, 2, 3, 4, 6, 9, 3, 3, 5, 8, 9, 4, 7, 3, 2, 2, 7, 6, 2, 5, 4, 9, 6, 5, 5, 3, 9, 7, 5, 9, 8, 4, 3, 7, 9, 5, 2, 4, 5, 6, 7, 4, 8, 6, 3, 8, 5, 2, 8, 3, 6, 8, 2, 6, 1, 5, 9, 6, 6, 7, 2, 3, 5, 5, 8, 7, 9, 9, 4, 2, 8, 8, 5, 6, 4, 7, 7, 3, 8, 4, 4, 9, 8, 6, 3, 2, 9, 7, 4, 6, 8, 9, 2, 5, 4, 3, 3, 7, 6, 5, 3, 9, 3, 4, 5, 7, 8, 2, 2, 8, 5, 7, 5, 2, 7, 6, 2, 6, 9, 0, 2, 8, 8, 9, 3, 5, 7, 7, 8, 4, 3, 2, 2, 4, 9, 9, 8, 3, 6, 4, 2, 7, 6, 9, 5, 5, 3, 7, 9, 2, 6, 7, 5, 9, 6, 1, 2, 5, 8, 6, 6, 4, 3, 7, 2, 3, 3, 8, 5, 4, 4, 5, 6, 8, 2, 9, 7, 3, 9, 7, 4, 8, 4, 4, 5, 9, 4, 1, 7, 9, 9, 2, 8, 7, 5, 5, 2, 3, 6, 4, 7, 8, 3, 3, 4, 6, 6, 9, 4, 5, 6, 8, 3, 2, 2, 6, 7, 7, 4, 9, 6, 5, 3, 7, 2, 4, 8, 5, 4, 4, 2, 5, 7, 3, 9, 8, 8, 6, 3, 5, 8, 4, 3, 8, 9, 5, 2, 9, 6, 2, 7, 0, 6, 9, 2, 3, 3, 8, 5, 6, 6, 7, 4, 2, 2, 8, 7, 9, 9, 3, 7, 7, 2, 6, 4, 2, 9, 5, 5, 7, 8, 2, 4, 8, 6, 3, 4, 4, 7, 6, 5, 7, 9, 4, 6, 8, 8, 3, 5, 8, 7, 5, 3, 9, 7, 3, 6, 2, 7, 2, 9, 8, 4, 3, 2, 4, 5, 1, 7, 8, 8, 9, 2, 3, 5, 7, 7, 3, 4, 4, 8, 2, 9, 3, 3, 6, 8, 5, 5, 9, 4, 7, 5, 8, 6, 6, 7, 4, 9, 6, 2, 5, 6, 4, 5, 3, 2, 2, 8, 3, 7, 6, 3, 9, 9, 7, 9, 5, 4, 3, 8, 6, 9, 8, 4, 2, 7, 4, 6, 5, 2, 4, 2, 6, 0, 2, 4, 4, 9, 9, 5, 7, 3, 3, 8, 2, 6, 8, 8, 9, 2, 5, 5, 3, 9, 8, 3, 6, 2, 2, 3, 4, 7, 9, 3, 5, 8, 7, 7, 6, 5, 4, 3, 7, 2, 9, 6, 4, 8, 5, 9, 4, 5, 6, 9, 7, 5, 2, 7, 8, 6, 7, 4, 6, 6, 3, 2, 8, 1, 4, 7, 7, 9, 2, 3, 3, 6, 8, 5, 5, 7, 2, 2, 8, 7, 3, 5, 4, 9, 3, 4, 8, 9, 9, 4, 6, 2, 7, 8, 8, 2, 9, 5, 8, 3, 2, 6, 7, 5, 6, 6, 3, 9, 8, 4, 4, 2, 5, 9, 7, 6, 4, 5, 3, 7, 9, 6, 5, 2, 4, 3, 8, 6, 9, 0, 6, 8, 8, 2, 3, 9, 9, 2, 7, 6, 4, 7, 7, 5, 9, 8, 7, 4, 4, 9, 3, 6, 7, 8, 2, 8, 4, 2, 5, 3, 7, 2, 8, 4, 6, 5, 5, 8, 9, 7, 3, 8, 5, 2, 6, 6, 3, 5, 4, 3, 3, 2, 2, 9, 4, 5, 6,
+
+
+        ];
+
+        let isProcessing = false;
+        let hrdChartInstance = null;
+        let isDataSubmitted = false;
+
+        let state = {
+            otp: "",
+            user: { name: "", email: "", phone: "", startTime: "" },
+            pauli: {
+                numbers: [],
+                index: 1,
+                totalAnswered: 0,
+                correct: 0,
+                wrong: 0,
+                timeLeft: PAULI_DURATION_SECONDS,
+                startTimestamp: null,
+                lastProcessedInterval: 0,
+                intervalCounter: 0,
+                garisArray: [],
+                timerId: null,
+                isActive: false
+            }
+        };
+
+        function customAlert(title, message, type = 'info', isConfirm = false, onOk = null, onCancel = null) {
+            document.getElementById('msgTitle').innerText = title;
+            document.getElementById('msgBody').innerText = message;
+
+            const icon = document.getElementById('msgIcon');
+            const btnOk = document.getElementById('msgBtnOk');
+            const btnCancel = document.getElementById('msgBtnCancel');
+
+            if (type === 'error') {
+                icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-red-500/10 text-red-400 border border-red-500/20";
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                btnOk.className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition";
+            } else if (type === 'success') {
+                icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-green-500/10 text-green-400 border border-green-500/20";
+                icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                btnOk.className = "w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition";
+            } else {
+                icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20";
+                icon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+                btnOk.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition";
+            }
+
+            if (isConfirm) {
+                btnCancel.classList.remove('hide-section');
+                btnOk.innerText = "Ya, Lanjutkan";
+            } else {
+                btnCancel.classList.add('hide-section');
+                btnOk.innerText = "Mengerti";
+            }
+
+            document.getElementById('modal-message').classList.remove('hide-section');
+            btnOk.onclick = () => { document.getElementById('modal-message').classList.add('hide-section'); if (onOk) onOk(); };
+            btnCancel.onclick = () => { document.getElementById('modal-message').classList.add('hide-section'); if (onCancel) onCancel(); };
+        }
+
+        let isHrdAuthenticated = false;
+
+        function showPage(pageId) {
+            if (pageId === 'page-hrd' && !isHrdAuthenticated) {
+                customAlert("Akses Terlarang", "Halaman HRD hanya dapat diakses setelah login terverifikasi.", "error");
+                showPage('page-login');
+                return;
+            }
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hide-section'));
+            document.getElementById(pageId).classList.remove('hide-section');
+            window.scrollTo(0, 0);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hide-section');
+        }
+
+        function handleRequestOTP(e) {
+            e.preventDefault();
+            const name = document.getElementById('inputName').value.trim();
+            const email = document.getElementById('inputEmail').value.trim();
+            const phone = document.getElementById('inputPhone').value.trim();
+
+            state.user = { name, email, phone, startTime: "" };
+            state.otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+            document.getElementById('otpArea').classList.remove('hide-section');
+            document.getElementById('displayOtpCode').innerText = state.otp;
+            document.getElementById('modal-otp').classList.remove('hide-section');
+        }
+
+        function verifyOTP() {
+            const input = document.getElementById('inputOtp').value;
+            if (input === state.otp) {
+                const now = new Date();
+                state.user.startTime = now.toLocaleString('id-ID', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                document.getElementById('nav-user-name').innerText = state.user.name.split(' ')[0];
+                document.getElementById('nav-user-info').classList.remove('hide-section');
+                showPage('page-dashboard');
+                updateDashboardProgress();
+            } else {
+                customAlert("Akses Ditolak", "Kode OTP yang Anda masukkan salah.", "error");
+            }
+        }
+
+        function showPauliTutorial() {
+            showPage('page-pauli-tutorial');
+        }
+
+        function startPauliTest() {
+            showPage('page-pauli');
+            state.pauli.numbers = [];
+            for (let i = 0; i < 20; i++) {
+                state.pauli.numbers = state.pauli.numbers.concat(LEMBAR_PAULI_ASLI);
+            }
+
+            state.pauli.index = 1;
+            state.pauli.totalAnswered = 0;
+            state.pauli.correct = 0;
+            state.pauli.wrong = 0;
+            state.pauli.timeLeft = PAULI_DURATION_SECONDS;
+            state.pauli.startTimestamp = Date.now();
+            state.pauli.lastProcessedInterval = 0;
+            state.pauli.intervalCounter = 0;
+            state.pauli.garisArray = [];
+            state.pauli.isActive = true;
+
+            document.getElementById('pauliScore').innerText = "0";
+            document.getElementById('historyAnswer').innerText = "";
+            document.getElementById('mainAnswerBox').innerText = "";
+            const bar = document.getElementById('pauliProgressBar');
+            if (bar) bar.style.width = '0%';
+
+            renderPauliBoxes();
+            runPauliTimer();
+        }
+
+        function renderPauliBoxes() {
+            const p = state.pauli;
+            const i = p.index;
+            document.getElementById('pBox1').innerText = (i - 1 >= 0) ? p.numbers[i - 1] : "";
+            document.getElementById('pBox2').innerText = p.numbers[i];
+            document.getElementById('pBox3').innerText = p.numbers[i + 1];
+            document.getElementById('pBox4').innerText = p.numbers[i + 2];
+        }
+
+        function handlePauliInput(num) {
+            if (!state.pauli.isActive || isProcessing) return;
+            if (!document.getElementById('modal-message').classList.contains('hide-section')) return;
+            isProcessing = true;
+
+            const p = state.pauli;
+            const topNum = p.numbers[p.index];
+            const botNum = p.numbers[p.index + 1];
+            const correctUnit = (topNum + botNum) % 10;
+
+            if (num === correctUnit) p.correct++;
+            else p.wrong++;
+
+            p.totalAnswered++;
+            p.intervalCounter++;
+
+            document.getElementById('pauliScore').innerText = p.totalAnswered;
+
+            const mainBox = document.getElementById('mainAnswerBox');
+            mainBox.innerText = num;
+            mainBox.classList.replace('bg-slate-800', 'bg-altrak-yellow');
+            mainBox.classList.replace('border-slate-600', 'border-altrak-yellow');
+            mainBox.classList.replace('text-white', 'text-slate-950');
+
+            setTimeout(() => {
+                const histBox = document.getElementById('historyAnswer');
+                histBox.innerText = num;
+                histBox.classList.remove('pop-anim');
+                void histBox.offsetWidth;
+                histBox.classList.add('pop-anim');
+
+                mainBox.innerText = "";
+                mainBox.classList.replace('bg-altrak-yellow', 'bg-slate-800');
+                mainBox.classList.replace('border-altrak-yellow', 'border-slate-600');
+                mainBox.classList.replace('text-slate-950', 'text-white');
+
+                p.index++;
+                if (p.index > p.numbers.length - 4) {
+                    p.numbers.push(...LEMBAR_PAULI_ASLI);
+                }
+
+                renderPauliBoxes();
+                isProcessing = false;
+            }, 120);
+        }
+
+        function runPauliTimer() {
+            updateTimeDisplay();
+            clearInterval(state.pauli.timerId);
+
+            state.pauli.timerId = setInterval(() => {
+                if (!state.pauli.isActive || !state.pauli.startTimestamp) return;
+
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - state.pauli.startTimestamp) / 1000);
+                const currentIntervalIndex = Math.floor(elapsedSeconds / GARIS_INTERVAL_SECONDS);
+
+                // Sinkronisasi perpindahan garis interval 3 menit
+                while (state.pauli.lastProcessedInterval < currentIntervalIndex && state.pauli.garisArray.length < 19) {
+                    state.pauli.garisArray.push(state.pauli.intervalCounter);
+                    state.pauli.intervalCounter = 0;
+                    state.pauli.lastProcessedInterval++;
+                }
+
+                state.pauli.timeLeft = Math.max(0, PAULI_DURATION_SECONDS - elapsedSeconds);
+                updateTimeDisplay();
+
+                if (state.pauli.timeLeft <= 0) {
+                    clearInterval(state.pauli.timerId);
+                    finishPauliTest(true);
+                }
+            }, 500);
+        }
+
+        function updateTimeDisplay() {
+            const t = state.pauli.timeLeft;
+            const m = Math.floor(t / 60).toString().padStart(2, '0');
+            const s = (t % 60).toString().padStart(2, '0');
+            document.getElementById('pauliTimer').innerText = `${m}:${s}`;
+
+            const elapsedPct = ((PAULI_DURATION_SECONDS - t) / PAULI_DURATION_SECONDS) * 100;
+            const bar = document.getElementById('pauliProgressBar');
+            if (bar) bar.style.width = Math.min(100, Math.max(0, elapsedPct)) + '%';
+        }
+
+        function finishPauliTest(isTimeUp = false) {
+            // Jika diklik manual (bukan karena waktu habis), tampilkan konfirmasi dulu
+            if (!isTimeUp) {
+                customAlert(
+                    "Konfirmasi Selesai",
+                    "Waktu Anda masih tersisa. Yakin ingin mengakhiri dan mengumpulkan tes ini sekarang?",
+                    "info",
+                    true, // Memunculkan tombol Batal & Ya
+                    () => prosesSimpanPauli(false), // Jika klik Ya (Lanjut simpan)
+                    () => { } // Jika klik Batal (Kembali mengerjakan)
+                );
+                return;
+            }
+
+            // Jika waktu otomatis habis, langsung proses simpan
+            prosesSimpanPauli(true);
+        }
+
+        // Fungsi tambahan untuk memproses penyimpanannya secara rapi
+        function prosesSimpanPauli(isTimeUp) {
+            state.pauli.isActive = false;
+            clearInterval(state.pauli.timerId);
+
+            state.pauli.garisArray.push(state.pauli.intervalCounter);
+            while (state.pauli.garisArray.length < 20) {
+                state.pauli.garisArray.push(0);
+            }
+
+            sendToSupabase(() => {
+                unlockDashboardCard(1);
+
+                // Kembali ke dashboard setelah Pauli, agar peserta lanjut ke tes berikutnya
+                let judulPesan = isTimeUp ? "Waktu Habis!" : "Tes Pauli Selesai";
+                customAlert(
+                    judulPesan,
+                    "Jawaban Tes Pauli Anda telah berhasil disimpan. Silakan klik tombol di bawah untuk melanjutkan ke modul tes berikutnya.",
+                    "success",
+                    false,
+                    () => {
+                        showPage('page-dashboard');
+                        window.scrollTo(0, 0);
+                    }
+                );
+            });
+        }
+
+        // Tampilkan halaman ucapan terima kasih profesional (dipanggil setelah SEMUA 4 tes selesai)
+        function tampilkanHalamanSelesai() {
+            // Nonaktifkan proteksi beforeunload karena sesi sudah benar-benar selesai
+            window._tesSelesai = true;
+            // Update nama peserta di halaman selesai
+            const namaEl = document.getElementById('selesai-nama');
+            if (namaEl && state.user.name) {
+                namaEl.textContent = 'Selamat, ' + state.user.name + ' — semoga sukses dalam proses rekrutmen!';
+            }
+            showPage('page-selesai');
+        }
+
+        // --- PORTAL HRD & EXPORT EXCEL KHUSUS ---
+        // --- AKSES RAHASIA HRD (SECRET SHORTCUT & EASTER EGG) ---
+        let logoClickCount = 0;
+        let logoClickTimer = null;
+        function handleLogoClick() {
+            logoClickCount++;
+            clearTimeout(logoClickTimer);
+            if (logoClickCount >= 3) {
+                logoClickCount = 0;
+                openHrdLoginModal();
+            } else {
+                logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1000);
+            }
+        }
+
+        function checkUrlHash() {
+            if (window.location.hash === '#hrd' || window.location.search.includes('hrd=true')) {
+                openHrdLoginModal();
+            }
+        }
+        window.addEventListener('hashchange', checkUrlHash);
+        window.addEventListener('DOMContentLoaded', checkUrlHash);
+
+        // --- PORTAL HRD & EXPORT EXCEL KHUSUS ---
+        function openHrdLoginModal() {
+            document.getElementById('inputHrdPin').value = "";
+            document.getElementById('modal-hrd-login').classList.remove('hide-section');
+        }
+
+        // --- SISTEM KEAMANAN & OTORISASI HRD ---
+        async function verifyHrdLogin() {
+            const pin = document.getElementById('inputHrdPin').value;
+            if (!pin) return customAlert("Akses Ditolak", "Sandi tidak boleh kosong.", "error");
+
+            document.getElementById('modal-loading').classList.remove('hide-section');
+
+            // Autentikasi aman melalui server Supabase 
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: 'hrd@altrak1978.co.id',
+                password: pin
+            });
+
+            document.getElementById('modal-loading').classList.add('hide-section');
+
+            if (error || !data || !data.session) {
+                isHrdAuthenticated = false;
+                customAlert("Akses Ditolak", "Sandi HRD salah atau akun belum didaftarkan di sistem.", "error");
+            } else {
+                isHrdAuthenticated = true;
+                document.getElementById('inputHrdPin').value = "";
+                closeModal('modal-hrd-login');
+                showPage('page-hrd');
+                loadHrdData();
+            }
+        }
+
+        async function logoutHrd() {
+            document.getElementById('modal-loading').classList.remove('hide-section');
+            await supabaseClient.auth.signOut();
+            isHrdAuthenticated = false;
+            cachedHrdData = [];
+            const tbody = document.getElementById('hrdTableBody');
+            if (tbody) tbody.innerHTML = '';
+            document.getElementById('modal-loading').classList.add('hide-section');
+            showPage('page-login');
+        }
+
+        function renderHrdTable(dataList) {
+            const tbody = document.getElementById('hrdTableBody');
+            if (!dataList || dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-500">Tidak ada data kandidat yang cocok.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            dataList.forEach((item) => {
+                const row = item.row;
+                const index = item.originalIndex;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-altrak-yellow">#${row.id}</td>
+                    <td class="p-3 font-bold text-white">${row["Nama Lengkap"] || '-'}</td>
+                    <td class="p-3 text-xs text-slate-400">${row["Alamat Email"] || '-'}<br>${row["No WhatsApp"] || '-'}</td>
+                    <td class="p-3 text-xs text-slate-400">${row["Waktu Selesai"] || '-'}</td>
+                    <td class="p-3 text-center font-bold text-white">${row["Total Pauli"] || 0}</td>
+                    <td class="p-3 text-center"><span class="text-green-400 font-bold">${row["Jawaban Benar"] || 0}</span> / <span class="text-red-400 font-bold">${row["Jawaban Salah"] || 0}</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="viewCandidateChart(${index})" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow">
+                            <i class="fa-solid fa-chart-line mr-1"></i> Buka Laporan
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterHrdTable() {
+            const query = (document.getElementById('hrdSearchInput').value || '').toLowerCase().trim();
+            const mapped = cachedHrdData.map((row, index) => ({ row, originalIndex: index }));
+            if (!query) {
+                renderHrdTable(mapped);
+                return;
+            }
+            const filtered = mapped.filter(({ row }) => {
+                const name = (row["Nama Lengkap"] || '').toLowerCase();
+                const email = (row["Alamat Email"] || '').toLowerCase();
+                const wa = (row["No WhatsApp"] || '').toLowerCase();
+                const id = String(row.id || '');
+                return name.includes(query) || email.includes(query) || wa.includes(query) || id.includes(query);
+            });
+            renderHrdTable(filtered);
+        }
+
+        async function loadHrdData() {
+            if (!isHrdAuthenticated) {
+                customAlert("Akses Terlarang", "Silakan login HRD terlebih dahulu.", "error");
+                showPage('page-login');
+                return;
+            }
+
+            const tbody = document.getElementById('hrdTableBody');
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data dari server...</td></tr>`;
+
+            try {
+                // Penarikan data (Otomatis ditolak Supabase jika belum login)
+                const { data, error } = await supabaseClient
+                    .from('hasil_psikotes_kandidat')
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) throw error;
+
+                cachedHrdData = data || [];
+                const searchInput = document.getElementById('hrdSearchInput');
+                if (searchInput) searchInput.value = '';
+                filterHrdTable();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-400">Anda tidak memiliki akses. Silakan login kembali.</td></tr>`;
+            }
+        }
+
+        function exportHrdToExcel() {
+            if (!cachedHrdData || cachedHrdData.length === 0) {
+                customAlert("Kosong", "Tidak ada data untuk diexport.", "error");
+                return;
+            }
+
+            let headers = ["ID", "Waktu Mulai", "Waktu Selesai", "Nama Lengkap", "Alamat Email", "No WhatsApp", "Total Pauli", "Jawaban Benar", "Jawaban Salah"];
+            for (let i = 1; i <= 20; i++) headers.push(`Interval ${i}`);
+            let csvLines = [headers.join(",")];
+
+            cachedHrdData.forEach(row => {
+                let intervals = (row["Garis Interval (3 Menit)"] || "").split(',').map(n => n.trim());
+                while (intervals.length < 20) intervals.push("0");
+
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    return `"${String(str).replace(/"/g, '""')}"`;
+                };
+
+                let rowData = [
+                    row.id,
+                    escapeCsv(row["Waktu Mulai"]),
+                    escapeCsv(row["Waktu Selesai"]),
+                    escapeCsv(row["Nama Lengkap"]),
+                    escapeCsv(row["Alamat Email"]),
+                    escapeCsv(row["No WhatsApp"]),
+                    row["Total Pauli"] || 0,
+                    row["Jawaban Benar"] || 0,
+                    row["Jawaban Salah"] || 0,
+                    ...intervals.slice(0, 20)
+                ];
+                csvLines.push(rowData.join(","));
+            });
+
+            const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Laporan_Psikotes_Altrak_1978_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function viewCandidateChart(index) {
+            const row = cachedHrdData[index];
+
+            document.getElementById('rptName').innerText = row["Nama Lengkap"] || '-';
+            document.getElementById('rptWa').innerText = row["No WhatsApp"] || '-';
+            let rawDate = row["Waktu Selesai"] || '-';
+            document.getElementById('rptDate').innerText = rawDate.split(',')[0];
+
+            let intervalString = row["Garis Interval (3 Menit)"] || "";
+            let parsedData = [];
+            if (intervalString) {
+                parsedData = intervalString.split(',').map(num => parseInt(num.trim()) || 0);
+            }
+            while (parsedData.length < 20) parsedData.push(0);
+
+            let jumlah = row["Total Pauli"] || 0;
+            let benar = row["Jawaban Benar"] || 0;
+            let salah = row["Jawaban Salah"] || 0;
+            let rata = (jumlah / 20).toFixed(2);
+            let tinggi = Math.max(...parsedData);
+
+            let validDataTanpaNol = parsedData.filter(v => v > 0);
+            let rendah = validDataTanpaNol.length > 0 ? Math.min(...validDataTanpaNol) : 0;
+
+            document.getElementById('rptJumlah').innerText = jumlah;
+            document.getElementById('rptBenar').innerText = benar;
+            document.getElementById('rptSalah').innerText = salah;
+            document.getElementById('rptAvg').innerText = rata;
+            document.getElementById('rptTinggi').innerText = tinggi;
+            document.getElementById('rptRendah').innerText = rendah;
+
+            const lblTr = document.getElementById('rptIntervalLabels');
+            const dataTr = document.getElementById('rptIntervalData');
+            lblTr.innerHTML = '';
+            dataTr.innerHTML = '';
+            parsedData.forEach((val, i) => {
+                lblTr.innerHTML += `<th class="px-2 py-3 w-[5%] border-r border-slate-200 last:border-0">${i + 1}</th>`;
+                dataTr.innerHTML += `<td class="px-2 py-3 border-r border-slate-200 last:border-0">${val}</td>`;
+            });
+
+            document.getElementById('modal-hrd-chart').classList.remove('hide-section');
+
+            let dynamicMin = 0;
+            let dynamicMax = tinggi > 0 ? (Math.ceil((tinggi + 10) / 10) * 10) : 50;
+
+            const ctx = document.getElementById('hrdPauliChart').getContext('2d');
+            if (hrdChartInstance) hrdChartInstance.destroy();
+
+            hrdChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 20 }, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Jawaban per Interval',
+                        data: parsedData,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#2563eb',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: 0 },
+                    scales: {
+                        x: {
+                            grid: { color: '#f1f5f9', tickLength: 0 },
+                            ticks: { color: '#64748b', font: { family: 'sans-serif' } },
+                            border: { display: false }
+                        },
+                        y: {
+                            min: dynamicMin,
+                            max: dynamicMax,
+                            grid: { color: '#e2e8f0', tickLength: 0 },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'sans-serif' },
+                                stepSize: 10
+                            },
+                            border: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleFont: { size: 13 },
+                            bodyFont: { size: 14, weight: 'bold' },
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                title: function (context) { return 'Interval ' + context[0].label; },
+                                label: function (context) { return 'Menjawab: ' + context.raw + ' soal'; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setDashCardState(num, stateName) {
+            const card = document.getElementById('card-' + num);
+            if (!card) return;
+            card.classList.remove('is-active', 'is-done', 'is-locked');
+            card.classList.add('is-' + stateName);
+
+            const tag = card.querySelector('.dash-tag');
+            const labels = {
+                active: ['Sedang berlangsung', 'tag-active'],
+                done: ['Selesai', 'tag-done'],
+                locked: ['Terkunci', 'tag-locked']
+            };
+            tag.classList.remove('tag-active', 'tag-done', 'tag-locked');
+            tag.textContent = labels[stateName][0];
+            tag.classList.add(labels[stateName][1]);
+        }
+
+        function updateDashboardProgress() {
+            const total = 4;
+            const done = document.querySelectorAll('#page-dashboard .dash-card.is-done').length;
+            const pct = (done / total) * 100;
+            const fill = document.getElementById('dashProgressFill');
+            const label = document.getElementById('dashProgressLabel');
+            if (fill) fill.style.width = pct + '%';
+            if (label) label.textContent = done + ' / ' + total + ' modul';
+        }
+
+        function unlockDashboardCard(completedTestNum) {
+            const btnTadi = document.getElementById('btn-test-' + completedTestNum);
+            btnTadi.innerText = "Selesai";
+            btnTadi.disabled = true;
+            btnTadi.className = "dash-btn dash-btn-done";
+            setDashCardState(completedTestNum, 'done');
+
+            const nextTestNum = completedTestNum + 1;
+            const btnNext = document.getElementById('btn-test-' + nextTestNum);
+            const cardNext = document.getElementById('card-' + nextTestNum);
+
+            if (btnNext && cardNext) {
+                setDashCardState(nextTestNum, 'active');
+                btnNext.innerText = "Mulai Tes " + nextTestNum;
+                btnNext.disabled = false;
+                btnNext.className = "dash-btn dash-btn-active";
+            }
+
+            updateDashboardProgress();
+        }
+
+        function simulateTestCompletion(testNum) {
+            const modulNames = {
+                2: "Tes 2: IST",
+                3: "Tes 3: PAPI Kostick",
+                4: "Tes 4: DISC"
+            };
+            const modulName = modulNames[testNum] || `Tes ${testNum}`;
+            customAlert(
+                modulName,
+                `Modul ${modulName} saat ini sedang disiapkan oleh Tim Rekrutmen PT Altrak 1978 untuk tahap evaluasi berikutnya.\n\nHasil pengerjaan Tes Pauli Anda telah aman tersimpan di database HRD. Klik tombol di bawah untuk melanjutkan ke tahap berikutnya atau menunggu instruksi dari pengawas.`,
+                'info',
+                false,
+                () => {
+                    unlockDashboardCard(testNum);
+                }
+            );
+        }
+
+        function handleFinalSubmit() {
+            customAlert(
+                "Akhiri Sesi",
+                "Seluruh proses asesmen telah selesai. Klik konfirmasi untuk menutup sesi dan menampilkan halaman konfirmasi akhir.",
+                "info",
+                true,
+                () => {
+                    window._tesSelesai = true;
+                    tampilkanHalamanSelesai();
+                }
+            );
+        }
+
+        async function sendToSupabase(callback = null) {
+            if (isDataSubmitted) {
+                if (callback) callback();
+                return;
+            }
+
+            document.getElementById('modal-loading').classList.remove('hide-section');
+
+            const now = new Date();
+            const waktuSelesaiRapi = now.toLocaleString('id-ID', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('hasil_psikotes_kandidat')
+                    .insert([
+                        {
+                            "Waktu Mulai": state.user.startTime,
+                            "Waktu Selesai": waktuSelesaiRapi, // <-- Tambahkan baris ini
+                            "Nama Lengkap": state.user.name,   // <-- Sisakan 1 saja
+                            "Alamat Email": state.user.email,
+                            "No WhatsApp": state.user.phone,
+                            "Total Pauli": state.pauli.totalAnswered,
+                            "Jawaban Benar": state.pauli.correct,
+                            "Jawaban Salah": state.pauli.wrong,
+                            "Garis Interval (3 Menit)": state.pauli.garisArray.join(', ')
+                        }
+                    ]);
+                document.getElementById('modal-loading').classList.add('hide-section');
+
+                if (error) {
+                    console.error('Supabase Error:', error);
+                    customAlert("Gagal Menyimpan", "Terjadi kesalahan saat mengirim data ke database.", "error");
+                } else {
+                    isDataSubmitted = true;
+                    if (callback) callback();
+                }
+            } catch (err) {
+                document.getElementById('modal-loading').classList.add('hide-section');
+                console.error('Network Error:', err);
+                customAlert("Koneksi Gagal", "Gagal terhubung ke database Supabase.", "error");
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Shortcut Rahasia HRD: Ctrl + Shift + H
+            if (e.ctrlKey && e.shiftKey && (e.key === 'H' || e.key === 'h')) {
+                e.preventDefault();
+                openHrdLoginModal();
+                return;
+            }
+
+            if (state.pauli.isActive && !document.getElementById('page-pauli').classList.contains('hide-section')) {
+                if (!document.getElementById('modal-message').classList.contains('hide-section')) return;
+                if (e.key >= '0' && e.key <= '9') {
+                    handlePauliInput(parseInt(e.key));
+                }
+            }
+        });
+
+        // Proteksi Anti-Refresh / Navigasi saat tes sedang berjalan
+        window.addEventListener('beforeunload', (e) => {
+            if (state.pauli.isActive && !window._tesSelesai) {
+                e.preventDefault();
+                e.returnValue = 'Tes sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!';
+                return e.returnValue;
+            }
+        });
+    </script>
+</body>
+
+</html>
