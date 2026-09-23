@@ -356,3 +356,44 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* Timer urgent - berdenyut merah saat waktu tinggal < 60 detik */
+#pauliTimerContainer.timer-urgent {
+    background: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+    animation: timerPulse 1s ease-in-out infinite;
+}
+
+#pauliTimerContainer.timer-urgent #pauliTimer {
+    color: #dc2626 !important;
+}
+
+@keyframes timerPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.0); }
+    50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15); }
+}
+
+/* Answer box saat diisi */
+#mainAnswerBox.answered {
+    background: #e0e7ff;
+    border-color: #4f46e5;
+    color: #1e1b4b;
+}
+
+/* Uji coba - banner info */
+#trial-required-info {
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+/* Label uji coba di header halaman pauli */
+#pauliTimerLabel {
+    letter-spacing: 0.06em;
+    margin-bottom: 1px;
+}
+
+/* Animasi tombol saat disabled / dikunci */
+#btn-start-real:disabled {
+    pointer-events: none;
+}
+

@@ -182,7 +182,7 @@
                         </div>
                         <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 2: IST</h3>
                         <p class="text-sm text-slate-500 mb-5">Tes inteligensi (Verbal, Numerik, Spasial).</p>
-                        <button id="btn-test-2" disabled onclick="simulateTestCompletion(2)"
+                        <button id="btn-test-2" disabled onclick="handleLockedModule(2)"
                             class="dash-btn dash-btn-locked">Terkunci</button>
                     </div>
 
@@ -193,7 +193,7 @@
                         </div>
                         <h3 class="font-bold text-lg sm:text-xl text-blue-900 mb-1">Tes 3: PAPI Kostick</h3>
                         <p class="text-sm text-slate-500 mb-5">Inventori gaya kerja dan kepemimpinan.</p>
-                        <button id="btn-test-3" disabled onclick="simulateTestCompletion(3)"
+                        <button id="btn-test-3" disabled onclick="handleLockedModule(3)"
                             class="dash-btn dash-btn-locked">Terkunci</button>
                     </div>
 
@@ -266,11 +266,18 @@
                 </div>
 
                 <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                    <button onclick="startTrialPauliTest()" class="w-full sm:w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    <!-- Info wajib trial -->
+                    <div id="trial-required-info" class="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-1 flex items-center gap-3 text-sm text-amber-800">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500 flex-shrink-0"></i>
+                        <span>Anda <strong>wajib menyelesaikan uji coba 10 detik</strong> terlebih dahulu sebelum memulai tes asli.</span>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button id="btn-start-trial" onclick="startTrialPauliTest()" class="w-full sm:w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
                         <i class="fa-solid fa-stopwatch"></i> Coba 10 Detik
                     </button>
-                    <button onclick="startPauliTest()" class="w-full sm:w-1/2 bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                        <span>Mulai Tes Asli</span> <i class="fa-solid fa-play"></i>
+                    <button id="btn-start-real" onclick="startPauliTest()" disabled class="w-full sm:w-1/2 bg-slate-300 text-slate-500 font-black py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60">
+                        <span>Mulai Tes Asli</span> <i class="fa-solid fa-lock"></i>
                     </button>
                 </div>
             </div>
@@ -293,11 +300,13 @@
                                 0</div>
                         </div>
                     </div>
-                    <div
-                        class="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-xl border border-blue-200 shadow-sm">
+                <div class="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-xl border border-blue-200 shadow-sm" id="pauliTimerContainer">
                         <i class="fa-solid fa-stopwatch text-blue-500 text-sm sm:text-base"></i>
-                        <span id="pauliTimer"
-                            class="font-mono font-black text-lg sm:text-xl text-blue-800 tracking-wider">60:00</span>
+                        <div>
+                            <div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider leading-none" id="pauliTimerLabel">Sisa Waktu</div>
+                            <span id="pauliTimer"
+                                class="font-mono font-black text-lg sm:text-xl text-blue-800 tracking-wider">60:00</span>
+                        </div>
                     </div>
                 </div>
                 <div class="pauli-progress-track">

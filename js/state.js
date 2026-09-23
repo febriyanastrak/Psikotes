@@ -9,9 +9,18 @@ let hrdChartInstance = null;
 let isDataSubmitted = false;
 let isHrdAuthenticated = false;
 let cachedHrdData = [];
+let trialCompleted = false;  // WAJIB selesaikan percobaan 10 detik sebelum tes asli
+
+// Rate limiting untuk OTP
+let otpAttempts = 0;
+let otpLockUntil = 0;
+const MAX_OTP_ATTEMPTS = 5;
+const OTP_LOCK_MINUTES = 10;
 
 let logoClickCount = 0;
 let logoClickTimer = null;
+let hrdClickCount = 0;
+let hrdClickTimer = null;
 
 let state = {
     otp: "",

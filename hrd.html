@@ -268,8 +268,23 @@
     <script src="js/hrd.js"></script>
 
     <script>
+        // Rate limiting untuk login langsung HRD
+        let _hrdDirectAttempts = 0;
+        const _MAX_HRD_DIRECT = 3;
+        let _hrdDirectLock = 0;
+
         async function handleDirectHrdLogin(e) {
             e.preventDefault();
+
+            // Cek rate limiting
+            const now = Date.now();
+            if (_hrdDirectAttempts >= _MAX_HRD_DIRECT && now < _hrdDirectLock) {
+                const menit = Math.ceil((_hrdDirectLock - now) / 60000);
+                customAlert("Akses Dikunci", `Terlalu banyak percobaan. Coba lagi dalam ${menit} menit.`, "error");
+                return;
+            }
+            if (now >= _hrdDirectLock) _hrdDirectAttempts = 0;
+
             const pin = document.getElementById('inputHrdDirectPin').value;
             if (!pin) return customAlert("Akses Ditolak", "Sandi tidak boleh kosong.", "error");
 
@@ -284,9 +299,20 @@
                 document.getElementById('modal-loading').classList.add('hide-section');
 
                 if (error || !data || !data.session) {
+                    _hrdDirectAttempts++;
+                    if (_hrdDirectAttempts >= _MAX_HRD_DIRECT) {
+                        _hrdDirectLock = Date.now() + (15 * 60 * 1000);
+                    }
                     isHrdAuthenticated = false;
-                    customAlert("Akses Ditolak", "Sandi HRD salah atau akun belum didaftarkan di sistem.", "error");
+                    document.getElementById('inputHrdDirectPin').value = '';
+                    const sisaCoba = _MAX_HRD_DIRECT - _hrdDirectAttempts;
+                    if (sisaCoba > 0) {
+                        customAlert("Akses Ditolak", `Sandi HRD salah. Sisa percobaan: ${sisaCoba}`, "error");
+                    } else {
+                        customAlert("Akses Dikunci", "Terlalu banyak percobaan. Akses dikunci 15 menit.", "error");
+                    }
                 } else {
+                    _hrdDirectAttempts = 0;
                     isHrdAuthenticated = true;
                     document.getElementById('hrd-login-view').classList.add('hide-section');
                     document.getElementById('hrd-dashboard-view').classList.remove('hide-section');
@@ -302,10 +328,11 @@
         async function logoutDirectHrd() {
             document.getElementById('modal-loading').classList.remove('hide-section');
             try {
-                await supabaseClient.auth.signOut();
+                if (supabaseClient) await supabaseClient.auth.signOut();
             } catch (err) {}
             isHrdAuthenticated = false;
             cachedHrdData = [];
+            _hrdDirectAttempts = 0;
             document.getElementById('inputHrdDirectPin').value = "";
             document.getElementById('modal-loading').classList.add('hide-section');
             document.getElementById('hrd-dashboard-view').classList.add('hide-section');
@@ -314,6 +341,12 @@
 
         // Cek sesi Supabase saat pertama kali membuka halaman
         window.addEventListener('DOMContentLoaded', async () => {
+            // Hapus hash dari URL jika ada
+            if (window.location.hash) {
+                history.replaceState(null, '', window.location.pathname);
+            }
+            
+            if (!supabaseClient) return;
             const { data } = await supabaseClient.auth.getSession();
             if (data && data.session) {
                 isHrdAuthenticated = true;
@@ -326,3 +359,4 @@
 </body>
 
 </html>
+

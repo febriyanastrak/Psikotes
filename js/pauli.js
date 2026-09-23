@@ -5,9 +5,41 @@
 
 /**
  * Membuka halaman panduan & instruksi tes Pauli
+ * Mengatur tampilan tombol berdasarkan status percobaan
  */
 function showPauliTutorial() {
     showPage('page-pauli-tutorial');
+    _updateTutorialButtons();
+}
+
+/**
+ * Memperbarui tampilan tombol di halaman tutorial sesuai status trialCompleted
+ * @private
+ */
+function _updateTutorialButtons() {
+    const btnTrial  = document.getElementById('btn-start-trial');
+    const btnReal   = document.getElementById('btn-start-real');
+    const trialInfo = document.getElementById('trial-required-info');
+
+    if (!btnTrial || !btnReal) return;
+
+    if (trialCompleted) {
+        // Percobaan sudah selesai — aktifkan tombol tes asli
+        btnTrial.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Percobaan Selesai';
+        btnTrial.disabled = true;
+        btnTrial.className = 'w-full sm:w-1/2 bg-green-500/20 text-green-700 border border-green-300 font-bold py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2';
+        btnReal.disabled = false;
+        btnReal.className = 'w-full sm:w-1/2 bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2';
+        if (trialInfo) trialInfo.classList.add('hide-section');
+    } else {
+        // Percobaan BELUM selesai — kunci tombol tes asli
+        btnTrial.innerHTML = '<i class="fa-solid fa-stopwatch mr-2"></i>Coba 10 Detik';
+        btnTrial.disabled = false;
+        btnTrial.className = 'w-full sm:w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2';
+        btnReal.disabled = true;
+        btnReal.className = 'w-full sm:w-1/2 bg-slate-300 text-slate-500 font-black py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60';
+        if (trialInfo) trialInfo.classList.remove('hide-section');
+    }
 }
 
 /**
@@ -21,34 +53,38 @@ function startTrialPauliTest() {
     state.pauli.totalAnswered = 0;
     state.pauli.correct = 0;
     state.pauli.wrong = 0;
-    state.pauli.timeLeft = 10; 
+    state.pauli.timeLeft = 10;
     state.pauli.startTimestamp = Date.now();
     state.pauli.isActive = true;
 
-    const scoreEl = document.getElementById('pauliScore');
-    if (scoreEl) scoreEl.innerText = "0";
+    // Tampilkan label "UJI COBA" di header
+    const timerLabel = document.getElementById('pauliTimerLabel');
+    if (timerLabel) timerLabel.innerText = 'Uji Coba';
 
-    const histEl = document.getElementById('historyAnswer');
-    if (histEl) histEl.innerText = "";
-
-    const ansEl = document.getElementById('mainAnswerBox');
-    if (ansEl) ansEl.innerText = "";
-
-    const bar = document.getElementById('pauliProgressBar');
-    if (bar) bar.style.width = '0%';
-
+    _resetPauliUI();
     renderPauliBoxes();
     runPauliTimer();
 }
 
 /**
  * Memulai tes Pauli sebenarnya (durasi 60 menit)
+ * HANYA bisa dijalankan setelah trialCompleted = true
  */
 function startPauliTest() {
+    // KEAMANAN: Paksa harus selesaikan percobaan dulu
+    if (!trialCompleted) {
+        customAlert(
+            "Percobaan Belum Selesai",
+            "Anda harus menyelesaikan sesi uji coba 10 detik terlebih dahulu sebelum memulai tes asli.",
+            "error"
+        );
+        return;
+    }
+
     isTrialMode = false;
     showPage('page-pauli');
     state.pauli.numbers = [];
-    
+
     // Perbanyak array digit angka Pauli agar tidak kehabisan soal
     for (let i = 0; i < 20; i++) {
         state.pauli.numbers = state.pauli.numbers.concat(LEMBAR_PAULI_ASLI);
@@ -65,6 +101,19 @@ function startPauliTest() {
     state.pauli.garisArray = [];
     state.pauli.isActive = true;
 
+    const timerLabel = document.getElementById('pauliTimerLabel');
+    if (timerLabel) timerLabel.innerText = 'Sisa Waktu';
+
+    _resetPauliUI();
+    renderPauliBoxes();
+    runPauliTimer();
+}
+
+/**
+ * Mereset elemen UI Pauli ke kondisi awal
+ * @private
+ */
+function _resetPauliUI() {
     const scoreEl = document.getElementById('pauliScore');
     if (scoreEl) scoreEl.innerText = "0";
 
@@ -77,8 +126,8 @@ function startPauliTest() {
     const bar = document.getElementById('pauliProgressBar');
     if (bar) bar.style.width = '0%';
 
-    renderPauliBoxes();
-    runPauliTimer();
+    const timerEl = document.getElementById('pauliTimer');
+    if (timerEl) timerEl.innerText = isTrialMode ? '00:10' : '60:00';
 }
 
 /**
@@ -87,7 +136,7 @@ function startPauliTest() {
 function renderPauliBoxes() {
     const p = state.pauli;
     const i = p.index;
-    
+
     const b1 = document.getElementById('pBox1');
     const b2 = document.getElementById('pBox2');
     const b3 = document.getElementById('pBox3');
@@ -130,9 +179,7 @@ function handlePauliInput(num) {
     const mainBox = document.getElementById('mainAnswerBox');
     if (mainBox) {
         mainBox.innerText = num;
-        mainBox.classList.replace('bg-slate-800', 'bg-altrak-yellow');
-        mainBox.classList.replace('border-slate-600', 'border-altrak-yellow');
-        mainBox.classList.replace('text-white', 'text-slate-950');
+        mainBox.classList.add('answered');
     }
 
     setTimeout(() => {
@@ -146,9 +193,7 @@ function handlePauliInput(num) {
 
         if (mainBox) {
             mainBox.innerText = "";
-            mainBox.classList.replace('bg-altrak-yellow', 'bg-slate-800');
-            mainBox.classList.replace('border-altrak-yellow', 'border-slate-600');
-            mainBox.classList.replace('text-slate-950', 'text-white');
+            mainBox.classList.remove('answered');
         }
 
         p.index++;
@@ -202,9 +247,19 @@ function updateTimeDisplay() {
     const t = state.pauli.timeLeft;
     const m = Math.floor(t / 60).toString().padStart(2, '0');
     const s = (t % 60).toString().padStart(2, '0');
-    
+
     const timerEl = document.getElementById('pauliTimer');
     if (timerEl) timerEl.innerText = `${m}:${s}`;
+
+    // Warna timer berubah saat waktu menipis
+    const timerContainer = document.getElementById('pauliTimerContainer');
+    if (timerContainer) {
+        if (t <= 60 && !isTrialMode) {
+            timerContainer.classList.add('timer-urgent');
+        } else {
+            timerContainer.classList.remove('timer-urgent');
+        }
+    }
 
     const totalDuration = isTrialMode ? 10 : PAULI_DURATION_SECONDS;
     const elapsedPct = ((totalDuration - t) / totalDuration) * 100;
@@ -220,14 +275,15 @@ function finishPauliTest(isTimeUp = false) {
     // Mode Uji Coba (Trial 10 detik)
     if (isTrialMode) {
         isTrialMode = false;
+        trialCompleted = true; // TANDAI percobaan sudah selesai
         state.pauli.isActive = false;
         clearInterval(state.pauli.timerId);
         customAlert(
-            "Uji Coba Selesai",
-            "Waktu 10 detik telah habis. Ini adalah simulasi. Klik 'Mengerti' untuk kembali ke panduan dan bersiap memulai tes aslinya.",
+            "✅ Uji Coba Selesai!",
+            "Bagus! Anda telah menyelesaikan sesi uji coba 10 detik. Sekarang tombol 'Mulai Tes Asli' telah terbuka. Klik 'Mengerti' untuk kembali ke panduan.",
             "success",
             false,
-            () => showPauliTutorial() 
+            () => showPauliTutorial()
         );
         return;
     }
@@ -238,9 +294,9 @@ function finishPauliTest(isTimeUp = false) {
             "Konfirmasi Selesai",
             "Waktu Anda masih tersisa. Yakin ingin mengakhiri dan mengumpulkan tes ini sekarang?",
             "info",
-            true, 
+            true,
             () => prosesSimpanPauli(false),
-            () => { } 
+            () => { }
         );
         return;
     }
@@ -289,6 +345,11 @@ async function sendToSupabase(callback = null) {
         return;
     }
 
+    if (!supabaseClient) {
+        customAlert("Gagal Menyimpan", "Koneksi database tidak tersedia.", "error");
+        return;
+    }
+
     const modalLoading = document.getElementById('modal-loading');
     if (modalLoading) modalLoading.classList.remove('hide-section');
 
@@ -304,8 +365,8 @@ async function sendToSupabase(callback = null) {
             .insert([
                 {
                     "Waktu Mulai": state.user.startTime,
-                    "Waktu Selesai": waktuSelesaiRapi, 
-                    "Nama Lengkap": state.user.name,   
+                    "Waktu Selesai": waktuSelesaiRapi,
+                    "Nama Lengkap": state.user.name,
                     "Alamat Email": state.user.email,
                     "No WhatsApp": state.user.phone,
                     "Total Pauli": state.pauli.totalAnswered,

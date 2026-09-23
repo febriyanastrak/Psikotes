@@ -79,12 +79,13 @@ function customAlert(title, message, type = 'info', isConfirm = false, onOk = nu
  * @param {string} pageId ID elemen section halaman tujuan
  */
 function showPage(pageId) {
+    // Keamanan: halaman HRD hanya via autentikasi, tidak bisa diakses langsung
     if (pageId === 'page-hrd' && !isHrdAuthenticated) {
         customAlert("Akses Terlarang", "Halaman HRD hanya dapat diakses setelah login terverifikasi.", "error");
         showPage('page-login');
         return;
     }
-    
+
     document.querySelectorAll('main > section').forEach(el => el.classList.add('hide-section'));
     const targetPage = document.getElementById(pageId);
     if (targetPage) {
@@ -92,6 +93,7 @@ function showPage(pageId) {
     }
     window.scrollTo(0, 0);
 }
+
 
 /**
  * Menutup modal berdasarkan ID elemen
