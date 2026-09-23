@@ -4,6 +4,22 @@
 // =========================================================================
 
 /**
+ * Menyaring string dari karakter berbahaya untuk mencegah serangan XSS
+ * @param {any} text Input yang akan disanitasi
+ * @returns {string} String aman untuk dirender
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+/**
  * Menampilkan custom alert modal untuk notifikasi atau konfirmasi
  * @param {string} title Judul pesan modal
  * @param {string} message Deskripsi isi pesan

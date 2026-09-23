@@ -26,8 +26,7 @@
             <div onclick="handleLogoClick()" title="PT Altrak 1978"
                 class="flex items-center gap-3 select-none cursor-pointer">
                 <!-- Logo Altrak 1978 dari website resmi -->
-                <img src="https://www.altrak1978.co.id/images/logonews.jpg"
-                    alt="PT Altrak 1978"
+                <img src="https://www.altrak1978.co.id/images/logonews.jpg" alt="PT Altrak 1978"
                     class="h-9 w-auto object-contain"
                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <!-- Fallback jika logo gagal dimuat -->
@@ -65,11 +64,11 @@
                     </div>
                     <!-- Logo di card header -->
                     <div class="flex justify-center mb-4">
-                        <img src="https://www.altrak1978.co.id/images/logonews.jpg"
-                            alt="PT Altrak 1978"
+                        <img src="https://www.altrak1978.co.id/images/logonews.jpg" alt="PT Altrak 1978"
                             class="h-12 w-auto object-contain brightness-0 invert"
                             onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div style="display:none" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-700 text-white mb-3 border border-blue-600 shadow-lg">
+                        <div style="display:none"
+                            class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-700 text-white mb-3 border border-blue-600 shadow-lg">
                             <i class="fa-solid fa-shield-halved text-2xl"></i>
                         </div>
                     </div>
@@ -249,7 +248,8 @@
                             </div>
                             <span class="text-2xl text-slate-400 font-black">+</span>
                             <div class="text-left">
-                                <div class="text-slate-500 text-xs">5 + 9 = <span class="text-slate-800 font-bold">14</span>
+                                <div class="text-slate-500 text-xs">5 + 9 = <span
+                                        class="text-slate-800 font-bold">14</span>
                                 </div>
                                 <div class="text-blue-700 font-extrabold text-lg mt-1">Ketik Angka: <span
                                         class="bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xl font-black">4</span>
@@ -259,25 +259,30 @@
                     </div>
 
                     <div
-                        class="text-xs text-slate-500 bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-center gap-2">
-                        <i class="fa-solid fa-clock text-blue-500 text-base"></i>
-                        <span>Uji coba aktif selama 60 menit.</span>
+                        class="text-xs text-blue-700 bg-blue-50 p-3 rounded-xl border border-blue-200 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-blue-600 text-base"></i>
+                        <span>Durasi tes asli Pauli adalah 60 menit.</span>
                     </div>
                 </div>
 
                 <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                    <!-- Info wajib trial -->
-                    <div id="trial-required-info" class="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-1 flex items-center gap-3 text-sm text-amber-800">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-500 flex-shrink-0"></i>
-                        <span>Anda <strong>wajib menyelesaikan uji coba 10 detik</strong> terlebih dahulu sebelum memulai tes asli.</span>
+                    <!-- Info trial / simulasi -->
+                    <div id="trial-required-info"
+                        class="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-1 flex items-center gap-3 text-sm text-blue-900">
+                        <i class="fa-solid fa-circle-info text-blue-500 flex-shrink-0 text-base"></i>
+                        <span>Anda dapat mencoba <strong>latihan simulasi bebas tanpa batas waktu</strong> terlebih
+                            dahulu, atau langsung menekan <strong>Mulai Tes Asli</strong> jika sudah memahami cara
+                            mengerjakannya.</span>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button id="btn-start-trial" onclick="startTrialPauliTest()" class="w-full sm:w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-stopwatch"></i> Coba 10 Detik
+                    <button id="btn-start-trial" onclick="startTrialPauliTest()"
+                        class="w-full sm:w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-flask"></i> Uji Coba Latihan
                     </button>
-                    <button id="btn-start-real" onclick="startPauliTest()" disabled class="w-full sm:w-1/2 bg-slate-300 text-slate-500 font-black py-3.5 rounded-xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60">
-                        <span>Mulai Tes Asli</span> <i class="fa-solid fa-lock"></i>
+                    <button id="btn-start-real" onclick="startPauliTest()"
+                        class="w-full sm:w-1/2 bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-900 hover:to-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Mulai Tes Asli</span> <i class="fa-solid fa-play"></i>
                     </button>
                 </div>
             </div>
@@ -300,10 +305,12 @@
                                 0</div>
                         </div>
                     </div>
-                <div class="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-xl border border-blue-200 shadow-sm" id="pauliTimerContainer">
+                    <div class="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-2 rounded-xl border border-blue-200 shadow-sm"
+                        id="pauliTimerContainer">
                         <i class="fa-solid fa-stopwatch text-blue-500 text-sm sm:text-base"></i>
                         <div>
-                            <div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider leading-none" id="pauliTimerLabel">Sisa Waktu</div>
+                            <div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider leading-none"
+                                id="pauliTimerLabel">Sisa Waktu</div>
                             <span id="pauliTimer"
                                 class="font-mono font-black text-lg sm:text-xl text-blue-800 tracking-wider">60:00</span>
                         </div>
@@ -371,8 +378,8 @@
                     </div>
                     <div class="pauli-submit-wrap">
                         <button onclick="finishPauliTest()"
-                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-md border-b-4 border-red-800 transition">
-                            Selesai / Kumpulkan
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-md border-b-4 border-red-800 transition cursor-pointer">
+                            <span id="pauliSubmitBtnText">Selesai / Kumpulkan</span>
                         </button>
                     </div>
                 </div>
@@ -448,93 +455,113 @@
             </div>
         </section>
 
-        <!-- HALAMAN 5: HALAMAN SELESAI / COMPLETION PAGE -->
+        <!-- HALAMAN 5: HALAMAN SELESAI / COMPLETION PAGE (TEMA PUTIH-BIRU KORPORAT) -->
         <section id="page-selesai"
-            class="hide-section flex-grow flex flex-col items-center justify-center p-6 relative overflow-hidden"
-            style="background: radial-gradient(ellipse at 50% 0%, #0f2027 0%, #0b0f19 60%, #0b0f19 100%)">
-            <!-- Background decorative blobs -->
+            class="hide-section flex-grow flex flex-col items-center justify-center p-6 sm:p-10 relative overflow-hidden bg-gradient-to-br from-white via-blue-50 to-blue-100/70 min-h-screen">
+            <!-- Background decorative ambient blobs (Putih-Biru) -->
             <div
-                class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-yellow-400/5 rounded-full blur-[100px] pointer-events-none">
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-blue-400/10 rounded-full blur-[140px] pointer-events-none">
             </div>
             <div
-                class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none">
+                class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-amber-400/15 rounded-full blur-[140px] pointer-events-none">
+            </div>
+            <div
+                class="absolute top-1/3 left-0 w-[400px] h-[400px] bg-sky-300/15 rounded-full blur-[120px] pointer-events-none">
             </div>
 
             <div class="relative z-10 w-full max-w-2xl text-center">
 
-                <!-- Animated checkmark icon -->
+                <!-- Animated checkmark icon (Hijau-Biru Modern) -->
                 <div class="relative inline-flex items-center justify-center mb-8">
-                    <div class="absolute w-28 h-28 rounded-full bg-green-500/10 animate-ping opacity-50"
+                    <div class="absolute w-28 h-28 rounded-full bg-emerald-500/10 animate-ping opacity-60"
                         style="animation-duration:2.5s"></div>
-                    <div class="absolute w-24 h-24 rounded-full bg-green-500/15"></div>
+                    <div class="absolute w-24 h-24 rounded-full bg-emerald-500/15"></div>
                     <div
-                        class="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-[0_0_40px_rgba(74,222,128,0.4)]">
+                        class="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-[0_12px_35px_rgba(16,185,129,0.35)]">
                         <i class="fa-solid fa-check text-white text-3xl"></i>
                     </div>
                 </div>
 
-                <!-- Main heading -->
-                <h1 class="text-4xl sm:text-5xl font-black text-white leading-tight mb-3">
+                <!-- Main heading putih-biru -->
+                <h1 class="text-3xl sm:text-5xl font-black text-blue-950 leading-tight mb-3 tracking-tight">
                     Terima Kasih!<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">Tes Telah
-                        Selesai</span>
+                    <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900">Rangkaian
+                        Asesmen Telah Selesai</span>
                 </h1>
 
                 <!-- Candidate name placeholder -->
-                <p id="selesai-nama" class="text-slate-300 text-lg font-semibold mb-6"></p>
+                <p id="selesai-nama" class="text-blue-800 text-lg font-bold mb-7"></p>
 
-                <!-- Card pesan profesional -->
+                <!-- Card pesan profesional (Putih bersih dengan border biru lembut) -->
                 <div
-                    class="bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-6 sm:p-8 mb-8 text-left shadow-xl">
+                    class="bg-white/95 backdrop-blur border border-blue-200/80 rounded-3xl p-6 sm:p-9 mb-8 text-left shadow-[0_20px_50px_rgba(0,48,135,0.08)]">
                     <div class="flex items-start gap-4 mb-5">
                         <div
-                            class="w-10 h-10 rounded-xl bg-altrak-yellow/10 border border-altrak-yellow/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <i class="fa-solid fa-envelope-open-text text-altrak-yellow"></i>
+                            class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                            <i class="fa-solid fa-envelope-open-text text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="text-white font-bold text-lg leading-snug">Pesan dari Tim Rekrutmen PT Altrak
-                                1978</h2>
-                            <p class="text-slate-400 text-sm mt-0.5">Informasi selanjutnya mengenai proses rekrutmen
-                                Anda</p>
+                            <h2 class="text-blue-950 font-black text-lg sm:text-xl leading-snug">Pesan dari Tim
+                                Rekrutmen PT Altrak 1978</h2>
+                            <p class="text-slate-500 text-sm mt-0.5">Informasi selanjutnya mengenai tahapan seleksi Anda
+                            </p>
                         </div>
                     </div>
                     <div
-                        class="border-t border-slate-700/60 pt-5 space-y-3 text-slate-300 text-sm sm:text-base leading-relaxed">
-                        <p>Jawaban Anda telah <strong class="text-green-400">berhasil tersimpan</strong> di sistem HRD
-                            kami dan akan segera diproses oleh tim psikolog profesional PT Altrak 1978.</p>
-                        <p>Kami menghargai waktu dan kesungguhan Anda dalam mengikuti seluruh rangkaian tes ini. Setiap
-                            jawaban yang Anda berikan akan menjadi bahan evaluasi yang adil dan objektif.</p>
-                        <p class="font-semibold text-slate-200">📞 Harap tunggu informasi lebih lanjut mengenai tahapan
-                            rekrutmen berikutnya melalui <span class="text-altrak-yellow">email atau nomor
-                                WhatsApp</span> yang telah Anda daftarkan.</p>
+                        class="border-t border-blue-100 pt-5 space-y-3.5 text-slate-700 text-sm sm:text-base leading-relaxed">
+                        <p>Jawaban Anda telah <strong
+                                class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">berhasil
+                                tersimpan aman</strong> di sistem database HRD kami dan akan segera diproses oleh tim
+                            psikolog profesional PT Altrak 1978.</p>
+                        <p>Kami sangat menghargai waktu, kesungguhan, serta integritas Anda dalam mengikuti seluruh
+                            rangkaian tes psikotes online ini. Setiap jawaban akan dievaluasi secara adil dan objektif.
+                        </p>
+                        <p class="font-semibold text-blue-950 bg-blue-50/80 p-3.5 rounded-xl border border-blue-200">
+                            📞 Harap pantau informasi lebih lanjut mengenai pengumuman tahapan berikutnya melalui <span
+                                class="text-blue-700 font-black underline decoration-amber-400 decoration-2">Alamat
+                                Email atau WhatsApp</span> yang telah Anda daftarkan.
+                        </p>
                     </div>
                 </div>
 
-                <!-- Info cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
-                        <i class="fa-solid fa-clock-rotate-left text-blue-400 text-xl mb-2"></i>
-                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Estimasi Proses</p>
-                        <p class="text-white font-bold text-sm mt-1">3–7 Hari Kerja</p>
+                <!-- Info cards (Putih-Biru Estetik) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-8">
+                    <div
+                        class="bg-white border border-blue-100 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2.5">
+                            <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        </div>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Estimasi Proses</p>
+                        <p class="text-blue-950 font-black text-sm mt-1">3–7 Hari Kerja</p>
                     </div>
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
-                        <i class="fa-solid fa-shield-check text-green-400 text-xl mb-2"></i>
-                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Status Data</p>
-                        <p class="text-white font-bold text-sm mt-1">Tersimpan Aman</p>
+                    <div
+                        class="bg-white border border-blue-100 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2.5">
+                            <i class="fa-solid fa-shield-halved text-lg"></i>
+                        </div>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Status Jawaban</p>
+                        <p class="text-emerald-700 font-black text-sm mt-1">Tersimpan Aman</p>
                     </div>
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-center">
-                        <i class="fa-solid fa-bullhorn text-amber-400 text-xl mb-2"></i>
-                        <p class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Pengumuman via</p>
-                        <p class="text-white font-bold text-sm mt-1">Email / WhatsApp</p>
+                    <div
+                        class="bg-white border border-blue-100 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-2.5">
+                            <i class="fa-solid fa-bullhorn text-lg"></i>
+                        </div>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Pengumuman via</p>
+                        <p class="text-blue-950 font-black text-sm mt-1">Email / WhatsApp</p>
                     </div>
                 </div>
 
-                <!-- Footer branding -->
+                <!-- Footer branding putih-biru -->
                 <div class="flex items-center justify-center gap-3 text-slate-500 text-sm">
-                    <div class="w-7 h-7 rounded-lg bg-altrak-yellow flex items-center justify-center">
-                        <i class="fa-solid fa-briefcase text-altrak-dark text-xs"></i>
+                    <div class="w-8 h-8 rounded-xl bg-blue-700 flex items-center justify-center text-white shadow-sm">
+                        <i class="fa-solid fa-briefcase text-xs"></i>
                     </div>
-                    <span class="font-semibold text-slate-400">PT Altrak 1978 &mdash; Online Assessment System</span>
+                    <span class="font-bold text-slate-600">PT Altrak 1978 &bull; Online Assessment Portal</span>
                 </div>
             </div>
         </section>
@@ -655,7 +682,7 @@
                 class="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
                 <i class="fa-solid fa-lock-open"></i>
             </div>
-            <h3 class="text-xl font-black text-white mb-1">Otorisasi HRD</h3>
+            <h3 class="text-xl font-black text-black mb-1">Otorisasi HRD</h3>
             <p class="text-xs text-slate-400 mb-5">Masukkan sandi rahasia untuk mengakses data & grafik kandidat.</p>
 
             <input type="password" id="inputHrdPin"
@@ -675,7 +702,7 @@
     <div id="modal-otp"
         class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div
-            class="bg-altrak-card border border-slate-800 rounded-3xl shadow-2xl max-w-sm w-full text-center p-7 relative">
+            class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full text-center p-7 relative">
             <div
                 class="w-16 h-16 bg-amber-500/10 text-altrak-yellow rounded-2xl border border-amber-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
                 <i class="fa-solid fa-key"></i>
@@ -700,7 +727,7 @@
     <!-- MODAL CUSTOM ALERT -->
     <div id="modal-message"
         class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="bg-altrak-card border border-slate-800 rounded-3xl shadow-2xl max-w-sm w-full p-7 text-center">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full p-7 text-center">
             <div id="msgIcon"
                 class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 <i class="fa-solid fa-circle-info"></i>

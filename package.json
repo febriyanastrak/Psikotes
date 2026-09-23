@@ -1,0 +1,12 @@
+{
+  "name": "psikotes-altrak1978",
+  "version": "1.0.0",
+  "description": "Portal Psikotes Online - PT Altrak 1978",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "author": "PT Altrak 1978",
+  "license": "ISC"
+}

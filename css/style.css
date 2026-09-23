@@ -397,3 +397,11 @@ body {
     pointer-events: none;
 }
 
+/* Anti-Kecurangan: Larang seleksi teks pada halaman tes Pauli */
+#page-pauli, .pauli-stage, .pauli-panel {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+

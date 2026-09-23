@@ -22,13 +22,23 @@ function renderHrdTable(dataList) {
         const index = item.originalIndex;
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/50 transition";
+        
+        const idSafe = escapeHtml(row.id || '');
+        const namaSafe = escapeHtml(row["Nama Lengkap"] || '-');
+        const emailSafe = escapeHtml(row["Alamat Email"] || '-');
+        const waSafe = escapeHtml(row["No WhatsApp"] || '-');
+        const waktuSafe = escapeHtml(row["Waktu Selesai"] || '-');
+        const totalSafe = escapeHtml(row["Total Pauli"] || 0);
+        const benarSafe = escapeHtml(row["Jawaban Benar"] || 0);
+        const salahSafe = escapeHtml(row["Jawaban Salah"] || 0);
+
         tr.innerHTML = `
-            <td class="p-3 font-mono font-bold text-altrak-yellow">#${row.id}</td>
-            <td class="p-3 font-bold text-white">${row["Nama Lengkap"] || '-'}</td>
-            <td class="p-3 text-xs text-slate-400">${row["Alamat Email"] || '-'}<br>${row["No WhatsApp"] || '-'}</td>
-            <td class="p-3 text-xs text-slate-400">${row["Waktu Selesai"] || '-'}</td>
-            <td class="p-3 text-center font-bold text-white">${row["Total Pauli"] || 0}</td>
-            <td class="p-3 text-center"><span class="text-green-400 font-bold">${row["Jawaban Benar"] || 0}</span> / <span class="text-red-400 font-bold">${row["Jawaban Salah"] || 0}</span></td>
+            <td class="p-3 font-mono font-bold text-altrak-yellow">#${idSafe}</td>
+            <td class="p-3 font-bold text-white">${namaSafe}</td>
+            <td class="p-3 text-xs text-slate-400">${emailSafe}<br>${waSafe}</td>
+            <td class="p-3 text-xs text-slate-400">${waktuSafe}</td>
+            <td class="p-3 text-center font-bold text-white">${totalSafe}</td>
+            <td class="p-3 text-center"><span class="text-green-400 font-bold">${benarSafe}</span> / <span class="text-red-400 font-bold">${salahSafe}</span></td>
             <td class="p-3 text-center">
                 <button onclick="viewCandidateChart(${index})" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow">
                     <i class="fa-solid fa-chart-line mr-1"></i> Buka Laporan
