@@ -30,11 +30,11 @@ const LEMBAR_PAULI_ASLI = [
 // (otomatis tertangkap karena pos = index % LEMBAR_PAULI_ASLI.length)
 // =========================================================================
 const PAULI_SCORE = {
-    TOTAL_LEN:     3860,  // panjang total LEMBAR_PAULI_ASLI
-    R1_START:         0,  // range 1 mulai dari [9,5,7,9,6,2]
-    R1_END:         620,  // range 1 sampai akhir [7,7,4,6,5,8,8,2] (exclusive)
-    R2_START:       660,  // range 2 mulai dari [5,5,6,9,4]
-    R2_END:        1660,  // range 2 = R2_START + 1000
-    R3_START:      1839,  // range 3 mulai dari [3,8,5,7,4]
-    R3_END:        1941   // range 3 sampai akhir [6,8,9,3,6,6,5] (exclusive)
+    TOTAL_LEN: 3860,  // panjang total LEMBAR_PAULI_ASLI
+    R1_START: 0,  // range 1 mulai dari [9,5,7,9,6,2]
+    R1_END: 620,  // range 1 sampai akhir [7,7,4,6,5,8,8,2] (exclusive)
+    R2_START: 660,  // range 2 mulai dari [5,5,6,9,4]
+    R2_END: 1660,  // range 2 = R2_START + 1000
+    R3_START: 1839,  // range 3 mulai dari [3,8,5,7,4]
+    R3_END: 1941   // range 3 sampai akhir [6,8,9,3,6,6,5] (exclusive)
 };
