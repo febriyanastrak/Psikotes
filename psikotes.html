@@ -418,6 +418,10 @@
                             class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">
                             <i class="fa-solid fa-file-excel mr-2"></i> Download Excel
                         </button>
+                        <button onclick="hapusSemuaData()"
+                            class="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">
+                            <i class="fa-solid fa-trash-can mr-2"></i> Kosongkan Data
+                        </button>
                         <button onclick="logoutHrd()"
                             class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition">
                             <i class="fa-solid fa-arrow-left mr-2"></i> Keluar
@@ -853,12 +857,13 @@
                         <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Salah (%)</p>
                         <p class="text-2xl font-black text-red-500" id="rptPctSalah">-</p>
                         <span id="evalSalah" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                        <p class="text-[9px] text-slate-400 mt-1">(<span id="rptSalah">0</span> jawaban salah)</p>
+                        <p class="text-xs text-slate-600 font-semibold mt-1">Jumlah salah: <span id="rptSalah">0</span></p>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
                         <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Penyimpangan (%)</p>
                         <p class="text-2xl font-black text-amber-600" id="rptPctPenyimpangan">-</p>
                         <span id="evalPenyimpangan" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
+                        <p class="text-xs text-slate-600 font-semibold mt-1">Total simpangan (interval 3–18): <span id="rptTotalPenyimpangan">-</span></p>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
                         <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Tinggi (Max)</p>

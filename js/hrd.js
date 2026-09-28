@@ -124,7 +124,7 @@ function exportHrdToExcel() {
 
     let headers = [
         "ID", "Waktu Mulai", "Waktu Selesai", "Nama Lengkap", "Alamat Email", "No WhatsApp",
-        "Total Pauli", "Jawaban Salah", "Rata-Rata", "% Salah", "% Penyimpangan", "Tinggi", "Tempat Puncak"
+        "Total Pauli", "Jawaban Salah", "Rata-Rata", "% Salah", "% Penyimpangan", "Total Simpangan (Interval 3-18)", "Tinggi", "Tempat Puncak"
     ];
     for (let i = 1; i <= 20; i++) headers.push(`Interval ${i}`);
     let csvLines = [headers.join(",")];
@@ -175,6 +175,7 @@ function exportHrdToExcel() {
             `"${rRata.toFixed(1)}"`,
             `"${pSalah.toFixed(1)} %"`,
             `"${pDev.toFixed(1)} %"`,
+            `"${totDev.toFixed(1)}"`,
             tTinggi,
             `"${tPuncak}"`,
             ...intervals.slice(0, 20)
@@ -271,6 +272,13 @@ function viewCandidateChart(index) {
             // Fallback rumus literal jika data interval tidak tersedia
             pctPenyimpangan = (jumlah / 16) * (100 / rataRata);
         }
+    }
+
+    const totalPenyimpanganDisplay = document.getElementById('rptTotalPenyimpangan');
+    if (totalPenyimpanganDisplay) {
+        totalPenyimpanganDisplay.innerText = hasIntervals
+            ? totalPenyimpangan.toFixed(1)
+            : 'Data interval tidak tersedia';
     }
 
     // 4. Tinggi (nilai interval tertinggi)
@@ -466,5 +474,33 @@ function viewCandidateChart(index) {
         }
     });
 }
+
+/**
+ * Menghapus seluruh data lama di web HRD dan mereset ID kembali ke 1
+ */
+async function hapusSemuaData() {
+    const yakin = confirm("PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data hasil tes peserta?\nSemua riwayat akan dikosongkan dan nomor urut ID akan direset kembali ke 1.");
+    if (!yakin) return;
+
+    try {
+        if (!supabaseClient) {
+            alert("Koneksi Supabase tidak tersedia.");
+            return;
+        }
+
+        const { data, error } = await supabaseClient.rpc('hapus_semua_data');
+        if (error) throw error;
+
+        localStorage.removeItem('hasil_psikotes_local');
+        cachedHrdData = [];
+
+        alert("Semua data berhasil dihapus dan nomor urut ID telah direset kembali ke 1.");
+        await loadHrdData();
+    } catch (err) {
+        console.error("Gagal mengosongkan data:", err);
+        alert("Gagal menghapus data dari server: " + (err.message || err));
+    }
+}
+
 
 

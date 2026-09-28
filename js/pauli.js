@@ -715,7 +715,6 @@ function prosesSimpanPauli(isTimeUp = false) {
         : waktuSelesaiRapi;
 
     const payload = {
-        id: Date.now(),
         "Waktu Mulai": candidateStartTime,
         "Waktu Selesai": finalWaktuSelesai,
         "Nama Lengkap": candidateName,

@@ -22,6 +22,13 @@ function sanitizeInput(str) {
  */
 function checkHrdLockStatus() {
     try {
+        // Reset otomatis lockout lama akibat salah ketik email sebelumnya
+        if (localStorage.getItem('_altrak_hrd_email_fixed') !== 'v2') {
+            localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+            localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
+            localStorage.setItem('_altrak_hrd_email_fixed', 'v2');
+        }
+
         const lockUntil = parseInt(localStorage.getItem(HRD_LOCK_STORAGE_KEY) || '0', 10);
         const now = Date.now();
         if (now < lockUntil) {
@@ -310,14 +317,24 @@ async function verifyHrdLogin() {
 
     try {
         if (supabaseClient && supabaseClient.auth) {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: 'hrd@altrak1978.co.id',
-                password: pin
-            });
+            // Email akun HRD di Supabase: febriyandah3@gmail.com (dengan fallback)
+            const hrdEmails = ['febriyandah3@gmail.com',];
+            let authResult = null;
+
+            for (const email of hrdEmails) {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: pin
+                });
+                if (!error && data && data.session) {
+                    authResult = data;
+                    break;
+                }
+            }
 
             if (loadingModal) loadingModal.classList.add('hide-section');
 
-            if (!error && data && data.session) {
+            if (authResult && authResult.session) {
                 isHrdAuthenticated = true;
                 try {
                     localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
