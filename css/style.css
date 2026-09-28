@@ -1,13 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --altrak-navy-deep: #051627;
+    --altrak-navy-dark: #071f38;
+    --altrak-navy: #003865;
+    --altrak-navy-medium: #0b4578;
+    --altrak-navy-soft: #125794;
+    --altrak-gold: #f5b300;
+    --altrak-gold-light: #ffbe1a;
+    --altrak-surface: #edf3f9;
+    --altrak-surface-card: #ffffff;
+    --altrak-border: #b9d0e7;
+    --altrak-border-subtle: #dbe7f3;
+}
 
 body {
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
-    background-color: #ffffff;
+    background-color: #f4f7fb;
+    color: #1e293b;
 }
 
 .hide-section {
     display: none !important;
+}
+
+/* Background Korporat PT Altrak 1978 (Biru Tenang & Elegan, Tidak Silau) */
+.corporate-modern-bg {
+    background-color: #071f38;
+    background-image: radial-gradient(circle at 50% 10%, #0d3862 0%, #071f38 60%, #041224 100%);
+    color: #ffffff;
+    min-height: 100%;
+}
+
+.corporate-altrak-surface {
+    background-color: #f4f7fb;
 }
 
 /* Pauli Test Styles */
@@ -31,21 +58,14 @@ body {
         transform: translateY(-15px) scale(0.8);
         opacity: 0;
     }
-
     50% {
         transform: translateY(0) scale(1.1);
-        color: #2563eb;
+        color: var(--altrak-navy);
         opacity: 1;
     }
-
     100% {
         transform: translateY(0) scale(1);
     }
-}
-
-.corporate-modern-bg {
-    background-color: #ffffff;
-    background-image: linear-gradient(135deg, #ffffff 0%, #e8f0fe 50%, #bfdbfe 100%);
 }
 
 #page-pauli-header {
@@ -60,7 +80,7 @@ body {
     justify-content: center;
     padding: clamp(1rem, 4vw, 2.5rem) clamp(0.75rem, 4vw, 1.5rem);
     padding-bottom: max(env(safe-area-inset-bottom, 0px), clamp(1rem, 4vw, 2.5rem));
-    background: #e8f0fe;
+    background: #edf3f9;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -71,9 +91,9 @@ body {
     max-width: 30rem;
     margin: auto;
     background: #ffffff;
-    border: 1px solid #c7d7f8;
+    border: 1px solid var(--altrak-border);
     border-radius: clamp(1.25rem, 3vw, 1.75rem);
-    box-shadow: 0 20px 50px rgba(0, 48, 135, 0.12);
+    box-shadow: 0 20px 50px rgba(0, 56, 101, 0.12);
     padding: clamp(1.25rem, 4.5vw, 2.25rem) clamp(1rem, 5vw, 2rem) clamp(1.5rem, 4vw, 2.25rem);
     display: flex;
     flex-direction: column;
@@ -83,7 +103,7 @@ body {
 .pauli-hint {
     font-size: clamp(0.7rem, 2.4vw, 0.8125rem);
     text-align: center;
-    color: #4b6491;
+    color: #4b6382;
     max-width: 26rem;
     margin-bottom: clamp(1rem, 4vw, 1.75rem);
     line-height: 1.5;
@@ -126,7 +146,7 @@ body {
 .pauli-equals {
     font-size: clamp(1.75rem, 6vw, 2.75rem);
     font-weight: 800;
-    color: #93acd4;
+    color: #92a9c3;
 }
 
 .pauli-answer-wrap {
@@ -148,11 +168,11 @@ body {
 }
 
 .pauli-keypad {
-    background: #e8f0fe;
-    border: 1px solid #c7d7f8;
+    background: #edf3f9;
+    border: 1px solid var(--altrak-border);
     border-radius: clamp(1.25rem, 4vw, 1.75rem);
     padding: clamp(0.65rem, 3vw, 1.1rem);
-    box-shadow: inset 0 2px 4px rgba(0, 48, 135, 0.08);
+    box-shadow: inset 0 2px 4px rgba(0, 56, 101, 0.08);
 }
 
 .pauli-keypad-grid {
@@ -164,6 +184,16 @@ body {
 .numpad-btn {
     height: clamp(3rem, 11vw, 4.1rem);
     font-size: clamp(1.1rem, 4.2vw, 1.5rem) !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+#proctoring-camera-container {
+    display: none !important;
+    pointer-events: none !important;
 }
 
 .pauli-submit-wrap {
@@ -175,7 +205,7 @@ body {
 .pauli-progress-track {
     height: 5px;
     width: 100%;
-    background: #c7d7f8;
+    background: #cddbe8;
 }
 
 .pauli-progress-fill {
@@ -195,7 +225,7 @@ body {
     height: 8px;
     width: 100%;
     border-radius: 999px;
-    background: rgba(0, 48, 135, 0.12);
+    background: rgba(255, 255, 255, 0.2);
     overflow: hidden;
 }
 
@@ -203,7 +233,7 @@ body {
     height: 100%;
     width: 0%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #ffcc00, #ffb300);
+    background: linear-gradient(90deg, #ffbe1a, #f5b300);
     transition: width 0.5s ease;
 }
 
@@ -211,11 +241,11 @@ body {
     background: #ffffff;
     border-radius: 20px;
     padding: clamp(1.25rem, 3vw, 1.75rem);
-    border: 1px solid #c7d7f8;
+    border: 1px solid #d5e2f0;
     position: relative;
     overflow: hidden;
     transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
-    box-shadow: 0 2px 12px rgba(0, 48, 135, 0.06);
+    box-shadow: 0 4px 18px rgba(0, 56, 101, 0.08);
 }
 
 .dash-card::before {
@@ -225,20 +255,22 @@ body {
     top: 0;
     bottom: 0;
     width: 5px;
-    background: #c7d7f8;
+    background: #c5d7ea;
 }
 
 .dash-card.is-active {
-    border-color: #003087;
-    box-shadow: 0 10px 30px rgba(0, 48, 135, 0.15);
+    border-color: var(--altrak-navy);
+    box-shadow: 0 12px 32px rgba(0, 56, 101, 0.18);
+    transform: translateY(-2px);
 }
 
 .dash-card.is-active::before {
-    background: linear-gradient(180deg, #003087, #0057cc);
+    background: linear-gradient(180deg, var(--altrak-navy), var(--altrak-navy-medium));
 }
 
 .dash-card.is-done {
-    background: #f0f9f0;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
 }
 
 .dash-card.is-done::before {
@@ -247,7 +279,8 @@ body {
 
 .dash-card.is-locked {
     border-color: #e2e8f0;
-    opacity: 0.75;
+    background: #f8fafc;
+    opacity: 0.8;
 }
 
 .dash-card.is-locked::before {
@@ -255,19 +288,19 @@ body {
 }
 
 .dash-badge {
-    width: 46px;
-    height: 46px;
-    border-radius: 13px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
 
 .is-active .dash-badge {
-    background: rgba(0, 48, 135, 0.1);
-    color: #003087;
+    background: rgba(0, 56, 101, 0.09);
+    color: var(--altrak-navy);
 }
 
 .is-done .dash-badge {
@@ -276,21 +309,21 @@ body {
 }
 
 .is-locked .dash-badge {
-    background: #f1f5f9;
+    background: #e2e8f0;
     color: #94a3b8;
 }
 
 .dash-tag {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 800;
-    padding: 0.3rem 0.65rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 999px;
     white-space: nowrap;
 }
 
 .tag-active {
-    background: rgba(0, 48, 135, 0.1);
-    color: #003087;
+    background: rgba(0, 56, 101, 0.1);
+    color: var(--altrak-navy);
 }
 
 .tag-done {
@@ -299,13 +332,13 @@ body {
 }
 
 .tag-locked {
-    background: #f1f5f9;
-    color: #94a3b8;
+    background: #e2e8f0;
+    color: #64748b;
 }
 
 .dash-btn {
     width: 100%;
-    padding: 0.85rem 1rem;
+    padding: 0.9rem 1rem;
     border-radius: 12px;
     font-weight: 800;
     font-size: 0.95rem;
@@ -314,15 +347,15 @@ body {
 }
 
 .dash-btn-active {
-    background: linear-gradient(135deg, #003087, #0057cc);
+    background: linear-gradient(135deg, #003865, #0a4980);
     color: #ffffff;
-    box-shadow: 0 4px 16px rgba(0, 48, 135, 0.35);
+    box-shadow: 0 4px 16px rgba(0, 56, 101, 0.35);
     cursor: pointer;
 }
 
 .dash-btn-active:hover {
-    background: linear-gradient(135deg, #00256b, #0048b0);
-    box-shadow: 0 6px 20px rgba(0, 48, 135, 0.45);
+    background: linear-gradient(135deg, #00284d, #083c6b);
+    box-shadow: 0 6px 22px rgba(0, 56, 101, 0.45);
 }
 
 .dash-btn-done {
@@ -369,15 +402,20 @@ body {
 }
 
 @keyframes timerPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.0); }
-    50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15); }
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.0);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.15);
+    }
 }
 
 /* Answer box saat diisi */
 #mainAnswerBox.answered {
-    background: #e0e7ff;
-    border-color: #4f46e5;
-    color: #1e1b4b;
+    background: #dbeafe;
+    border-color: var(--altrak-navy);
+    color: var(--altrak-navy);
 }
 
 /* Uji coba - banner info */
@@ -397,11 +435,36 @@ body {
     pointer-events: none;
 }
 
-/* Anti-Kecurangan: Larang seleksi teks pada halaman tes Pauli */
-#page-pauli, .pauli-stage, .pauli-panel {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+/* Anti-Kecurangan: Larang seleksi teks pada seluruh halaman & tes Pauli */
+body,
+html,
+#page-pauli,
+.pauli-stage,
+.pauli-panel,
+.pauli-keypad {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
 }
 
+input, textarea {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+/* Memastikan tombol Selesai Pauli selalu responsif dan tidak terkunci CSS */
+#pauliSubmitBtn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 25 !important;
+}
+
+/* Toast Notifikasi Otorisasi HRD */
+#hrd-click-toast {
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(8px);
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="bg-slate-950 min-h-screen text-slate-100">
+<html lang="id" class="bg-white min-h-screen text-slate-800">
 
 <head>
     <meta charset="UTF-8">
@@ -17,18 +17,18 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+<body class="bg-white text-slate-800 flex flex-col min-h-screen">
 
     <!-- Navbar HRD -->
-    <nav class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <nav class="bg-[#071f38] border-b border-[#0a4980] sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <img src="https://www.altrak1978.co.id/images/logonews.jpg"
+                <img src="./logo%20altrak.jpeg"
                     alt="PT Altrak 1978"
-                    class="h-8 w-auto object-contain brightness-0 invert"
+                    class="h-8 w-auto object-contain rounded-lg bg-white shadow-sm border border-[#0a4980]"
                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div style="display:none" class="items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow">
+                    <div class="w-8 h-8 rounded-lg bg-[#003865] flex items-center justify-center text-white shadow">
                         <i class="fa-solid fa-briefcase text-sm"></i>
                     </div>
                     <span class="text-white font-black text-base tracking-wider">PT ALTRAK 1978</span>
@@ -38,7 +38,7 @@
                 </span>
             </div>
             <div class="flex items-center gap-3">
-                <a href="index.html" class="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                <a href="index.html" class="text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-left"></i> Ke Portal Peserta
                 </a>
             </div>
@@ -49,13 +49,13 @@
     <main class="flex-grow flex flex-col">
 
         <!-- KOTAK LOGIN HRD JIKA BELUM TERAUTENTIKASI -->
-        <section id="hrd-login-view" class="flex-grow flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl max-w-md w-full text-center p-8 relative">
-                <div class="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+        <section id="hrd-login-view" class="flex-grow flex items-center justify-center p-4 bg-white">
+            <div class="bg-[#0a2544] border border-[#0d3862] rounded-3xl shadow-2xl max-w-md w-full text-center p-8 relative">
+                <div class="w-16 h-16 bg-[#003865] text-amber-400 rounded-2xl border border-[#0a4980] flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <h2 class="text-2xl font-black text-white mb-1">Otorisasi Tim HRD</h2>
-                <p class="text-xs text-slate-400 mb-6">Masukkan kata sandi akun HRD untuk membuka akses rekapitulasi data dan grafik kandidat.</p>
+                <p class="text-xs text-slate-300 mb-6">Masukkan kata sandi akun HRD untuk membuka akses rekapitulasi data dan grafik kandidat.</p>
 
                 <form onsubmit="handleDirectHrdLogin(event)" class="space-y-4">
                     <div>
@@ -130,7 +130,7 @@
                                     <th class="p-3">Email / WhatsApp</th>
                                     <th class="p-3">Waktu Selesai</th>
                                     <th class="p-3 text-center">Total Soal</th>
-                                    <th class="p-3 text-center">Benar / Salah</th>
+                                    <th class="p-3 text-center">Salah</th>
                                     <th class="p-3 text-center">Aksi Grafik HRD</th>
                                 </tr>
                             </thead>
@@ -180,33 +180,42 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+                <!-- METRIK SKORING RESMI HRD PT ALTRAK 1978 -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Total Dijawab</p>
-                        <p class="text-2xl font-black text-blue-600" id="rptJumlah">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Rata-Rata</p>
+                        <p class="text-2xl font-black text-[#003865]" id="rptAvg">-</p>
+                        <span id="evalRata" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Jawaban Benar</p>
-                        <p class="text-2xl font-black text-green-500" id="rptBenar">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Jumlah</p>
+                        <p class="text-2xl font-black text-[#003865]" id="rptJumlah">-</p>
+                        <span id="evalJumlah" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Jawaban Salah</p>
-                        <p class="text-2xl font-black text-red-500" id="rptSalah">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Salah (%)</p>
+                        <p class="text-2xl font-black text-red-500" id="rptPctSalah">-</p>
+                        <span id="evalSalah" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
+                        <p class="text-[9px] text-slate-400 mt-1">(<span id="rptSalah">0</span> jawaban salah)</p>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Rata-rata</p>
-                        <p class="text-2xl font-black text-slate-700" id="rptAvg">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Penyimpangan (%)</p>
+                        <p class="text-2xl font-black text-amber-600" id="rptPctPenyimpangan">-</p>
+                        <span id="evalPenyimpangan" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Tertinggi (Max)</p>
-                        <p class="text-2xl font-black text-slate-700" id="rptTinggi">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Tinggi (Max)</p>
+                        <p class="text-2xl font-black text-[#003865]" id="rptTinggi">-</p>
+                        <span id="evalTinggi" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Terendah (Min)</p>
-                        <p class="text-2xl font-black text-slate-700" id="rptRendah">-</p>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Tempat Puncak</p>
+                        <p class="text-2xl font-black text-[#003865]" id="rptTempatPuncak">-</p>
+                        <span id="evalPuncak" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
                     </div>
                 </div>
 
+                <!-- GRAFIK KURVA PERFORMA -->
                 <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
                     <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-line text-blue-500"></i> Kurva Performa (Interval 1 - 20)
@@ -216,9 +225,10 @@
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <!-- TABEL RINCIAN PER INTERVAL -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6">
                     <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
-                        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider">Rincian Data Per Interval</h3>
+                        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider">Rincian Data Per Interval (3 Menit)</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-center text-sm">
@@ -227,6 +237,59 @@
                             </thead>
                             <tbody>
                                 <tr id="rptIntervalData" class="font-bold text-slate-700"></tr>
+                                <tr id="rptIntervalMean" class="border-t border-slate-200 text-slate-500"></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TABEL NORMA SKORING RESMI HRD (SESUAI LEMBAR PENILAIAN RESMI) -->
+                <div class="bg-white border-2 border-slate-800 rounded-xl overflow-hidden shadow-md">
+                    <!-- Garis Merah Atas Sesuai Lembar Kerja Asli HRD -->
+                    <div class="h-1.5 bg-red-600 w-full"></div>
+                    <div class="bg-slate-900 px-4 py-2.5 flex justify-between items-center">
+                        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-amber-400"></i> Skoring Pauli Test — Norma Penilaian Resmi HRD
+                        </h3>
+                        <span class="text-[10px] text-slate-400">Altrak 1978 Psychodiagnostic Norm</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b-2 border-slate-800 font-black text-slate-800">
+                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-white">RATA-RATA</th>
+                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">JUMLAH</th>
+                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">SALAH</th>
+                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">PENYIMPANGAN</th>
+                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">TINGGI</th>
+                                    <th class="px-4 py-3 bg-[#d8f4fd]">TEMPAT PUNCAK</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-800 font-medium">
+                                <tr class="border-b border-slate-400 bg-white hover:bg-emerald-50/40 transition">
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">167.5 ↑</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">3000 ↑</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">1.6 % ↑</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">4.1 % ↑</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">58 ↑</td>
+                                    <td class="px-4 py-3.5 font-black text-sm">19</td>
+                                </tr>
+                                <tr class="border-b border-slate-400 bg-white hover:bg-blue-50/40 transition">
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold text-sm">117.5 – 167.5</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold text-sm">2350 – 2999</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">0.6 – 1.5 %</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">2.6 – 4 %</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">36 – 57</td>
+                                    <td class="px-4 py-3.5 font-bold text-sm">13 – 18</td>
+                                </tr>
+                                <tr class="bg-white hover:bg-red-50/40 transition">
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">117.5 ↓</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">2350 ↓</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">0.5 % ↓</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">2.5 % ↓</td>
+                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">35 ↓</td>
+                                    <td class="px-4 py-3.5 font-bold text-sm">12 ↓ dan 20</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -268,55 +331,74 @@
     <script src="js/hrd.js"></script>
 
     <script>
-        // Rate limiting untuk login langsung HRD
-        let _hrdDirectAttempts = 0;
-        const _MAX_HRD_DIRECT = 3;
-        let _hrdDirectLock = 0;
-
         async function handleDirectHrdLogin(e) {
             e.preventDefault();
 
-            // Cek rate limiting
-            const now = Date.now();
-            if (_hrdDirectAttempts >= _MAX_HRD_DIRECT && now < _hrdDirectLock) {
-                const menit = Math.ceil((_hrdDirectLock - now) / 60000);
-                customAlert("Akses Dikunci", `Terlalu banyak percobaan. Coba lagi dalam ${menit} menit.`, "error");
+            // Cek status kunci persisten
+            const lockStatus = checkHrdLockStatus();
+            if (lockStatus.isLocked) {
+                customAlert(
+                    "Akses Dikunci",
+                    `Akses masih terkunci karena percobaan berulang. Silakan coba lagi dalam ${lockStatus.remainingMinutes} menit.`,
+                    "error"
+                );
                 return;
             }
-            if (now >= _hrdDirectLock) _hrdDirectAttempts = 0;
 
-            const pin = document.getElementById('inputHrdDirectPin').value;
+            const pinInput = document.getElementById('inputHrdDirectPin');
+            const pin = pinInput ? pinInput.value.trim() : '';
             if (!pin) return customAlert("Akses Ditolak", "Sandi tidak boleh kosong.", "error");
 
+            // Verifikasi kredensial terhadap akun HRD di Supabase Auth
             document.getElementById('modal-loading').classList.remove('hide-section');
 
             try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: 'hrd@altrak1978.co.id',
-                    password: pin
-                });
+                let authSuccess = false;
+                if (supabaseClient && supabaseClient.auth) {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: 'hrd@altrak1978.co.id',
+                        password: pin
+                    });
+                    if (!error && data && data.session) {
+                        authSuccess = true;
+                    }
+                }
 
                 document.getElementById('modal-loading').classList.add('hide-section');
 
-                if (error || !data || !data.session) {
-                    _hrdDirectAttempts++;
-                    if (_hrdDirectAttempts >= _MAX_HRD_DIRECT) {
-                        _hrdDirectLock = Date.now() + (15 * 60 * 1000);
-                    }
-                    isHrdAuthenticated = false;
-                    document.getElementById('inputHrdDirectPin').value = '';
-                    const sisaCoba = _MAX_HRD_DIRECT - _hrdDirectAttempts;
-                    if (sisaCoba > 0) {
-                        customAlert("Akses Ditolak", `Sandi HRD salah. Sisa percobaan: ${sisaCoba}`, "error");
-                    } else {
-                        customAlert("Akses Dikunci", "Terlalu banyak percobaan. Akses dikunci 15 menit.", "error");
-                    }
-                } else {
-                    _hrdDirectAttempts = 0;
+                if (authSuccess) {
+                    try {
+                        localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
+                        localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+                    } catch (e) {}
                     isHrdAuthenticated = true;
+                    if (pinInput) pinInput.value = '';
                     document.getElementById('hrd-login-view').classList.add('hide-section');
                     document.getElementById('hrd-dashboard-view').classList.remove('hide-section');
                     loadHrdData();
+                } else {
+                    let currentAttempts = parseInt(localStorage.getItem(HRD_ATTEMPTS_STORAGE_KEY) || '0', 10) + 1;
+                    localStorage.setItem(HRD_ATTEMPTS_STORAGE_KEY, currentAttempts.toString());
+
+                    isHrdAuthenticated = false;
+                    if (pinInput) pinInput.value = '';
+
+                    if (currentAttempts >= MAX_HRD_ATTEMPTS) {
+                        const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
+                        localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
+                        customAlert(
+                            "Akses Dikunci",
+                            "Terlalu banyak percobaan (3x). Akses otorisasi HRD dikunci 15 menit demi keamanan.",
+                            "error"
+                        );
+                    } else {
+                        const sisaCoba = MAX_HRD_ATTEMPTS - currentAttempts;
+                        customAlert(
+                            "Akses Ditolak",
+                            `Sandi HRD tidak sesuai. Sisa kesempatan mencoba: ${sisaCoba} kali.`,
+                            "error"
+                        );
+                    }
                 }
             } catch (err) {
                 document.getElementById('modal-loading').classList.add('hide-section');
@@ -332,7 +414,6 @@
             } catch (err) {}
             isHrdAuthenticated = false;
             cachedHrdData = [];
-            _hrdDirectAttempts = 0;
             document.getElementById('inputHrdDirectPin').value = "";
             document.getElementById('modal-loading').classList.add('hide-section');
             document.getElementById('hrd-dashboard-view').classList.add('hide-section');

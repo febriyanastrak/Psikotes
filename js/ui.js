@@ -158,12 +158,13 @@ function updateDashboardProgress() {
 
 /**
  * Membuka kunci kartu tes berikutnya saat suatu tes selesai
+ * Urutan: 1: IST -> 2: PAPI Kostick -> 3: DISC -> 4: Pauli
  * @param {number} completedTestNum Nomor tes yang baru diselesaikan
  */
 function unlockDashboardCard(completedTestNum) {
     const btnTadi = document.getElementById('btn-test-' + completedTestNum);
     if (btnTadi) {
-        btnTadi.innerText = "Selesai";
+        btnTadi.innerText = "Selesai ✓";
         btnTadi.disabled = true;
         btnTadi.className = "dash-btn dash-btn-done";
     }
@@ -173,12 +174,21 @@ function unlockDashboardCard(completedTestNum) {
     const btnNext = document.getElementById('btn-test-' + nextTestNum);
     const cardNext = document.getElementById('card-' + nextTestNum);
 
+    const moduleButtonNames = {
+        1: "Mulai Tes 1 (IST)",
+        2: "Mulai Tes 2 (PAPI Kostick)",
+        3: "Mulai Tes 3 (DISC)",
+        4: "Mulai Tes 4 (Pauli)"
+    };
+
     if (btnNext && cardNext) {
         setDashCardState(nextTestNum, 'active');
-        btnNext.innerText = "Mulai Tes " + nextTestNum;
+        btnNext.innerText = moduleButtonNames[nextTestNum] || ("Mulai Tes " + nextTestNum);
         btnNext.disabled = false;
         btnNext.className = "dash-btn dash-btn-active";
+        btnNext.onclick = function() { handleStartModule(nextTestNum); };
     }
 
     updateDashboardProgress();
 }
+
