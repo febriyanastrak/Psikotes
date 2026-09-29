@@ -25,9 +25,9 @@
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div onclick="handleLogoClick()" title="PT Altrak 1978"
                 class="flex items-center gap-3 select-none cursor-pointer">
-                <img src="./logo%20altrak.jpeg" alt="PT Altrak 1978" draggable="false" style="pointer-events: none;"
+                <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978" draggable="false" style="pointer-events: none;"
                     class="h-12 w-auto object-contain rounded-lg shadow-sm border border-slate-200 bg-white select-none"
-                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    onerror="if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='./logo%20altrak.jpeg';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}">
                 <div style="display:none" class="items-center gap-2">
                     <div class="w-9 h-9 rounded-xl bg-[#003865] flex items-center justify-center text-white shadow">
                         <i class="fa-solid fa-briefcase text-base"></i>
@@ -62,9 +62,9 @@
                     </div>
                     <!-- Logo di card header -->
                     <div class="flex justify-center mb-4">
-                        <img src="./logo%20altrak.jpeg" alt="PT Altrak 1978"
+                        <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978"
                             class="h-20 w-auto object-contain rounded-xl bg-white shadow-sm border border-white/20 p-1"
-                            onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            onerror="if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='./logo%20altrak.jpeg';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}">
                         <div style="display:none"
                             class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#003865] text-white mb-3 border border-blue-600 shadow-lg">
                             <i class="fa-solid fa-shield-halved text-2xl"></i>
@@ -573,11 +573,17 @@
 
                 <!-- Footer branding Altrak -->
                 <div class="flex items-center justify-center gap-3 text-slate-500 text-sm">
-                    <img src="./logo%20altrak.jpeg" alt="PT Altrak 1978"
-                        class="h-8 w-auto max-w-32 object-contain rounded-lg bg-white border border-slate-200 shadow-sm">
+                    <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978"
+                        class="h-8 w-auto max-w-32 object-contain rounded-lg bg-white border border-slate-200 shadow-sm"
+                        onerror="if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='./logo%20altrak.jpeg';}">
                     <span class="font-bold text-slate-600">PT Altrak 1978 &bull;</span>
                 </div>
             </div>
+        </section>
+
+        <!-- HALAMAN 6: MODUL IST (INTELLIGENZ STRUKTUR TEST) -->
+        <section id="page-ist" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f4f7fb]">
+            <div id="ist-app-container" class="w-full max-w-4xl mx-auto"></div>
         </section>
     </main>
 
@@ -595,7 +601,7 @@
                         </div>
                         <div>
                             <span class="text-[10px] uppercase font-bold tracking-widest text-amber-300">Modul 1 Asesmen</span>
-                            <h3 class="text-xl sm:text-2xl font-black leading-tight">Tes 1: IST (Intelligenz Struktur Test)</h3>
+                            <h3 class="text-xl sm:text-2xl font-black leading-tight">Tes 1: IST</h3>
                         </div>
                     </div>
                     <button onclick="closeModal('modal-module-ist')" class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center transition">
@@ -609,7 +615,7 @@
                         <i class="fa-solid fa-circle-info text-amber-500"></i> Deskripsi Tes IST
                     </h4>
                     <p class="leading-relaxed text-slate-600">
-                        Intelligenz Struktur Test (IST) adalah instrumen psikologi terstandar untuk memetakan kapasitas intelektual komprehensif kandidat PT Altrak 1978. Tes ini mengukur 9 sub-kemampuan mental:
+                        Tes IST adalah instrumen psikologi terstandar untuk memetakan kapasitas intelektual komprehensif kandidat PT Altrak 1978. Tes ini mengukur 9 sub-kemampuan mental:
                     </p>
                     <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-medium text-slate-700">
                         <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
@@ -639,9 +645,9 @@
                 </div>
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button onclick="completeModule(1)"
+                    <button onclick="startISTTest()"
                         class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Konfirmasi Selesai &amp; Buka PAPI Kostick</span>
+                        <span>Mulai Tes 1: IST</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-ist')"
@@ -1031,6 +1037,10 @@
     <script src="js/pauli.js"></script>
     <script src="js/hrd.js"></script>
     <script src="js/app.js"></script>
+    <!-- MODUL IST (INTELLIGENZ STRUKTUR TEST) -->
+    <script src="js/ist/ist-data.js"></script>
+    <script src="js/ist/ist-ui.js"></script>
+    <script src="js/ist/ist-logic.js"></script>
 </body>
 
 </html>
