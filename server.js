@@ -86,8 +86,10 @@ server.listen(PORT, () => {
     console.log(`  Tekan Ctrl + C untuk menghentikan server`);
     console.log(`======================================================\n`);
 
-    // Buka browser secara otomatis di Windows
-    const startCmd = process.platform === 'win32' ? `start "" "${url}"` : `open "${url}"`;
-    exec(startCmd, () => {});
+    // Buka browser hanya jika diberikan argumen --open (mencegah tab terbuka 2 kali saat menggunakan Go Live / debugger)
+    if (process.argv.includes('--open')) {
+        const startCmd = process.platform === 'win32' ? `start "" "${url}"` : `open "${url}"`;
+        exec(startCmd, () => {});
+    }
 });
 

@@ -598,6 +598,11 @@
                 </div>
             </div>
         </section>
+
+        <!-- HALAMAN 6: MODUL IST (INTELLIGENCE STRUCTURE TEST) -->
+        <section id="page-ist" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc]">
+            <div id="ist-app-container" class="w-full max-w-6xl mx-auto"></div>
+        </section>
     </main>
 
     <!-- ========================================================================= -->
@@ -658,9 +663,9 @@
                 </div>
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button onclick="completeModule(1)"
+                    <button onclick="startISTTest()"
                         class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Konfirmasi Selesai &amp; Buka PAPI Kostick</span>
+                        <span>Mulai Tes 1: IST</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-ist')"
@@ -1134,6 +1139,13 @@
     <script src="js/pauli.js"></script>
     <script src="js/hrd.js"></script>
     <script src="js/app.js"></script>
+    <!-- Custom Modal HTML / CSS IST -->
+    <div id="ist-custom-modal" class="hidden"></div>
+
+    <!-- MODUL IST (INTELLIGENCE STRUCTURE TEST) -->
+    <script src="js/ist/ist-data.js"></script>
+    <script src="js/ist/ist-ui.js"></script>
+    <script src="js/ist/ist-logic.js"></script>
 </body>
 
 </html>

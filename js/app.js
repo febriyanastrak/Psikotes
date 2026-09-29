@@ -39,6 +39,20 @@ function handleStartModule(testNum) {
 }
 
 /**
+ * Memulai pengerjaan Tes 1: IST dari modal informasi
+ */
+function startISTTest() {
+    closeModal('modal-module-ist');
+    const pageIst = document.getElementById('page-ist');
+    if (pageIst && typeof istLogic !== 'undefined') {
+        showPage('page-ist');
+        istLogic.tampilkanDashboard();
+    } else {
+        window.location.href = 'ist.html';
+    }
+}
+
+/**
  * Menyelesaikan modul instruksi (IST, PAPI, DISC) dan membuka kunci modul berikutnya
  * @param {number} testNum Nomor modul tes yang diselesaikan
  */
