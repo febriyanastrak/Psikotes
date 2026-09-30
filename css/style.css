@@ -562,3 +562,12 @@ input[type="number"] {
     width: 100%;
     object-fit: contain;
 }
+
+/* =========================================================================
+   Anti-Print & Anti-Export Dokumen (Keamanan Kerahasiaan Soal)
+   ========================================================================= */
+@media print {
+    body {
+        display: none !important;
+    }
+}

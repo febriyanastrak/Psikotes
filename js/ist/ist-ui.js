@@ -290,6 +290,7 @@ const istUI = {
         const subtestData = istLogic.getCurrentSubtestData();
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const isHafalan = subtestData.id === 'soal_09' || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
 
         let contohCardsHtml = '';
         subtestData.contoh.forEach((item, index) => {
@@ -301,6 +302,79 @@ const istUI = {
                 item.pilihan = ["A", "B", "C", "D", "E"];
             }
             const isIsian = item.tipe === 'isian' || (!item.pilihan && item.tipe !== 'pilihan_gambar');
+
+            // Logika Khusus Layar Hafalan Soal 09 (Tipe: layar_hafalan)
+            // Aturan: SEMBUNYIKAN semua input jawaban (radio button maupun kolom teks).
+            // Tampilkan konten hafalanTeks dalam bentuk list atau card berdesain rapi di tengah layar.
+            if (item.tipe === 'layar_hafalan') {
+                const listCards = (item.hafalanTeks || []).map((baris) => {
+                    const colonIdx = baris.indexOf(':');
+                    const kategori = colonIdx !== -1 ? baris.substring(0, colonIdx).trim() : '';
+                    const kataList = colonIdx !== -1 ? baris.substring(colonIdx + 1).trim() : baris;
+
+                    return `
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-[#003865]/40 hover:shadow-sm transition-all">
+                            <div class="shrink-0">
+                                <span class="inline-block w-full sm:w-36 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#003865] to-[#0a4980] text-white font-black text-xs sm:text-sm tracking-wider text-center shadow-xs uppercase">
+                                    ${kategori}
+                                </span>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-base sm:text-lg font-bold text-slate-800 tracking-wide leading-relaxed">
+                                    ${kataList}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                contohCardsHtml += `
+                    <div id="card-hafalan-soal-09" class="bg-gradient-to-br from-slate-50 via-white to-sky-50/40 border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                        <!-- Header Card Hafalan -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80">
+                            <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#003865] text-white font-extrabold text-xs shadow-sm">
+                                <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-black text-xs">
+                                    <i class="fa-solid fa-brain text-[11px] text-[#ffbe1a]"></i>
+                                </span>
+                                <span>LEMBAR HAFALAN KATA</span>
+                            </div>
+
+                            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                                <i class="fa-solid fa-eye text-amber-600"></i> Fokus Menghafal • Dilarang Mencatat
+                            </span>
+                        </div>
+
+                        <!-- Pertanyaan / Instruksi -->
+                        <div class="mb-5 text-center sm:text-left">
+                            <h3 class="text-slate-900 font-extrabold text-lg sm:text-xl leading-snug">
+                                ${item.pertanyaan}
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                                Hafalkan kelima kelompok kata di bawah ini dengan sebaik-baiknya:
+                            </p>
+                        </div>
+
+                        <!-- Daftar Kelompok Kata Hafalan (Card Tengah Berdesain Rapi) -->
+                        <div class="space-y-3 mb-6">
+                            ${listCards}
+                        </div>
+
+                        <!-- Kotak Informasi Waktu & Penjelasan -->
+                        ${item.penjelasan ? `
+                            <div class="rounded-2xl p-4 sm:p-5 shadow-xs flex items-start gap-3.5" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
+                                <i class="fa-solid fa-lightbulb text-amber-600 text-xl shrink-0 mt-0.5"></i>
+                                <div>
+                                    <div class="font-black text-slate-900 mb-1 text-sm sm:text-base">Catatan Waktu:</div>
+                                    <p class="text-slate-800 leading-relaxed font-semibold text-xs sm:text-sm">
+                                        ${item.penjelasan}
+                                    </p>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
 
             // Logika Khusus Fase Percobaan Soal 07 (Tipe: gambar_panduan)
             // Aturan: JANGAN tampilkan input/radio button apapun pada fase ini.
@@ -524,20 +598,22 @@ const istUI = {
                 <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#071f38] px-6 py-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#0b4578]">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#f5b300] text-[#051627] uppercase tracking-wider">Fase Percobaan</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#f5b300] text-[#051627] uppercase tracking-wider">${isHafalan ? 'Fase Menghafal' : 'Fase Percobaan'}</span>
                             <span class="text-xs text-sky-200 font-medium">${subtestName}</span>
                         </div>
-                        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">Petunjuk & Latihan Contoh Soal</h2>
+                        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">${isHafalan ? 'Petunjuk & Layar Hafalan Kata' : 'Petunjuk & Latihan Contoh Soal'}</h2>
                     </div>
 
-                    <!-- Waktu Berjalan Fase Percobaan (30 Detik) -->
+                    <!-- Waktu Berjalan Fase Percobaan (30 Detik / 3 Menit) -->
                     <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
                         <div class="w-8 h-8 rounded-full bg-[#f5b300] text-[#051627] flex items-center justify-center font-black text-sm">
-                            <i class="fa-solid fa-hourglass-half"></i>
+                            <i class="fa-solid ${isHafalan ? 'fa-brain' : 'fa-hourglass-half'}"></i>
                         </div>
                         <div class="text-left">
-                            <div class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">Waktu Mempelajari</div>
-                            <div id="contoh-timer-display" class="text-lg font-black text-[#ffbe1a]">${sisaDetik} Detik</div>
+                            <div class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">${isHafalan ? 'Waktu Menghafal' : 'Waktu Mempelajari'}</div>
+                            <div id="contoh-timer-display" class="text-lg font-black text-[#ffbe1a]">
+                                ${sisaDetik >= 60 ? `${Math.floor(sisaDetik / 60)}:${String(sisaDetik % 60).padStart(2, '0')}` : `${sisaDetik} Detik`}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -565,7 +641,7 @@ const istUI = {
 
                         <button type="button" onclick="istLogic.lanjutKeUjianUtama()" 
                             class="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 text-sm cursor-pointer">
-                            <span>Lanjut ke ${subtestName}</span>
+                            <span>${isHafalan ? 'Mulai Ujian ' + subtestName : 'Lanjut ke ' + subtestName}</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -658,6 +734,28 @@ const istUI = {
                     { no: "3", title: "Cocokkan Patokan (A-E)", desc: "Pilih bentuk patokan A, B, C, D, atau E yang terbentuk dari potongan itu." }
                 ],
                 tips: "Pada ujian utama, gambar master patokan (A - E) akan selalu menempel (sticky) di bagian atas layar."
+            },
+            8: {
+                formatLabel: "Pilihan Ganda Kubus (A - E)",
+                formatIcon: "fa-cube",
+                highlightedText: "Ditentukan 5 buah <strong>kubus patokan (A, B, C, D, E)</strong>. Pada tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tentukan kubus patokan manakah yang <strong>kedudukannya sama persis</strong> dengan kubus soal.",
+                steps: [
+                    { no: "1", title: "Amati Kubus Soal", desc: "Cermati tiga sisi tampak dan tanda-tanda pada kubus soal." },
+                    { no: "2", title: "Putar atau Gulingkan", desc: "Bayangkan kubus patokan diputar atau digulingkan ke berbagai arah." },
+                    { no: "3", title: "Pilih Kubus Patokan", desc: "Pilih kubus A, B, C, D, atau E yang identik dengan kubus soal." }
+                ],
+                tips: "Gambar patokan kubus (A - E) akan selalu menempel (sticky) di bagian atas layar selama ujian."
+            },
+            9: {
+                formatLabel: "Tes Hafalan Kata",
+                formatIcon: "fa-brain",
+                highlightedText: "Anda akan diberikan waktu <strong>3 menit untuk menghafal</strong> kata-kata di bawah ini. Anda <strong>TIDAK DIPERKENANKAN mencatat</strong>. Setelah 3 menit, halaman akan otomatis berpindah ke soal ujian.",
+                steps: [
+                    { no: "1", title: "Fokus Menghafal", desc: "Cermati 5 kelompok kategori kata (Bunga, Perkakas, Burung, Kesenian, Binatang)." },
+                    { no: "2", title: "Ingat Kata & Awalan", desc: "Hafalkan kata-kata dalam kelompok dan huruf permulaannya tanpa mencatat." },
+                    { no: "3", title: "Kerjakan Ujian", desc: "Pada ujian utama, tentukan kategori kata berdasarkan huruf permulaan yang ditanyakan." }
+                ],
+                tips: "Waktu menghafal 3 Menit. Fokuskan perhatian Anda pada layar dan jangan mencatat."
             }
         };
 
@@ -793,7 +891,13 @@ const istUI = {
         const progressBar = document.getElementById('contoh-progress-bar');
         
         if (timerDisplay) {
-            timerDisplay.textContent = `${sisaDetik} Detik`;
+            if (sisaDetik >= 60) {
+                const m = Math.floor(sisaDetik / 60);
+                const s = sisaDetik % 60;
+                timerDisplay.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            } else {
+                timerDisplay.textContent = `${sisaDetik} Detik`;
+            }
         }
         if (progressBar) {
             const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;

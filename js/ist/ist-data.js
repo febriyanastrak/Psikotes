@@ -499,6 +499,54 @@ const istSoal08 = {
     ]
 };
 
+// ==========================================
+// DATA SOAL 09
+// ==========================================
+const istSoal09 = {
+    id: "soal_09",
+    nama: "Soal 09",
+    waktuContoh: 180000, // 3 Menit untuk menghafal
+    waktuUjian: 360000,  // 6 Menit untuk menjawab
+    petunjuk: "Anda akan diberikan waktu 3 menit untuk menghafal kata-kata di bawah ini. Anda TIDAK DIPERKENANKAN mencatat. Setelah 3 menit, halaman akan otomatis berpindah ke soal ujian.",
+    contoh: [
+        { 
+            no: "Hafalan", 
+            tipe: "layar_hafalan",
+            pertanyaan: "Hafalkan pengelompokan kata-kata berikut ini:", 
+            hafalanTeks: [
+                "BUNGA: Seroja, Melati, Anggrek, Kamboja, Flamboyan",
+                "PERKAKAS: Wajan, Jarum, Kikir, Palu, Cangkul",
+                "BURUNG: Itik, Elang, Walet, Tekukur, Nuri",
+                "KESENIAN: Quintet, Arca, Opera, Gamelan, Ukiran",
+                "BINATANG: Musang, Rusa, Beruang, Zebra, Harimau"
+            ],
+            penjelasan: "Waktu menghafal: 3 Menit. Fokuskan perhatian Anda pada layar."
+        }
+    ],
+    soal: [
+        { no: 1, pertanyaan: "Kata yang mempunyai huruf permulaan Q adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "D" },
+        { no: 2, pertanyaan: "Kata yang mempunyai huruf permulaan R adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "E" },
+        { no: 3, pertanyaan: "Kata yang mempunyai huruf permulaan P adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "B" },
+        { no: 4, pertanyaan: "Kata yang mempunyai huruf permulaan N adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "C" },
+        { no: 5, pertanyaan: "Kata yang mempunyai huruf permulaan S adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "A" },
+        { no: 6, pertanyaan: "Kata yang mempunyai huruf permulaan Z adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "E" },
+        { no: 7, pertanyaan: "Kata yang mempunyai huruf permulaan J adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "B" },
+        { no: 8, pertanyaan: "Kata yang mempunyai huruf permulaan F adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "A" },
+        { no: 9, pertanyaan: "Kata yang mempunyai huruf permulaan G adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "D" },
+        { no: 10, pertanyaan: "Kata yang mempunyai huruf permulaan E adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "C" },
+        { no: 11, pertanyaan: "Kata yang mempunyai huruf permulaan H adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "E" },
+        { no: 12, pertanyaan: "Kata yang mempunyai huruf permulaan C adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "B" },
+        { no: 13, pertanyaan: "Kata yang mempunyai huruf permulaan I adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "C" },
+        { no: 14, pertanyaan: "Kata yang mempunyai huruf permulaan O adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "D" },
+        { no: 15, pertanyaan: "Kata yang mempunyai huruf permulaan T adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "C" },
+        { no: 16, pertanyaan: "Kata yang mempunyai huruf permulaan U adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "D" },
+        { no: 17, pertanyaan: "Kata yang mempunyai huruf permulaan B adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "E" },
+        { no: 18, pertanyaan: "Kata yang mempunyai huruf permulaan M adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "A" },
+        { no: 19, pertanyaan: "Kata yang mempunyai huruf permulaan K adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "B" },
+        { no: 20, pertanyaan: "Kata yang mempunyai huruf permulaan W adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], jawabanBenar: "C" }
+    ]
+};
+
 // Aliases
 const istSubtes02 = istSoal02;
 const istSubtes03 = istSoal03;
@@ -507,6 +555,7 @@ const istSubtes05 = istSoal05;
 const istSubtes06 = istSoal06;
 const istSubtes07 = istSoal07;
 const istSubtes08 = istSoal08;
+const istSubtes09 = istSoal09;
 
 // Mapping seluruh subtes aktif
 const IST_SUBTEST_DATA = {
@@ -517,7 +566,8 @@ const IST_SUBTEST_DATA = {
     5: istSoal05,
     6: istSoal06,
     7: istSoal07,
-    8: istSoal08
+    8: istSoal08,
+    9: istSoal09
 };
 
 /**
@@ -532,7 +582,7 @@ const IST_SUBTESTS_LIST = [
     { no: "06", name: "Soal 06", totalSoal: 20, active: true },
     { no: "07", name: "Soal 07", totalSoal: 20, active: true },
     { no: "08", name: "Soal 08", totalSoal: 20, active: true },
-    { no: "09", name: "Soal 09", totalSoal: 20, active: false }
+    { no: "09", name: "Soal 09", totalSoal: 20, active: true }
 ];
 
 

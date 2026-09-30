@@ -203,13 +203,17 @@ const istLogic = {
                     if (autoTimeout) clearTimeout(autoTimeout);
                     this.mulaiFaseUjian();
                 };
+
+                const isHafalan = this.currentSubtestNo === 9 || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
                 
                 istUI.showModal({
-                    title: "Waktu Percobaan Selesai",
-                    message: `Waktu percobaan telah habis.\n\nSesi contoh sudah berakhir. Layar akan otomatis memindahkan Anda untuk lanjut ke ${subtestName.toLowerCase()}.`,
+                    title: isHafalan ? "Waktu Menghafal Habis" : "Waktu Percobaan Selesai",
+                    message: isHafalan 
+                        ? `Waktu menghafal habis. Lanjut ke Ujian ${subtestName}.`
+                        : `Waktu percobaan telah habis.\n\nSesi contoh sudah berakhir. Layar akan otomatis memindahkan Anda untuk lanjut ke ${subtestName.toLowerCase()}.`,
                     type: "info",
-                    iconHtml: '<i class="fa-solid fa-hourglass-end text-[#ffbe1a]"></i>',
-                    okText: `<span>Lanjut ke ${subtestName}</span> <i class="fa-solid fa-arrow-right"></i>`,
+                    iconHtml: isHafalan ? '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>' : '<i class="fa-solid fa-hourglass-end text-[#ffbe1a]"></i>',
+                    okText: `<span>Lanjut ke Ujian ${subtestName}</span> <i class="fa-solid fa-arrow-right"></i>`,
                     onOk: navigateToExam
                 });
 
@@ -244,12 +248,15 @@ const istLogic = {
         const subtestData = this.getCurrentSubtestData();
         const subtestCode = String(this.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const isHafalan = this.currentSubtestNo === 9 || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
 
         istUI.showModal({
-            title: "Sesi Percobaan Selesai",
-            message: `Anda telah mempelajari contoh soal.\n\nSesi contoh sudah berakhir. Silakan klik tombol di bawah untuk lanjut ke ${subtestName.toLowerCase()}.`,
+            title: isHafalan ? "Mulai Ujian Hafalan" : "Sesi Percobaan Selesai",
+            message: isHafalan 
+                ? `Apakah Anda siap mengakhiri waktu menghafal dan lanjut ke Ujian ${subtestName}?`
+                : `Anda telah mempelajari contoh soal.\n\nSesi contoh sudah berakhir. Silakan klik tombol di bawah untuk lanjut ke ${subtestName.toLowerCase()}.`,
             type: "info",
-            iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
+            iconHtml: isHafalan ? '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>' : '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
             okText: `<span>Lanjut ke ${subtestName}</span> <i class="fa-solid fa-arrow-right"></i>`,
             onOk: () => {
                 this.mulaiFaseUjian();
@@ -508,6 +515,7 @@ const istLogic = {
                 total_salah: totalSalah,
                 kosong: totalKosong
             },
+            pelanggaran_tab_switch: typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0,
             waktu_selesai: new Date().toISOString()
         };
 
@@ -566,3 +574,129 @@ document.addEventListener('DOMContentLoaded', () => {
         istLogic.init();
     }
 });
+
+// =========================================================================
+// FITUR PENGAMANAN & INTEGRITAS IST (STANDALONE FALLBACK JIKA DIBUKA DI IST.HTML)
+// =========================================================================
+if (typeof window !== 'undefined' && !window._appSecurityLoaded) {
+    function clearUserClipboardFallback() {
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('').catch(() => {});
+            }
+        } catch (e) {}
+    }
+
+    // Blokir PrintScreen, F12, Ctrl+P, Ctrl+S, Ctrl+U, Ctrl+Shift+I/J/C
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            clearUserClipboardFallback();
+            return;
+        }
+        if (e.key === 'F12' || e.keyCode === 123) {
+            e.preventDefault();
+            return;
+        }
+        if (e.ctrlKey || e.metaKey) {
+            const k = (e.key || '').toLowerCase();
+            if (['p', 's', 'u'].includes(k)) {
+                e.preventDefault();
+                return;
+            }
+            if (e.shiftKey && ['i', 'j', 'c'].includes(k)) {
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+            clearUserClipboardFallback();
+        }
+    });
+
+    // Peringatan saat peserta tidak sengaja ingin refresh atau menutup tab saat tes aktif
+    window.addEventListener('beforeunload', (e) => {
+        if ((istLogic.fase === 'UJIAN' || (istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) && !istLogic.isUjianTerkunci) {
+            e.preventDefault();
+            e.returnValue = 'Tes IST sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!';
+            return e.returnValue;
+        }
+    });
+
+    // Blokir klik kanan
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+    });
+
+    // Blokir copy, cut, paste, dragstart
+    ['copy', 'cut', 'paste', 'dragstart'].forEach((evt) => {
+        document.addEventListener(evt, (e) => {
+            if (istLogic.fase === 'UJIAN' || istLogic.fase === 'CONTOH') {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Anti tab-switching fallback
+    let istLastViolation = 0;
+    if (typeof tabSwitchViolations === 'undefined') {
+        window.tabSwitchViolations = 0;
+    }
+
+    function istHandleViolation(reason) {
+        if ((istLogic.fase !== 'UJIAN' && !(istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) || istLogic.isUjianTerkunci) {
+            return;
+        }
+        const now = Date.now();
+        if (now - istLastViolation < 1500) return;
+        istLastViolation = now;
+
+        clearUserClipboardFallback();
+        tabSwitchViolations++;
+
+        if (tabSwitchViolations <= 3) {
+            const sisa = 3 - tabSwitchViolations;
+            const pesanSisa = sisa > 0
+                ? `Sisa toleransi pelanggaran: ${sisa} kali lagi.`
+                : `PERINGATAN TERAKHIR! Jika Anda berpindah tab atau aplikasi sekali lagi, tes Anda akan otomatis diakhiri dan dikumpulkan ke server!`;
+
+            istUI.showModal({
+                title: "⚠️ Peringatan Integritas Ujian",
+                message: `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`,
+                type: "warning",
+                iconHtml: '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>',
+                okText: '<span>Saya Mengerti & Kembali ke Tes</span>'
+            });
+        } else {
+            istUI.showModal({
+                title: "🚨 Tes Dihentikan Otomatis",
+                message: `Batas toleransi pelanggaran terlampaui (lebih dari 3 kali berpindah tab/aplikasi).\n\nSesuai pakta integritas ujian PT Altrak 1978, rangkaian tes IST Anda dihentikan secara otomatis dan lembar jawaban langsung dikumpulkan ke sistem.`,
+                type: "error",
+                iconHtml: '<i class="fa-solid fa-ban text-red-500"></i>',
+                okText: '<span>Tutup & Kembali ke Menu</span>',
+                onOk: () => {
+                    istLogic.selesaikanSubtesAktif();
+                    istLogic.tampilkanMenu9Subtes();
+                }
+            });
+            setTimeout(() => {
+                if (!istLogic.isUjianTerkunci) {
+                    istLogic.selesaikanSubtesAktif();
+                    istLogic.tampilkanMenu9Subtes();
+                }
+            }, 1500);
+        }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) istHandleViolation('tab atau jendela browser');
+    });
+    window.addEventListener('blur', () => {
+        istHandleViolation('ke aplikasi lain');
+    });
+}
+

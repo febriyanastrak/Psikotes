@@ -181,6 +181,22 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Tandai bahwa pengamanan global aktif
+window._appSecurityLoaded = true;
+
+// Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli atau IST)
+function isTestActive() {
+    const isPauli = typeof state !== 'undefined' && state.pauli && state.pauli.isActive && !isTrialMode && !window._tesSelesai;
+    if (isPauli) return { active: true, testType: 'Pauli' };
+
+    const isIst = typeof istLogic !== 'undefined' && 
+                  (istLogic.fase === 'UJIAN' || (istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) && 
+                  !istLogic.isUjianTerkunci;
+    if (isIst) return { active: true, testType: 'IST' };
+
+    return { active: false, testType: null };
+}
+
 // Listener tambahan saat tombol PrintScreen dilepas (keyup) untuk menjamin clipboard bersih di Windows
 window.addEventListener('keyup', (e) => {
     if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
@@ -188,11 +204,13 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-// Peringatan saat peserta tidak sengaja ingin refresh atau menutup tab saat tes aktif
+// Peringatan saat peserta tidak sengaja ingin refresh atau menutup tab saat tes aktif (Pauli & IST)
 window.addEventListener('beforeunload', (e) => {
-    if (state.pauli && state.pauli.isActive && !isTrialMode && !window._tesSelesai) {
+    const testStatus = isTestActive();
+    if (testStatus.active) {
         e.preventDefault();
-        e.returnValue = 'Tes Pauli sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!';
+        const namaTes = testStatus.testType === 'Pauli' ? 'Tes Pauli' : 'Tes IST';
+        e.returnValue = `${namaTes} sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!`;
         return e.returnValue;
     }
 });
@@ -203,10 +221,12 @@ document.addEventListener('contextmenu', (e) => {
     return false;
 });
 
-// Blokir aksi copy, cut, paste, dan dragstart selama asesmen
+// Blokir aksi copy, cut, paste, dan dragstart selama asesmen berlangsung (Pauli & IST)
 ['copy', 'cut', 'paste', 'dragstart'].forEach((evtName) => {
     document.addEventListener(evtName, (e) => {
-        if (state.pauli && state.pauli.isActive) {
+        const isPauliActive = typeof state !== 'undefined' && state.pauli && state.pauli.isActive;
+        const isIstActive = typeof istLogic !== 'undefined' && (istLogic.fase === 'UJIAN' || istLogic.fase === 'CONTOH');
+        if (isPauliActive || isIstActive) {
             e.preventDefault();
         }
     });
@@ -227,8 +247,8 @@ document.addEventListener('selectstart', (e) => {
 let lastViolationTimestamp = 0;
 
 function handleIntegrityViolation(reason) {
-    // Hanya berlaku saat tes Pauli asli sedang berlangsung
-    if (!state.pauli || !state.pauli.isActive || isTrialMode || window._tesSelesai) {
+    const testStatus = isTestActive();
+    if (!testStatus.active) {
         return;
     }
 
@@ -239,7 +259,12 @@ function handleIntegrityViolation(reason) {
     }
     lastViolationTimestamp = now;
 
+    // Bersihkan clipboard saat terjadi indikasi screenshot (misal Win+Shift+S / Snipping Tool yang memicu blur)
+    clearUserClipboard();
+
     tabSwitchViolations++;
+    const isPauli = testStatus.testType === 'Pauli';
+    const namaTes = isPauli ? 'Pauli' : 'IST';
 
     if (tabSwitchViolations <= 3) {
         const sisa = 3 - tabSwitchViolations;
@@ -247,29 +272,70 @@ function handleIntegrityViolation(reason) {
             ? `Sisa toleransi pelanggaran: ${sisa} kali lagi.`
             : `PERINGATAN TERAKHIR! Jika Anda berpindah tab atau aplikasi sekali lagi, tes Anda akan otomatis diakhiri dan dikumpulkan ke server!`;
 
-        customAlert(
-            "⚠️ Peringatan Integritas Ujian",
-            `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`,
-            "error"
-        );
+        const pesanModal = `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`;
+
+        if (isPauli) {
+            customAlert("⚠️ Peringatan Integritas Ujian", pesanModal, "error");
+        } else if (typeof istUI !== 'undefined' && istUI.showModal) {
+            istUI.showModal({
+                title: "⚠️ Peringatan Integritas Ujian",
+                message: pesanModal,
+                type: "warning",
+                iconHtml: '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>',
+                okText: '<span>Saya Mengerti & Kembali ke Tes</span>'
+            });
+        } else {
+            customAlert("⚠️ Peringatan Integritas Ujian", pesanModal, "error");
+        }
     } else {
         // Melanggar lebih dari 3 kali: otomatis selesaikan dan kumpulkan tes
-        customAlert(
-            "🚨 Tes Dihentikan Otomatis",
-            `Batas toleransi pelanggaran terlampaui (lebih dari 3 kali berpindah tab/aplikasi).\n\nSesuai pakta integritas ujian PT Altrak 1978, rangkaian tes Pauli Anda dihentikan secara otomatis dan lembar jawaban langsung dikumpulkan ke sistem.`,
-            "error",
-            false,
-            () => {
-                prosesSimpanPauli(true);
-            }
-        );
+        const pesanDihentikan = `Batas toleransi pelanggaran terlampaui (lebih dari 3 kali berpindah tab/aplikasi).\n\nSesuai pakta integritas ujian PT Altrak 1978, rangkaian tes ${namaTes} Anda dihentikan secara otomatis dan lembar jawaban langsung dikumpulkan ke sistem.`;
 
-        // Fallback otomatis jika modal tidak diklik
-        setTimeout(() => {
-            if (state.pauli && state.pauli.isActive) {
-                prosesSimpanPauli(true);
+        if (isPauli) {
+            customAlert(
+                "🚨 Tes Dihentikan Otomatis",
+                pesanDihentikan,
+                "error",
+                false,
+                () => {
+                    prosesSimpanPauli(true);
+                }
+            );
+
+            // Fallback otomatis jika modal tidak diklik
+            setTimeout(() => {
+                if (state.pauli && state.pauli.isActive) {
+                    prosesSimpanPauli(true);
+                }
+            }, 1200);
+        } else {
+            // IST dihentikan otomatis dan disimpan ke sistem database
+            if (typeof istUI !== 'undefined' && istUI.showModal) {
+                istUI.showModal({
+                    title: "🚨 Tes Dihentikan Otomatis",
+                    message: pesanDihentikan,
+                    type: "error",
+                    iconHtml: '<i class="fa-solid fa-ban text-red-500"></i>',
+                    okText: '<span>Tutup & Kembali ke Menu</span>',
+                    onOk: () => {
+                        if (typeof istLogic !== 'undefined') {
+                            istLogic.selesaikanSubtesAktif();
+                            istLogic.tampilkanMenu9Subtes();
+                        }
+                    }
+                });
+            } else {
+                customAlert("🚨 Tes Dihentikan Otomatis", pesanDihentikan, "error");
             }
-        }, 1200);
+
+            // Fallback otomatis jika modal tidak diklik
+            setTimeout(() => {
+                if (typeof istLogic !== 'undefined' && !istLogic.isUjianTerkunci) {
+                    istLogic.selesaikanSubtesAktif();
+                    istLogic.tampilkanMenu9Subtes();
+                }
+            }, 1500);
+        }
     }
 }
 
