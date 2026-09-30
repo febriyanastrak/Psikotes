@@ -1,97 +1,305 @@
+
 <!DOCTYPE html>
-<html lang="id" class="bg-white min-h-screen text-slate-800">
+<html lang="id" class="bg-white min-h-screen">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Modul Tes IST - PT Altrak 1978</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>IST Soal 01 - PT Altrak 1978</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome 6 Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
+    <!-- Custom CSS Eksternal -->
     <link rel="stylesheet" href="css/style.css">
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f7fb;
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+
         .animate-fade-in {
-            animation: fadeIn 0.25s ease-out forwards;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Radio Card Styling */
+        .radio-option-card:hover {
+            border-color: #0b4578;
+        }
+
+        /* Kolom Isian Styling (Soal 04, 05, 06) */
+        .ist-text-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 16px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1E293B;
+            background-color: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            line-height: 1.5;
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+        }
+
+        .ist-text-input.pl-11 {
+            padding-left: 2.75rem !important;
+        }
+
+        .ist-text-input::placeholder {
+            color: #94A3B8;
+            font-weight: 400;
+            opacity: 1;
+        }
+
+        .ist-text-input:focus {
+            outline: none;
+            border-color: #003865;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(10, 59, 102, 0.14);
+        }
+
+        .ist-text-input:disabled {
+            background-color: #f8fafc;
+            color: #94a3b8;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+
+        /* Hilangkan tombol panah spinner otomatis up/down pada input angka */
+        .ist-text-input::-webkit-outer-spin-button,
+        .ist-text-input::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+        }
+
+        /* Deret Angka Soal 06: Memberi spasi/jarak yang lega antar angka agar jelas & nyaman untuk berhitung */
+        .deret-angka-text {
+            display: inline-block;
+            word-spacing: 1.5rem !important;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+        }
+
+        @media (min-width: 640px) {
+            .deret-angka-text {
+                word-spacing: 2.25rem !important;
+                font-size: 1.25rem !important;
+            }
+        }
+
+        /* Sticky Header Pilihan Bentuk Patokan (Soal 07) */
+        .sticky-patokan-card {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: #F8FAFC;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 10px;
+            margin-bottom: 24px;
+        }
+
+        .sticky-patokan-img {
+            max-height: 100px;
+            width: 100%;
+            object-fit: contain;
         }
     </style>
 </head>
 
-<body class="bg-[#f8fafc] text-slate-800 flex flex-col min-h-screen">
+<body class="text-slate-800 flex flex-col min-h-screen bg-[#f4f7fb]">
 
     <!-- Navbar Asesmen PT Altrak 1978 -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
             <div class="flex items-center gap-3 select-none">
                 <img src="./logo%20altrak.jpeg" alt="PT Altrak 1978" draggable="false" style="pointer-events: none;"
-                    class="h-10 md:h-11 w-auto object-contain rounded-lg shadow-2xs border border-slate-200 bg-white"
+                    class="h-10 md:h-11 w-auto object-contain rounded-lg shadow-sm border border-slate-200 bg-white select-none"
                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div style="display:none" class="items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-[#003865] flex items-center justify-center text-white shadow-xs">
+                    <div class="w-9 h-9 rounded-xl bg-[#003865] flex items-center justify-center text-white shadow">
                         <i class="fa-solid fa-briefcase text-base"></i>
                     </div>
                     <span class="text-[#003865] font-black text-lg tracking-wider">PT ALTRAK 1978</span>
                 </div>
-                <div class="hidden sm:block border-l border-slate-200 pl-3 ml-1">
-                    <span class="text-xs font-black text-[#003865] uppercase tracking-wider block">Intelligence Structure Test</span>
-                    <span class="text-[10px] text-slate-500 font-semibold block">Sistem Asesmen Online</span>
+                <div class="hidden sm:block border-l border-slate-300 pl-3">
+                    <span class="text-xs font-bold text-[#003865] block leading-tight">TES IST</span>
+                    <span class="text-[11px] text-slate-500 font-medium">Portal Asesmen Online Resmi</span>
                 </div>
             </div>
 
+            <!-- User Info Badge & Return Link -->
             <div class="flex items-center gap-3">
-                <a href="index.html" class="text-xs font-bold text-slate-500 hover:text-[#003865] px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-house text-slate-400"></i>
-                    <span class="hidden sm:inline">Beranda</span>
+                <div class="bg-[#edf3f9] px-3.5 py-1.5 rounded-full text-xs font-bold text-[#003865] flex items-center gap-2 border border-[#b9d0e7]">
+                    <i class="fa-solid fa-user-check text-[#003865]"></i>
+                    <span id="ist-participant-name">Peserta Asesmen</span>
+                </div>
+                <a href="index.html" title="Kembali ke Beranda"
+                    class="w-8 h-8 rounded-full border border-slate-200 text-slate-500 hover:text-[#003865] hover:bg-slate-100 flex items-center justify-center transition-colors text-xs">
+                    <i class="fa-solid fa-house"></i>
                 </a>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Konten Utama Modul IST -->
+    <!-- Subtest Roadmap Indicator (9 Subtes IST Sesuai Standar) -->
+    <div class="bg-white border-b border-slate-200/80 py-2.5 px-4 overflow-x-auto shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-2 min-w-[720px]">
+            <div class="flex items-center gap-1.5 text-xs">
+                <!-- Soal 01: Active -->
+                <div class="flex items-center gap-1.5 bg-[#003865] text-white px-3 py-1.5 rounded-xl font-bold shadow-sm">
+                    <span class="w-4 h-4 rounded-full bg-[#f5b300] text-[#051627] flex items-center justify-center text-[10px] font-black">1</span>
+                    <span>Soal 01</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 02 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">2</span>
+                    <span>Soal 02</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 03 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">3</span>
+                    <span>Soal 03</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 04 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">4</span>
+                    <span>Soal 04</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 05 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">5</span>
+                    <span>Soal 05</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 06 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">6</span>
+                    <span>Soal 06</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 07 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">7</span>
+                    <span>Soal 07</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 08 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">8</span>
+                    <span>Soal 08</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                <!-- Soal 09 -->
+                <div class="flex items-center gap-1.5 text-slate-400 px-2 py-1 rounded-lg font-medium">
+                    <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">9</span>
+                    <span>Soal 09</span>
+                </div>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-400 shrink-0">
+                Total 9 Bagian Soal
+            </div>
+        </div>
+    </div>
+
+    <!-- Konten Utama Asesmen IST -->
     <main class="flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full">
-        <!-- Container Pemasangan Tampilan Dinamis -->
-        <div id="ist-app-container" class="w-full max-w-6xl mx-auto">
-            <!-- Loading Awal -->
-            <div class="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-200 animate-pulse">
-                <div class="w-10 h-10 rounded-full border-4 border-[#003865] border-t-transparent animate-spin mx-auto mb-3"></div>
-                <p class="text-xs font-bold text-slate-500">Memuat Modul Soal IST...</p>
+        <!-- Stage Mounting Container Sesuai Arsitektur istUI -->
+        <div id="ist-app-container" class="w-full max-w-4xl mx-auto">
+            <!-- Loading placeholder sebelum script dieksekusi -->
+            <div class="bg-white rounded-3xl p-12 text-center shadow-md border border-slate-200 animate-pulse">
+                <div class="w-12 h-12 rounded-full border-4 border-[#003865] border-t-transparent animate-spin mx-auto mb-4"></div>
+                <p class="text-sm font-bold text-slate-600">Memuat Modul IST Subtes 01 (SE)...</p>
             </div>
         </div>
     </main>
 
-    <!-- Custom Modal HTML / CSS (JANGAN gunakan window.alert bawaan) -->
-    <div id="ist-custom-modal" class="hidden"></div>
-
-    <!-- Footer -->
+    <!-- Footer Asesmen -->
     <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span>&copy; PT Altrak 1978 &bull; Human Resources Department. All rights reserved.</span>
-            <span class="text-slate-400">Intelligence Structure Test (IST) Protocol</span>
+            <span>&copy; PT Altrak 1978 — Human Capital Assessment Center. All rights reserved.</span>
+            <span class="text-slate-400">IST Subtest 01 Standardized Protocol</span>
         </div>
     </footer>
 
-    <!-- Urutan Pemanggilan Skrip: Data -> UI -> Logika -->
+    <!-- MODAL CUSTOM ALERT (IDENTIK DENGAN MODAL PAULI) -->
+    <div id="modal-message"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full p-7 text-center">
+            <div id="msgIcon"
+                class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <h3 id="msgTitle" class="text-xl font-black text-white mb-2">Informasi</h3>
+            <p id="msgBody" class="text-slate-300 mb-6 font-medium text-sm leading-relaxed"></p>
+
+            <div id="msgBtnContainer" class="flex gap-3">
+                <button id="msgBtnCancel"
+                    class="hide-section w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition cursor-pointer">Batal</button>
+                <button id="msgBtnOk"
+                    class="w-full bg-[#003865] hover:bg-[#0a4980] text-white font-bold py-3 rounded-xl transition cursor-pointer">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Pendukung & Inisialisasi IST -->
+    <script>
+        // Ambil nama peserta jika login dari halaman portal utama sebelumnya
+        (function checkParticipantSession() {
+            try {
+                let name = "Peserta Asesmen";
+                const savedProfile = localStorage.getItem('altrak_candidate_profile');
+                if (savedProfile) {
+                    const parsed = JSON.parse(savedProfile);
+                    if (parsed.name) name = parsed.name;
+                }
+                const nameBadge = document.getElementById('ist-participant-name');
+                if (nameBadge) nameBadge.textContent = name;
+            } catch (e) {
+                // fallback
+            }
+        })();
+    </script>
+    <!-- Urutan script: Data -> UI -> Logika -->
     <script src="js/ist/ist-data.js"></script>
     <script src="js/ist/ist-ui.js"></script>
     <script src="js/ist/ist-logic.js"></script>
-    <script>
-        // Jalankan inisialisasi modul IST setelah DOM siap
-        window.addEventListener('DOMContentLoaded', () => {
-            istLogic.init();
-        });
-    </script>
 </body>
 
 </html>

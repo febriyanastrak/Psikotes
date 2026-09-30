@@ -1,51 +1,151 @@
 // =========================================================================
-// DATA RESMI MODUL IST (INTELLIGENCE STRUCTURE TEST) - SOAL 01
-// PT ALTRAK 1978 - REKRUTMEN & ASESMEN
+// DATA RESMI SUBTES 01: SATZERGÄNZUNG (SE) - MELENGKAPI KALIMAT
+// Modul Intelligenz Struktur Test (IST) - PT Altrak 1978
 // =========================================================================
 
-const istSoal01 = {
-    id: "soal_01",
+const istSubtes01 = {
+    id: "subtes_01",
     nama: "Soal 01",
-    waktuContoh: 30000, 
-    waktuUjian: 360000, 
+    waktuContoh: 30000, // 30 detik (30.000 ms)
+    waktuUjian: 360000, // 6 menit (360.000 ms - hidden di background)
     petunjuk: "Soal-soal 01 - 20 terdiri atas kalimat-kalimat. Pada setiap kalimat satu kata hilang dan disediakan 5 (lima) kata pilihan sebagai penggantinya. Pilihlah kata yang tepat yang dapat menyempurnakan kalimat itu!",
     contoh: [
         { 
             no: "01", 
             pertanyaan: "Seekor kuda mempunyai kesamaan terbanyak dengan seekor ..............", 
-            pilihan: ["A. Kucing", "B. Bajing", "C. Keledai", "D. Lembu", "E. Anjing"],
+            pilihan: ["A. Kucing", "B. Bajing", "C. Keledai", "D. Lembu", "E. Anjing"], 
             jawabanBenar: "C",
-            penjelasan: "Cara mengerjakan: Jawaban yang benar ialah C (keledai). Oleh karena itu, Anda harus memilih huruf C."
+            penjelasan: "Seekor keledai (C) memiliki kesamaan bentuk fisik dan kekerabatan hewan yang paling banyak dengan seekor kuda. Maka jawaban yang benar ialah : C (Keledai)."
         },
         { 
             no: "02", 
             pertanyaan: "Lawan 'harapan' adalah ...............", 
-            pilihan: ["A. Duka", "B. Putus Asa", "C. Sengsara", "D. Cinta", "E. Benci"],
+            pilihan: ["A. Duka", "B. Putus Asa", "C. Sengsara", "D. Cinta", "E. Benci"], 
             jawabanBenar: "B",
-            penjelasan: "Cara mengerjakan: Jawabannya ialah B (putus asa). Maka huruf B yang seharusnya dipilih."
+            penjelasan: "Lawan kata (antonim) dari 'harapan' adalah 'putus asa'. Maka jawaban yang benar ialah : B (Putus Asa)."
         }
     ],
     soal: [
-        { no: 1, pertanyaan: "Pengaruh seseorang terhadap orang lain seharusnya bergantung pada ...............", pilihan: ["A. Kekuasaan", "B. Bujukan", "C. Kekayaan", "D. Keberanian", "E. Kewibawaan"] },
-        { no: 2, pertanyaan: "Lawan 'hemat' ialah ...............", pilihan: ["A. Murah", "B. Kikir", "C. Boros", "D. Bernilai", "E. Kaya"] },
-        { no: 3, pertanyaan: "............... tidak termasuk cuaca", pilihan: ["A. Angin puyuh", "B. Halilintar", "C. Salju", "D. Gempa bumi", "E. Kabut"] },
-        { no: 4, pertanyaan: "Lawannya 'setia' ialah ...............", pilihan: ["A. Cinta", "B. Benci", "C. Persahabatan", "D. Khianat", "E. Permusuhan"] },
-        { no: 5, pertanyaan: "Seekor kuda selalu mempunyai ...............", pilihan: ["A. Kandang", "B. Ladam", "C. Pelana", "D. Kuku", "E. Surai"] },
-        { no: 6, pertanyaan: "Seorang paman ............... lebih tua dari kemenakannya.", pilihan: ["A. Jarang", "B. Biasanya", "C. Selalu", "D. Tidak pernah", "E. Kadang-kadang"] },
-        { no: 7, pertanyaan: "Pada jumlah yang sama, nilai kalori yang tertinggi terdapat pada ...............", pilihan: ["A. Ikan", "B. Daging", "C. Lemak", "D. Tahu", "E. Sayuran"] },
-        { no: 8, pertanyaan: "Pada suatu pertandingan selalu terdapat ...............", pilihan: ["A. Lawan", "B. Wasit", "C. Penonton", "D. Sorak", "E. Kemenangan"] },
-        { no: 9, pertanyaan: "Suatu pernyataan yang belum dipastikan dikatakan sebagai pernyataan yang ...............", pilihan: ["A. Paradoks", "B. Tergesa-gesa", "C. Mempunyai arti rangkap", "D. Menyesatkan", "E. Hipotesis"] },
-        { no: 10, pertanyaan: "Pada sepatu selalu terdapat ...............", pilihan: ["A. Kulit", "B. Sol", "C. Tali sepatu", "D. Gesper", "E. Lidah"] },
-        { no: 11, pertanyaan: "Suatu ............... tidak menyangkut persoalan pencegahan kecelakaan.", pilihan: ["A. Lampu lalu lintas", "B. Kacamata pelindung", "C. Kotak PPPK", "D. Tanda peringatan", "E. Palang kereta api"] },
-        { no: 12, pertanyaan: "Lembar kertas uang Rp. 50.000,- mempunyai panjang ............... cm.", pilihan: ["A. 20", "B. 29", "C. 17", "D. 15", "E. 24"] },
-        { no: 13, pertanyaan: "Seseorang yang bersikap menyangsikan setiap kemajuan ialah seorang yang ...............", pilihan: ["A. Demokratis", "B. Radikal", "C. Liberal", "D. Konservatif", "E. Anarkis"] },
-        { no: 14, pertanyaan: "Lawannya 'tidak pernah' ialah ...............", pilihan: ["A. Sering", "B. Kadang-kadang", "C. Jarang", "D. Kerap kali", "E. Selalu"] },
-        { no: 15, pertanyaan: "Jarak antara Jakarta - Surabaya kira-kira ............... km.", pilihan: ["A. 650", "B. 1000", "C. 800", "D. 600", "E. 950"] },
-        { no: 16, pertanyaan: "Untuk dapat membuat nada yang rendah dan mendalam, kita memerlukan banyak ...............", pilihan: ["A. Kekuatan", "B. Peranan", "C. Ayunan", "D. Berat", "E. Suara"] },
-        { no: 17, pertanyaan: "Ayah ............... lebih berpengalaman dari pada anaknya.", pilihan: ["A. Selalu", "B. Biasanya", "C. Jauh", "D. Jarang", "E. Pada dasarnya"] },
-        { no: 18, pertanyaan: "Di antara kota-kota berikut ini, maka kota ............... letaknya paling selatan.", pilihan: ["A. Jakarta", "B. Bandung", "C. Cirebon", "D. Semarang", "E. Surabaya"] },
-        { no: 19, pertanyaan: "Jika kita mengetahui jumlah presentase nomor-nomor lotere yang tidak menang, maka kita dapat menghitung ...............", pilihan: ["A. Jumlah nomor yang menang", "B. Pajak lotere", "C. Kemungkinan menang", "D. Tinggi keuntungan", "E. Jumlah pengikut"] },
-        { no: 20, pertanyaan: "Seorang anak yang berumur 10 tahun tingginya rata-rata ............... cm.", pilihan: ["A. 150", "B. 130", "C. 110", "D. 105", "E. 115"] }
+        { 
+            no: 1, 
+            pertanyaan: "Pengaruh seseorang terhadap orang lain seharusnya bergantung pada ...............", 
+            pilihan: ["A. Kekuasaan", "B. Bujukan", "C. Kekayaan", "D. Keberanian", "E. Kewibawaan"], 
+            jawabanBenar: "E" 
+        },
+        { 
+            no: 2, 
+            pertanyaan: "Lawan 'hemat' ialah ...............", 
+            pilihan: ["A. Murah", "B. Kikir", "C. Boros", "D. Bernilai", "E. Kaya"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 3, 
+            pertanyaan: "............... tidak termasuk cuaca", 
+            pilihan: ["A. Angin puyuh", "B. Halilintar", "C. Salju", "D. Gempa bumi", "E. Kabut"], 
+            jawabanBenar: "D" 
+        },
+        { 
+            no: 4, 
+            pertanyaan: "Lawannya 'setia' ialah ...............", 
+            pilihan: ["A. Cinta", "B. Benci", "C. Persahabatan", "D. Khianat", "E. Permusuhan"], 
+            jawabanBenar: "D" 
+        },
+        { 
+            no: 5, 
+            pertanyaan: "Seekor kuda selalu mempunyai ...............", 
+            pilihan: ["A. Kandang", "B. Ladam", "C. Pelana", "D. Kuku", "E. Surai"], 
+            jawabanBenar: "D" 
+        },
+        { 
+            no: 6, 
+            pertanyaan: "Seorang paman ............... lebih tua dari kemenakannya.", 
+            pilihan: ["A. Jarang", "B. Biasanya", "C. Selalu", "D. Tidak pernah", "E. Kadang-kadang"], 
+            jawabanBenar: "B" 
+        },
+        { 
+            no: 7, 
+            pertanyaan: "Pada jumlah yang sama, nilai kalori yang tertinggi terdapat pada ...............", 
+            pilihan: ["A. Ikan", "B. Daging", "C. Lemak", "D. Tahu", "E. Sayuran"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 8, 
+            pertanyaan: "Pada suatu pertandingan selalu terdapat ...............", 
+            pilihan: ["A. Lawan", "B. Wasit", "C. Penonton", "D. Sorak", "E. Kemenangan"], 
+            jawabanBenar: "A" 
+        },
+        { 
+            no: 9, 
+            pertanyaan: "Suatu pernyataan yang belum dipastikan dikatakan sebagai pernyataan yang ...............", 
+            pilihan: ["A. Paradoks", "B. Tergesa-gesa", "C. Mempunyai arti rangkap", "D. Menyesatkan", "E. Hipotesis"], 
+            jawabanBenar: "E" 
+        },
+        { 
+            no: 10, 
+            pertanyaan: "Pada sepatu selalu terdapat ...............", 
+            pilihan: ["A. Kulit", "B. Sol", "C. Tali sepatu", "D. Gesper", "E. Lidah"], 
+            jawabanBenar: "B" 
+        },
+        { 
+            no: 11, 
+            pertanyaan: "Suatu ............... tidak menyangkut persoalan pencegahan kecelakaan.", 
+            pilihan: ["A. Lampu lalu lintas", "B. Kacamata pelindung", "C. Kotak PPPK", "D. Tanda peringatan", "E. Palang kereta api"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 12, 
+            pertanyaan: "Lembar kertas uang Rp. 50.000,- mempunyai panjang ............... cm.", 
+            pilihan: ["A. 20", "B. 29", "C. 17", "D. 15", "E. 24"], 
+            jawabanBenar: "D" 
+        },
+        { 
+            no: 13, 
+            pertanyaan: "Seseorang yang bersikap menyangsikan setiap kemajuan ialah seorang yang ...............", 
+            pilihan: ["A. Demokratis", "B. Radikal", "C. Liberal", "D. Konservatif", "E. Anarkis"], 
+            jawabanBenar: "D" 
+        },
+        { 
+            no: 14, 
+            pertanyaan: "Lawannya 'tidak pernah' ialah ...............", 
+            pilihan: ["A. Sering", "B. Kadang-kadang", "C. Jarang", "D. Kerap kali", "E. Selalu"], 
+            jawabanBenar: "E" 
+        },
+        { 
+            no: 15, 
+            pertanyaan: "Jarak antara Jakarta - Surabaya kira-kira ............... km.", 
+            pilihan: ["A. 650", "B. 1000", "C. 800", "D. 600", "E. 950"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 16, 
+            pertanyaan: "Untuk dapat membuat nada yang rendah dan mendalam, kita memerlukan banyak ...............", 
+            pilihan: ["A. Kekuatan", "B. Peranan", "C. Ayunan", "D. Berat", "E. Suara"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 17, 
+            pertanyaan: "Ayah ............... lebih berpengalaman dari pada anaknya.", 
+            pilihan: ["A. Selalu", "B. Biasanya", "C. Jauh", "D. Jarang", "E. Pada dasarnya"], 
+            jawabanBenar: "B" 
+        },
+        { 
+            no: 18, 
+            pertanyaan: "Di antara kota-kota berikut ini, maka kota ............... letaknya paling selatan.", 
+            pilihan: ["A. Jakarta", "B. Bandung", "C. Cirebon", "D. Semarang", "E. Surabaya"], 
+            jawabanBenar: "B" 
+        },
+        { 
+            no: 19, 
+            pertanyaan: "Jika kita mengetahui jumlah presentase nomor-nomor lotere yang tidak menang, maka kita dapat menghitung ...............", 
+            pilihan: ["A. Jumlah nomor yang menang", "B. Pajak lotere", "C. Kemungkinan menang", "D. Tinggi keuntungan", "E. Jumlah pengikut"], 
+            jawabanBenar: "C" 
+        },
+        { 
+            no: 20, 
+            pertanyaan: "Seorang anak yang berumur 10 tahun tingginya rata-rata ............... cm.", 
+            pilihan: ["A. 150", "B. 130", "C. 110", "D. 105", "E. 115"], 
+            jawabanBenar: "B" 
+        }
     ]
 };
 
@@ -64,14 +164,14 @@ const istSoal02 = {
             pertanyaan: "Carilah kata yang tidak memiliki kesamaan:", 
             pilihan: ["A. Meja", "B. Kursi", "C. Burung", "D. Lemari", "E. Tempat tidur"], 
             jawabanBenar: "C",
-            penjelasan: "Cara mengerjakan: A, B, D, dan E ialah perabot rumah (meubel). C (burung) bukan perabot rumah atau tidak memiliki kesamaan dengan keempat kata itu. Oleh karena itu, jawaban yang benar adalah C."
+            penjelasan: "a), b), d), dan e) ialah perabot rumah (meubel). Sedangkan c) burung, bukan perabot rumah atau tidak memiliki kesamaan dengan keempat kata itu. Maka jawaban yang benar ialah : C (Burung)."
         },
         { 
             no: "02", 
             pertanyaan: "Carilah kata yang tidak memiliki kesamaan:", 
             pilihan: ["A. Duduk", "B. Berbaring", "C. Berdiri", "D. Berjalan", "E. Berjongkok"], 
             jawabanBenar: "D",
-            penjelasan: "Cara mengerjakan: Pada A, B, C, dan E orang berada dalam keadaan tidak bergerak, sedangkan D (berjalan) orang dalam keadaan bergerak. Maka jawaban yang benar ialah D."
+            penjelasan: "Pada a), b), c) dan e) orang berada dalam keadaan tidak bergerak, sedangkan d) orang dalam keadaan bergerak. Maka jawaban yang benar ialah : D (Berjalan)."
         }
     ],
     soal: [
@@ -113,14 +213,14 @@ const istSoal03 = {
             pertanyaan: "Hutan : pohon = tembok : ?", 
             pilihan: ["A. Batu bata", "B. Rumah", "C. Semen", "D. Putih", "E. Dinding"], 
             jawabanBenar: "A",
-            penjelasan: "Cara mengerjakan: Hubungan antara hutan dan pohon ialah bahwa hutan terdiri atas pohon-pohon. Maka hubungan antara tembok dan salah satu kata pilihan adalah bahwa tembok terdiri atas batu bata. Oleh karena itu, jawaban yang benar adalah A."
+            penjelasan: "Hubungan antara hutan dan pohon ialah bahwa hutan terdiri atas pohon-pohon, maka hubungan antara tembok dan salah satu kata pilihan bahwa tembok terdiri atas batu-batu bata. Maka jawaban yang benar ialah : A (Batu bata)."
         },
         { 
             no: "02", 
             pertanyaan: "Gelap : terang = basah : ?", 
             pilihan: ["A. Hujan", "B. Hari", "C. Lembab", "D. Angin", "E. Kering"], 
             jawabanBenar: "E",
-            penjelasan: "Cara mengerjakan: Gelap ialah lawannya dari terang, maka untuk basah lawannya ialah kering. Maka jawaban yang benar ialah E."
+            penjelasan: "Gelap ialah lawannya dari terang, maka untuk basah lawannya ialah kering. Maka jawaban yang benar ialah : E (Kering)."
         }
     ],
     soal: [
@@ -290,31 +390,150 @@ const istSoal06 = {
     ]
 };
 
-// Map referensi seluruh subtes IST
-const IST_SUBTEST_MAP = {
-    '01': istSoal01,
-    'soal_01': istSoal01,
-    '02': istSoal02,
-    'soal_02': istSoal02,
-    '03': istSoal03,
-    'soal_03': istSoal03,
-    '04': istSoal04,
-    'soal_04': istSoal04,
-    '05': istSoal05,
-    'soal_05': istSoal05,
-    '06': istSoal06,
-    'soal_06': istSoal06
+// ==========================================
+// DATA SOAL 07
+// ==========================================
+const istSoal07 = {
+    id: "soal_07",
+    nama: "Soal 07",
+    waktuContoh: 30000,
+    waktuUjian: 480000, // 8 Menit
+    petunjuk: "Setiap soal memperlihatkan suatu bentuk tertentu yang terpotong menjadi beberapa bagian. Carilah di antara bentuk-bentuk yang ditentukan (A, B, C, D, E) bentuk yang dibangun dengan cara menyusun potongan-potongan itu.",
+    contoh: [
+        { 
+            no: "01", 
+            tipe: "gambar_panduan",
+            gambarSoal: "assets/soal_07/contoh soal 07.png", 
+            penjelasan: "Cara mengerjakan: Jika potongan-potongan pada kotak contoh pertama digabungkan, akan menghasilkan bentuk A. Potongan contoh kedua menghasilkan bentuk E, ketiga menjadi bentuk B, dan keempat menjadi bentuk D."
+        }
+    ],
+    soal: [
+        // Nomor 1 - 12 (Menggunakan Master Gambar 1)
+        { no: 1, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/1.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 2, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/2.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 3, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/3.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 4, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/4.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 5, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/5.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 6, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/6.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 7, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/7.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 8, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/8.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 9, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/9.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 10, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/10.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 11, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/11.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 12, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 1 - 12.png", gambarSoal: "assets/soal_07/12.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        
+        // Nomor 13 - 20 (Menggunakan Master Gambar 2)
+        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/13.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/14.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/15.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/16.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/17.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/18.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/19.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_07/soal 13 - 20 .png", gambarSoal: "assets/soal_07/20.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" }
+    ]
 };
 
-// Daftar subtes untuk dashboard modul IST
-const IST_DAFTAR_SUBTES = [
-    { no: "01", nama: "Soal 01", jumlahSoal: 20, deskripsi: "Melengkapi Kalimat" },
-    { no: "02", nama: "Soal 02", jumlahSoal: 20, deskripsi: "Mencari Kata Berbeda" },
-    { no: "03", nama: "Soal 03", jumlahSoal: 20, deskripsi: "Hubungan Kata" },
-    { no: "04", nama: "Soal 04", jumlahSoal: 16, deskripsi: "Persamaan Kata" },
-    { no: "05", nama: "Soal 05", jumlahSoal: 20, deskripsi: "Hitungan Angka" },
-    { no: "06", nama: "Soal 06", jumlahSoal: 20, deskripsi: "Deret Angka" },
-    { no: "07", nama: "Soal 07", jumlahSoal: 20, deskripsi: "Potongan Gambar" },
-    { no: "08", nama: "Soal 08", jumlahSoal: 20, deskripsi: "Latihan Kubus" },
-    { no: "09", nama: "Soal 09", jumlahSoal: 20, deskripsi: "Mengingat Kata" }
+// ==========================================
+// DATA SOAL 08
+// ==========================================
+const istSoal08 = {
+    id: "soal_08",
+    nama: "Soal 08",
+    waktuContoh: 30000,
+    waktuUjian: 540000, // 9 Menit
+    petunjuk: "Ditentukan 5 buah kubus A, B, C, D, E. Pada tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tiga dari tanda itu dapat dilihat. Carilah kubus yang dimaksudkan (yang diputar/digulingkan) dari pilihan yang ada.",
+    contoh: [
+        { 
+            no: "01", 
+            tipe: "pilihan_gambar",
+            gambarOpsi: "assets/soal_08/opsi_08.png",
+            gambarSoal: "assets/soal_08/contoh_08.png", 
+            pertanyaan: "Tentukan kubus patokan (A, B, C, D, atau E) manakah yang kedudukannya sama dengan KUBUS PERTAMA (paling kiri):",
+            pilihan: ["A", "B", "C", "D", "E"],
+            jawabanBenar: "A",
+            penjelasan: "Cara mengerjakan: Kubus pertama memperlihatkan kubus A dengan kedudukan berbeda (digulingkan ke kiri 1x, diputar ke kiri 1x). Maka jawaban yang benar untuk kubus pertama adalah A."
+        },
+        { 
+            no: "02", 
+            tipe: "pilihan_gambar",
+            gambarOpsi: "assets/soal_08/opsi_08.png",
+            gambarSoal: "assets/soal_08/contoh_08.png", 
+            pertanyaan: "Sekarang, tentukan kubus patokan manakah yang kedudukannya sama dengan KUBUS KEDUA (nomor 2 dari kiri):",
+            pilihan: ["A", "B", "C", "D", "E"],
+            jawabanBenar: "E",
+            penjelasan: "Cara mengerjakan: Kubus kedua adalah bentuk dari kubus E yang diputar/digulingkan. Maka jawaban yang benar adalah E."
+        },
+        { 
+            no: "03", 
+            tipe: "pilihan_gambar",
+            gambarOpsi: "assets/soal_08/opsi_08.png",
+            gambarSoal: "assets/soal_08/contoh_08.png", 
+            pertanyaan: "Tentukan kubus patokan manakah yang kedudukannya sama dengan KUBUS KETIGA (tengah):",
+            pilihan: ["A", "B", "C", "D", "E"],
+            jawabanBenar: "B",
+            penjelasan: "Cara mengerjakan: Kubus ketiga adalah bentuk dari kubus B yang diputar/digulingkan. Maka jawaban yang benar adalah B."
+        }
+    ],
+    soal: [
+        { no: 1, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/1.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 2, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/2.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 3, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/3.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 4, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/4.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 5, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/5.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 6, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/6.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 7, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/7.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 8, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/8.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 9, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/9.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 10, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/10.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 11, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/11.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 12, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/12.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "A" },
+        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/13.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/14.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/15.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/16.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "D" },
+        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/17.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "B" },
+        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/18.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" },
+        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/19.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "C" },
+        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/soal_08/opsi_08.png", gambarSoal: "assets/soal_08/20.png", pilihan: ["A", "B", "C", "D", "E"], jawabanBenar: "E" }
+    ]
+};
+
+// Aliases
+const istSubtes02 = istSoal02;
+const istSubtes03 = istSoal03;
+const istSubtes04 = istSoal04;
+const istSubtes05 = istSoal05;
+const istSubtes06 = istSoal06;
+const istSubtes07 = istSoal07;
+const istSubtes08 = istSoal08;
+
+// Mapping seluruh subtes aktif
+const IST_SUBTEST_DATA = {
+    1: istSubtes01,
+    2: istSoal02,
+    3: istSoal03,
+    4: istSoal04,
+    5: istSoal05,
+    6: istSoal06,
+    7: istSoal07,
+    8: istSoal08
+};
+
+/**
+ * Daftar 9 Bagian Soal IST (Penamaan Resmi Sesuai Aturan: Soal 01 s/d Soal 09, Waktu Tersembunyi)
+ */
+const IST_SUBTESTS_LIST = [
+    { no: "01", name: "Soal 01", totalSoal: 20, active: true },
+    { no: "02", name: "Soal 02", totalSoal: 20, active: true },
+    { no: "03", name: "Soal 03", totalSoal: 20, active: true },
+    { no: "04", name: "Soal 04", totalSoal: 16, active: true },
+    { no: "05", name: "Soal 05", totalSoal: 20, active: true },
+    { no: "06", name: "Soal 06", totalSoal: 20, active: true },
+    { no: "07", name: "Soal 07", totalSoal: 20, active: true },
+    { no: "08", name: "Soal 08", totalSoal: 20, active: true },
+    { no: "09", name: "Soal 09", totalSoal: 20, active: false }
 ];
+
+
+
