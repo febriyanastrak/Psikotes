@@ -221,9 +221,12 @@ const istUI = {
                             </h3>
                         </div>
 
-                        <!-- Keterangan Jumlah Soal (WAKTU DISEMBUNYIKAN SECARA TOTAL DARI TAMPILAN) -->
+                        <!-- Keterangan Jumlah Soal & Rentang Nomor Urut (WAKTU DISEMBUNYIKAN SECARA TOTAL DARI TAMPILAN) -->
                         <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold mb-5 pb-3 border-b border-slate-100">
-                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-slate-400"></i> ${sub.totalSoal} Soal</span>
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-slate-400"></i>
+                                ${sub.totalSoal} Soal (Nomor ${(istLogic.getSubtestOffset ? istLogic.getSubtestOffset(subNoInt) : 0) + 1} - ${(istLogic.getSubtestOffset ? istLogic.getSubtestOffset(subNoInt) : 0) + sub.totalSoal})
+                            </span>
                         </div>
                     </div>
 
@@ -262,7 +265,7 @@ const istUI = {
 
                 <!-- Tombol Kembali ke Dashboard Utama -->
                 <div class="pt-4 text-center">
-                    <button type="button" onclick="if(typeof showPage === 'function') showPage('page-dashboard'); else window.location.href='index.html';"
+                    <button type="button" onclick="if(typeof pindahFase === 'function') pindahFase('view-dashboard'); else if(typeof showPage === 'function') showPage('view-dashboard');"
                         class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#003865] bg-white px-5 py-2.5 rounded-full border border-slate-200 shadow-sm transition hover:border-[#b9d0e7]">
                         <i class="fa-solid fa-arrow-left"></i>
                         <span>Kembali ke Dashboard Utama</span>
@@ -463,8 +466,8 @@ const istUI = {
                     ` : ''}
                 `;
             } else {
-                // Pilihan Ganda (A - E) untuk Soal 01, 02, 03, 08
-                const isPilihanGambar = item.tipe === 'pilihan_gambar' || subtestData.id === 'soal_08';
+                // Pilihan Ganda (A - E) untuk Soal 01, 02, 03, 07, 08
+                const isPilihanGambar = item.tipe === 'pilihan_gambar' || subtestData.id === 'soal_08' || subtestData.id === 'soal_07';
 
                 contohInteractionHtml = `
                     <!-- Cara Mengerjakan / Penjelasan Resmi -->
@@ -513,7 +516,7 @@ const istUI = {
                                             <span class="w-8 h-8 rounded-xl ${badgeCls} flex items-center justify-center text-xs sm:text-sm font-black mb-1 transition-colors">
                                                 ${optKey}
                                             </span>
-                                            <span class="text-xs font-bold text-slate-700 text-center">${optText}</span>
+                                            <span class="text-xs font-bold text-slate-700 text-center">${optText || ('Bentuk ' + optKey)}</span>
                                             ${isKey ? '<span class="text-[10px] font-bold text-emerald-700 mt-1"><i class="fa-solid fa-check"></i> Kunci</span>' : ''}
                                         </div>
                                     `;
@@ -924,10 +927,23 @@ const istUI = {
         if (!container) return;
 
         const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
+        const totalSoal = subtestData.soal ? subtestData.soal.length : 20;
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
-        const totalSoal = subtestData.soal.length;
-        const totalTerisi = Object.values(istLogic.jawabanPeserta).filter(v => v !== undefined && v !== null && String(v).trim() !== '').length;
+        const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
+            ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
+            : 0;
+        const nomorAwal = offset + 1;
+        const nomorAkhir = offset + totalSoal;
+
+        let totalTerisi = 0;
+        subtestData.soal.forEach((s, i) => {
+            const noU = offset + (i + 1);
+            const ans = istLogic.jawabanPeserta[noU] !== undefined ? istLogic.jawabanPeserta[noU] : istLogic.jawabanPeserta[s.no];
+            if (ans !== undefined && ans !== null && String(ans).trim() !== '') {
+                totalTerisi++;
+            }
+        });
 
         // Aturan: Tepat 2 baris sejajar (8 kolom untuk 16 soal, 10 kolom untuk 20 soal)
         const colsCount = totalSoal === 16 ? 8 : 10;
@@ -960,10 +976,10 @@ const istUI = {
                         </div>
                     </div>
 
-                    <!-- Grid Navigasi Nomor: "NOMOR SOAL" (1 s/d 16 untuk Soal 04, 1 s/d 20 untuk Soal 05 & 06) -->
+                    <!-- Grid Navigasi Nomor: "NOMOR SOAL" berurutan (1 s/d 176) -->
                     <div>
                         <div class="flex items-center justify-between mb-2.5">
-                            <span class="text-xs font-black uppercase tracking-wider text-slate-600">NOMOR SOAL</span>
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-600">NOMOR SOAL (${nomorAwal} - ${nomorAkhir})</span>
                             <span class="text-[11px] text-slate-400 font-medium hidden sm:inline">Pilih nomor untuk melompat antar soal</span>
                         </div>
 
@@ -1009,9 +1025,16 @@ const istUI = {
      */
     generatePaletteHtml() {
         const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
+        const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
+            ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
+            : 0;
+
         return subtestData.soal.map((item, idx) => {
             const isAktif = idx === istLogic.currentSoalIndex;
-            const userAns = istLogic.jawabanPeserta[item.no];
+            const noUrut = offset + (idx + 1);
+            const userAns = istLogic.jawabanPeserta[noUrut] !== undefined 
+                ? istLogic.jawabanPeserta[noUrut] 
+                : istLogic.jawabanPeserta[item.no];
             const sudahTerisi = userAns !== undefined && userAns !== null && String(userAns).trim() !== '';
 
             let cls = "h-8 sm:h-9 w-full rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center cursor-pointer border ";
@@ -1026,8 +1049,8 @@ const istUI = {
             }
 
             return `
-                <button type="button" onclick="istLogic.lompatKeSoal(${idx})" class="${cls}" title="Nomor ${item.no}">
-                    ${item.no}
+                <button type="button" onclick="istLogic.lompatKeSoal(${idx})" class="${cls}" title="Nomor ${noUrut}">
+                    ${noUrut}
                 </button>
             `;
         }).join('');
@@ -1045,7 +1068,17 @@ const istUI = {
         const badgeTerjawab = document.getElementById('badge-terjawab');
         if (badgeTerjawab) {
             const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
-            const totalTerisi = Object.values(istLogic.jawabanPeserta).filter(v => v !== undefined && v !== null && String(v).trim() !== '').length;
+            const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
+                ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
+                : 0;
+            let totalTerisi = 0;
+            subtestData.soal.forEach((s, i) => {
+                const noU = offset + (i + 1);
+                const ans = istLogic.jawabanPeserta[noU] !== undefined ? istLogic.jawabanPeserta[noU] : istLogic.jawabanPeserta[s.no];
+                if (ans !== undefined && ans !== null && String(ans).trim() !== '') {
+                    totalTerisi++;
+                }
+            });
             badgeTerjawab.textContent = `${totalTerisi} / ${subtestData.soal.length} Terisi`;
         }
     },
@@ -1068,7 +1101,14 @@ const istUI = {
         if (!soal) return;
 
         const totalSoal = subtestData.soal.length;
-        const rawJawaban = istLogic.jawabanPeserta[soal.no];
+        const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
+            ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
+            : 0;
+        const noUrut = offset + (istLogic.currentSoalIndex + 1);
+
+        const rawJawaban = istLogic.jawabanPeserta[noUrut] !== undefined 
+            ? istLogic.jawabanPeserta[noUrut] 
+            : istLogic.jawabanPeserta[soal.no];
         const isAnswered = rawJawaban !== undefined && rawJawaban !== null && String(rawJawaban).trim() !== '';
         const jawabanTerpilih = isAnswered ? String(rawJawaban).trim() : null;
 
@@ -1091,7 +1131,7 @@ const istUI = {
                         ${soal.pilihan.map((pilihanStr) => {
                             const optKey = pilihanStr.trim().charAt(0);
                             const isChecked = jawabanTerpilih === optKey;
-                            const inputId = `radio_soal_${soal.no}_${optKey}`;
+                            const inputId = `radio_soal_${noUrut}_${optKey}`;
 
                             const cardBorderCls = isChecked
                                 ? "border-[#003865] bg-[#edf3f9] text-[#003865] ring-2 ring-[#003865]/25 shadow-sm font-bold"
@@ -1112,7 +1152,7 @@ const istUI = {
                                             value="${optKey}" 
                                             ${isChecked ? 'checked' : ''} 
                                             ${istLogic.isUjianTerkunci ? 'disabled' : ''}
-                                            onchange="istLogic.simpanJawaban(${soal.no}, '${optKey}'); istUI.renderSoalAktif();"
+                                            onchange="istLogic.simpanJawaban(${noUrut}, '${optKey}'); istUI.renderSoalAktif();"
                                             class="w-4 h-4 text-[#003865] border-slate-300 focus:ring-[#003865] cursor-pointer accent-[#003865]">
                                         <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${badgeLetterCls} flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors">
                                             ${optKey}
@@ -1152,7 +1192,7 @@ const istUI = {
                             autocomplete="off"
                             spellcheck="false"
                             ${istLogic.isUjianTerkunci ? 'disabled' : ''}
-                            oninput="${isAngka ? "this.value = this.value.replace(/[^0-9]/g, ''); " : ""}istLogic.simpanJawaban(${soal.no}, this.value)"
+                            oninput="${isAngka ? "this.value = this.value.replace(/[^0-9]/g, ''); " : ""}istLogic.simpanJawaban(${noUrut}, this.value)"
                             class="ist-text-input pl-11">
                     </div>
                 </div>
@@ -1161,12 +1201,12 @@ const istUI = {
             // Pilihan Ganda (A, B, C, D, E) untuk Soal 01, 02, 03 Menggunakan Radio Button
             contentInputHtml = `
                 <fieldset class="space-y-3 mt-6">
-                    <legend class="sr-only">Pilihan Jawaban Soal Nomor ${soal.no}</legend>
+                    <legend class="sr-only">Pilihan Jawaban Soal Nomor ${noUrut}</legend>
                     ${soal.pilihan.map((pilihanStr) => {
                         const optKey = pilihanStr.trim().charAt(0);
                         const optText = pilihanStr.replace(/^[A-E]\.\s*/, '');
                         const isChecked = jawabanTerpilih === optKey;
-                        const inputId = `radio_soal_${soal.no}_${optKey}`;
+                        const inputId = `radio_soal_${noUrut}_${optKey}`;
 
                         const cardBorderCls = isChecked
                             ? "border-[#003865] bg-[#edf3f9] text-[#003865] ring-2 ring-[#003865]/20 font-bold"
@@ -1186,7 +1226,7 @@ const istUI = {
                                     value="${optKey}" 
                                     ${isChecked ? 'checked' : ''} 
                                     ${istLogic.isUjianTerkunci ? 'disabled' : ''}
-                                    onchange="istLogic.simpanJawaban(${soal.no}, '${optKey}'); istUI.renderSoalAktif();"
+                                    onchange="istLogic.simpanJawaban(${noUrut}, '${optKey}'); istUI.renderSoalAktif();"
                                     class="w-4 h-4 text-[#003865] border-slate-300 focus:ring-[#003865] cursor-pointer accent-[#003865]">
 
                                 <span class="w-7 h-7 rounded-lg ${badgeLetterCls} flex items-center justify-center text-xs shrink-0 transition-colors">
@@ -1235,9 +1275,9 @@ const istUI = {
                     <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
                             <span class="w-8 h-8 rounded-xl bg-[#003865] text-white flex items-center justify-center font-black text-sm shadow-sm">
-                                ${soal.no}
+                                ${noUrut}
                             </span>
-                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${soal.no} dari ${totalSoal}</span>
+                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${noUrut}</span>
                         </div>
 
                         ${badgeStatusJawaban}
@@ -1250,7 +1290,7 @@ const istUI = {
                             <span>${subtestData.id === 'soal_08' ? 'Kubus Soal yang Ditanyakan:' : 'Potongan Bentuk yang Harus Disusun:'}</span>
                         </div>
                         <div class="flex justify-center items-center p-2.5 bg-white rounded-xl shadow-xs border border-slate-200/80">
-                            <img src="${soal.gambarSoal}" alt="Soal Nomor ${soal.no}" 
+                            <img src="${soal.gambarSoal}" alt="Soal Nomor ${noUrut}" 
                                  class="max-w-full h-auto max-h-[140px] sm:max-h-[160px] object-contain select-none" 
                                  draggable="false" loading="eager">
                         </div>
@@ -1273,9 +1313,9 @@ const istUI = {
                     <div class="flex items-center justify-between gap-3 mb-5 pb-3.5 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
                             <span class="w-8 h-8 rounded-xl bg-[#003865] text-white flex items-center justify-center font-black text-sm shadow-sm">
-                                ${soal.no}
+                                ${noUrut}
                             </span>
-                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${soal.no} dari ${totalSoal}</span>
+                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${noUrut}</span>
                         </div>
 
                         ${badgeStatusJawaban}
@@ -1420,3 +1460,8 @@ const istUI = {
         `;
     }
 };
+
+// Pastikan istUI dapat diakses secara global di window
+if (typeof window !== 'undefined') {
+    window.istUI = istUI;
+}

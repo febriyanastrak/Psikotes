@@ -79,15 +79,18 @@ function customAlert(title, message, type = 'info', isConfirm = false, onOk = nu
 
         btnOk.onclick = () => { 
             modalMessage.classList.add('hide-section'); 
+            modalMessage.style.display = 'none';
             if (onOk) onOk(); 
         };
         btnCancel.onclick = () => { 
             modalMessage.classList.add('hide-section'); 
+            modalMessage.style.display = 'none';
             if (onCancel) onCancel(); 
         };
     }
 
     modalMessage.classList.remove('hide-section');
+    modalMessage.style.display = 'flex';
 }
 
 /**
@@ -95,17 +98,31 @@ function customAlert(title, message, type = 'info', isConfirm = false, onOk = nu
  * @param {string} pageId ID elemen section halaman tujuan
  */
 function showPage(pageId) {
-    // Keamanan: halaman HRD hanya via autentikasi, tidak bisa diakses langsung
-    if (pageId === 'page-hrd' && !isHrdAuthenticated) {
-        customAlert("Akses Terlarang", "Halaman HRD hanya dapat diakses setelah login terverifikasi.", "error");
-        showPage('page-login');
+    if (typeof pindahFase === 'function') {
+        pindahFase(pageId);
         return;
     }
 
-    document.querySelectorAll('main > section').forEach(el => el.classList.add('hide-section'));
-    const targetPage = document.getElementById(pageId);
+    // Keamanan: halaman HRD hanya via autentikasi, tidak bisa diakses langsung
+    if ((pageId === 'page-hrd' || pageId === 'view-hrd') && !isHrdAuthenticated) {
+        customAlert("Akses Terlarang", "Halaman HRD hanya dapat diakses setelah login terverifikasi.", "error");
+        showPage('view-login');
+        return;
+    }
+
+    document.querySelectorAll('main > section').forEach(el => {
+        el.classList.add('hide-section');
+        el.style.setProperty('display', 'none', 'important');
+    });
+
+    const targetPage = document.getElementById(pageId)
+        || document.getElementById(pageId.replace('page-', 'view-'))
+        || document.getElementById(pageId.replace('view-', 'page-'));
+
     if (targetPage) {
         targetPage.classList.remove('hide-section');
+        const displayType = (targetPage.id === 'view-dashboard' || targetPage.id === 'view-hrd') ? 'block' : 'flex';
+        targetPage.style.setProperty('display', displayType, 'important');
     }
     window.scrollTo(0, 0);
 }
@@ -117,7 +134,10 @@ function showPage(pageId) {
  */
 function closeModal(id) {
     const el = document.getElementById(id);
-    if (el) el.classList.add('hide-section');
+    if (el) {
+        el.classList.add('hide-section');
+        el.style.display = 'none';
+    }
 }
 
 /**
@@ -148,7 +168,7 @@ function setDashCardState(num, stateName) {
  */
 function updateDashboardProgress() {
     const total = 4;
-    const done = document.querySelectorAll('#page-dashboard .dash-card.is-done').length;
+    const done = document.querySelectorAll('#view-dashboard .dash-card.is-done, #page-dashboard .dash-card.is-done, .dash-card.is-done').length;
     const pct = (done / total) * 100;
     const fill = document.getElementById('dashProgressFill');
     const label = document.getElementById('dashProgressLabel');

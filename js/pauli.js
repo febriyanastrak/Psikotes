@@ -854,7 +854,7 @@ if (typeof window !== 'undefined') {
 
     // Listener Keyboard Global khusus Pauli: Menjamin angka 0-9 dari baris atas maupun keypad numpad selalu terbaca
     window.addEventListener('keydown', (e) => {
-        const pauliPage = document.getElementById('page-pauli');
+        const pauliPage = document.getElementById('view-pauli') || document.getElementById('page-pauli');
         if (!pauliPage || pauliPage.classList.contains('hide-section') || window._tesSelesai) {
             return;
         }

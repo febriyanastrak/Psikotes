@@ -43,12 +43,18 @@ function handleStartModule(testNum) {
  */
 function startISTTest() {
     closeModal('modal-module-ist');
-    const pageIst = document.getElementById('page-ist');
-    if (pageIst && typeof istLogic !== 'undefined') {
-        showPage('page-ist');
-        istLogic.tampilkanDashboard();
+    const viewIst = document.getElementById('view-ist') || document.getElementById('page-ist');
+    if (viewIst) {
+        if (typeof pindahFase === 'function') {
+            pindahFase('view-ist');
+        } else if (typeof showPage === 'function') {
+            showPage('view-ist');
+        }
+        if (typeof istLogic !== 'undefined' && typeof istLogic.init === 'function') {
+            istLogic.init();
+        }
     } else {
-        window.location.href = 'ist.html';
+        window.location.href = 'index.html';
     }
 }
 

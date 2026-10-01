@@ -16,6 +16,25 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS Eksternal -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Router SPA Tunggal & Logika Navigasi Fase -->
+    <script src="js/spa-router.js"></script>
+
+    <style>
+        /* Pengaturan Default SPA: Sembunyikan semua section secara default kecuali view-login */
+        main > section {
+            display: none !important;
+        }
+        main > section#view-login {
+            display: flex !important;
+        }
+        main > section.fase-aktif {
+            display: flex !important;
+        }
+        main > section.fase-aktif-block {
+            display: block !important;
+        }
+    </style>
 </head>
 
 <body class="text-slate-800 flex flex-col min-h-screen bg-white">
@@ -47,8 +66,8 @@
 
     <main class="flex-grow flex flex-col relative w-full">
 
-        <!-- HALAMAN 1: LOGIN KORPORAT -->
-        <section id="page-login"
+        <!-- FASE 1: LOGIN KORPORAT (SPA VIEW-LOGIN) -->
+        <section id="view-login"
             class="flex-grow flex flex-col items-center justify-center p-4 corporate-modern-bg relative overflow-hidden">
             <div
                 class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-[#003865]/30 rounded-full blur-[140px] pointer-events-none">
@@ -77,85 +96,70 @@
                 </div>
 
                 <div class="p-6 sm:p-9">
-                    <form id="loginForm" onsubmit="handleRequestOTP(event)" class="space-y-4">
+                    <form id="loginForm" onsubmit="handleLoginSPA(event)" class="space-y-4">
                         <!-- Alert Box Kesalahan Data Form Login -->
                         <div id="loginAlertBox" class="hide-section p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 text-xs font-bold flex items-start gap-2.5 shadow-sm">
                             <i class="fa-solid fa-triangle-exclamation text-base flex-shrink-0 mt-0.5"></i>
                             <span id="loginAlertMsg">Terdapat kesalahan pada data yang dimasukkan.</span>
                         </div>
 
+                        <!-- 1. Nama Lengkap Sesuai KTP -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Nama Lengkap Sesuai KTP
+                                Nama Lengkap Sesuai KTP <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
                                         class="fa-solid fa-user"></i></span>
-                                <input type="text" id="inputName" required
+                                <input type="text" id="inputName" name="nama_lengkap" required
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
                                     placeholder="Contoh: Budi Santoso">
                             </div>
-                            <div id="errorName" class="hide-section text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span id="errorNameText">Nama lengkap minimal 3 karakter (hanya huruf).</span>
-                            </div>
                         </div>
+
+                        <!-- 2. Alamat Email Aktif -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Alamat Email Aktif
+                                Alamat Email Aktif <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
                                         class="fa-solid fa-envelope"></i></span>
-                                <input type="email" id="inputEmail" required
+                                <input type="email" id="inputEmail" name="email" required
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
-                                    placeholder="budi@email.com">
-                            </div>
-                            <div id="errorEmail" class="hide-section text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span id="errorEmailText">Format email tidak valid (contoh: nama@gmail.com).</span>
+                                    placeholder="Contoh: budi@gmail.com">
                             </div>
                         </div>
+
+                        <!-- 3. Nomor WhatsApp / HP -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Nomor WhatsApp / HP
+                                Nomor WhatsApp / HP <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
                                         class="fa-solid fa-phone"></i></span>
-                                <input type="tel" id="inputPhone" required
+                                <input type="tel" id="inputPhone" name="phone" required
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
-                                    placeholder="08123456789">
-                            </div>
-                            <div id="errorPhone" class="hide-section text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span id="errorPhoneText">Nomor telepon tidak valid (contoh: 08123456789).</span>
+                                    placeholder="Contoh: 08123456789">
                             </div>
                         </div>
 
-                        <!-- Checkbox Persetujuan & Pakta Integritas (Bahasa Indonesia) -->
+                        <!-- Checkbox Persetujuan & Pakta Integritas (Wajib) -->
                         <div class="pt-2">
                             <div id="checkboxConsentContainer" class="flex items-start gap-2.5 p-3 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] transition">
                                 <input type="checkbox" id="checkboxConsent" required
                                     class="mt-1 h-4 w-4 rounded border-[#b9d0e7] text-[#003865] focus:ring-[#003865] cursor-pointer accent-[#003865]">
                                 <label for="checkboxConsent" class="text-xs text-slate-700 leading-relaxed cursor-pointer select-none">
-                                    Saya menyatakan bahwa data yang saya masukkan adalah benar. Saya menyetujui seluruh 
-                                    <button type="button" onclick="openConsentModal()" class="text-[#003865] font-extrabold underline hover:text-[#0a4980]">
-                                        Pernyataan Persetujuan &amp; Pakta Integritas
-                                    </button> 
-                                    serta bersedia mengikuti psikotes PT Altrak 1978 secara jujur dan mandiri.
+                                    Saya menyatakan bahwa data yang saya masukkan adalah benar dan menyetujui Pakta Integritas
                                 </label>
-                            </div>
-                            <div id="errorConsent" class="hide-section text-xs font-bold text-red-600 mt-1.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span id="errorConsentText">Harap setujui Pernyataan Persetujuan &amp; Pakta Integritas.</span>
                             </div>
                         </div>
 
-                        <button type="submit"
+                        <button type="submit" id="btnSubmitLogin"
                             class="w-full mt-2 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Masuk ke Portal Tes</span>
-                            <i class="fa-solid fa-arrow-right-long"></i>
+                            <span id="btnSubmitLoginText">Masuk ke Portal Tes</span>
+                            <i id="btnSubmitLoginIcon" class="fa-solid fa-arrow-right-long"></i>
                         </button>
                     </form>
                 </div>
@@ -164,9 +168,10 @@
                 <span>&copy; PT Altrak 1978 &bull; Human Resources Department</span>
             </div>
         </section>
+        </section>
 
-        <!-- HALAMAN 2: DASHBOARD -->
-        <section id="page-dashboard" class="hide-section flex-grow w-full corporate-modern-bg">
+        <!-- FASE 2: DASHBOARD (SPA VIEW-DASHBOARD) -->
+        <section id="view-dashboard" class="hide-section flex-grow w-full corporate-modern-bg">
             <div class="dash-hero">
                 <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 pt-9 sm:pt-12 pb-20 sm:pb-24">
                     <div class="inline-flex items-center gap-2 bg-[#003865]/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-blue-400/30 text-xs font-bold text-white mb-3 shadow-sm">
@@ -236,8 +241,8 @@
             </div>
         </section>
 
-        <!-- HALAMAN TUTORIAL TES PAULI -->
-        <section id="page-pauli-tutorial"
+        <!-- FASE 3: TUTORIAL TES PAULI (SPA VIEW-PAULI-TUTORIAL) -->
+        <section id="view-pauli-tutorial"
             class="hide-section flex-grow flex items-center justify-center p-4 corporate-modern-bg">
             <div class="w-full max-w-2xl bg-white border border-[#b9d0e7] rounded-3xl p-6 sm:p-8 shadow-xl">
                 <div class="flex items-center gap-3 border-b border-slate-200 pb-4 mb-6">
@@ -311,8 +316,8 @@
             </div>
         </section>
 
-        <!-- HALAMAN 3: TES PAULI -->
-        <section id="page-pauli" class="hide-section flex-grow flex flex-col" style="background:#edf3f9">
+        <!-- FASE 4: TES PAULI (SPA VIEW-PAULI) -->
+        <section id="view-pauli" class="hide-section flex-grow flex flex-col" style="background:#edf3f9">
             <div id="page-pauli-header"
                 class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
                 <div class="max-w-3xl mx-auto w-full px-4 sm:px-6 py-3 sm:py-4 flex justify-end items-center gap-3">
@@ -417,8 +422,8 @@
             </div>
         </section>
 
-        <!-- HALAMAN 4: PORTAL ADMIN / HRD (MODAL / VIEW INTEGRASI) -->
-        <section id="page-hrd" class="hide-section flex-grow w-full p-6 sm:p-10 bg-slate-950">
+        <!-- FASE 5: PORTAL ADMIN / HRD (SPA VIEW-HRD) -->
+        <section id="view-hrd" class="hide-section flex-grow w-full p-6 sm:p-10 bg-slate-950">
             <div class="max-w-6xl mx-auto">
                 <div
                     class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
@@ -490,8 +495,8 @@
             </div>
         </section>
 
-        <!-- HALAMAN 5: HALAMAN SELESAI / COMPLETION PAGE (TEMA KORPORAT PT ALTRAK 1978) -->
-        <section id="page-selesai"
+        <!-- FASE 6: SELESAI / COMPLETION PAGE (SPA VIEW-SELESAI) -->
+        <section id="view-selesai"
             class="hide-section flex-grow flex flex-col items-center justify-center p-6 sm:p-10 relative overflow-hidden bg-[#f4f7fb] min-h-screen">
             <!-- Background decorative ambient blobs (Altrak Navy & Gold) -->
             <div
@@ -599,8 +604,8 @@
             </div>
         </section>
 
-        <!-- HALAMAN 6: MODUL IST (INTELLIGENCE STRUCTURE TEST) -->
-        <section id="page-ist" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc]">
+        <!-- FASE 7: MODUL IST 9 SUBTES (SPA VIEW-IST) -->
+        <section id="view-ist" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc]">
             <div id="ist-app-container" class="w-full max-w-6xl mx-auto"></div>
         </section>
     </main>
@@ -1132,7 +1137,7 @@
     <!-- SCRIPTS MODULAR TERPISAH                                                  -->
     <!-- ========================================================================= -->
     <script src="js/config.js"></script>
-    <script src="js/pauli-data.js"></script>
+    <script src="js/data/pauli-data.js"></script>
     <script src="js/state.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
@@ -1143,9 +1148,15 @@
     <div id="ist-custom-modal" class="hidden"></div>
 
     <!-- MODUL IST (INTELLIGENCE STRUCTURE TEST) -->
-    <script src="js/ist/ist-data.js"></script>
-    <script src="js/ist/ist-ui.js"></script>
-    <script src="js/ist/ist-logic.js"></script>
+    <script src="js/data/ist-data.js"></script>
+    <script src="js/ist-ui.js"></script>
+    <script src="js/ist-logic.js"></script>
+
+    <!-- Pustaka Supabase & Jembatan Portal Asesmen -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/portal-bridge-pauli.js"></script>
+    <script src="js/portal-bridge-ist.js"></script>
 </body>
 
 </html>

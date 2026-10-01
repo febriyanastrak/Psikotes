@@ -29,11 +29,45 @@ const istLogic = {
     timerContohId: null,
     sisaWaktuContohDetik: 30,
     
-    // Hidden Timer fase ujian utama (setTimeout)
+    // Hidden Timer fase ujian utama (setTimeout + Heartbeat Wall-Clock)
     // SANGAT PENTING: Berjalan diam-diam di background tanpa countdown di UI peserta
     timerUjianTimeoutId: null,
+    timerUjianIntervalId: null,
+    waktuTargetSelesai: null,
     isUjianTerkunci: false,
     waktuMulaiUjian: null,
+
+    // Patokan offset angka awal nomor soal berurutan (Soal 1 s/d 176):
+    // - Subtes 01 (20 soal): Soal 1 - 20 (Offset: 0)
+    // - Subtes 02 (20 soal): Soal 21 - 40 (Offset: 20)
+    // - Subtes 03 (20 soal): Soal 41 - 60 (Offset: 40)
+    // - Subtes 04 (16 soal): Soal 61 - 76 (Offset: 60)
+    // - Subtes 05 (20 soal): Soal 77 - 96 (Offset: 76)
+    // - Subtes 06 (20 soal): Soal 97 - 116 (Offset: 96)
+    // - Subtes 07 (20 soal): Soal 117 - 136 (Offset: 116)
+    // - Subtes 08 (20 soal): Soal 137 - 156 (Offset: 136)
+    // - Subtes 09 (20 soal): Soal 157 - 176 (Offset: 156)
+    subtestOffsets: {
+        1: 0,
+        2: 20,
+        3: 40,
+        4: 60,
+        5: 76,
+        6: 96,
+        7: 116,
+        8: 136,
+        9: 156
+    },
+
+    /**
+     * Mengambil nilai offset nomor soal berdasarkan nomor subtes
+     * @param {number|string} subtestNo
+     * @returns {number} Offset angka awal
+     */
+    getSubtestOffset(subtestNo) {
+        const no = Number(subtestNo) || 1;
+        return this.subtestOffsets[no] !== undefined ? this.subtestOffsets[no] : 0;
+    },
 
     /**
      * Inisialisasi awal saat masuk ke modul IST
@@ -292,11 +326,26 @@ const istLogic = {
         
         if (this.timerUjianTimeoutId) {
             clearTimeout(this.timerUjianTimeoutId);
+            this.timerUjianTimeoutId = null;
         }
+        if (this.timerUjianIntervalId) {
+            clearInterval(this.timerUjianIntervalId);
+            this.timerUjianIntervalId = null;
+        }
+
+        this.waktuTargetSelesai = Date.now() + subtestData.waktuUjian;
 
         this.timerUjianTimeoutId = setTimeout(() => {
             this.waktuUjianHabis();
         }, subtestData.waktuUjian);
+
+        // Heartbeat interval anti-cheat: menjamin auto-submit berdasarkan waktu nyata (wall-clock)
+        // Mencegah peserta menjeda timer dengan meminimalkan window atau membuka tab lain
+        this.timerUjianIntervalId = setInterval(() => {
+            if (this.fase === 'UJIAN' && !this.isUjianTerkunci && this.waktuTargetSelesai && Date.now() >= this.waktuTargetSelesai) {
+                this.waktuUjianHabis();
+            }
+        }, 1000);
     },
 
     /**
@@ -313,6 +362,11 @@ const istLogic = {
             clearTimeout(this.timerUjianTimeoutId);
             this.timerUjianTimeoutId = null;
         }
+        if (this.timerUjianIntervalId) {
+            clearInterval(this.timerUjianIntervalId);
+            this.timerUjianIntervalId = null;
+        }
+        this.waktuTargetSelesai = null;
         this.isUjianTerkunci = true;
 
         // Simpan data jawaban secara diam-diam di background
@@ -347,7 +401,20 @@ const istLogic = {
     simpanJawaban(nomorSoal, pilihanKey) {
         if (this.isUjianTerkunci) return;
 
-        this.jawabanPeserta[nomorSoal] = pilihanKey;
+        const offset = this.getSubtestOffset(this.currentSubtestNo);
+        let noLokal = nomorSoal;
+        let noGlobal = nomorSoal;
+
+        if (nomorSoal > offset && nomorSoal <= offset + 20) {
+            noGlobal = nomorSoal;
+            noLokal = nomorSoal - offset;
+        } else if (nomorSoal >= 1 && nomorSoal <= 20) {
+            noLokal = nomorSoal;
+            noGlobal = offset + nomorSoal;
+        }
+
+        this.jawabanPeserta[noLokal] = pilihanKey;
+        this.jawabanPeserta[noGlobal] = pilihanKey;
         istUI.updatePalette();
     },
 
@@ -432,6 +499,11 @@ const istLogic = {
             clearTimeout(this.timerUjianTimeoutId);
             this.timerUjianTimeoutId = null;
         }
+        if (this.timerUjianIntervalId) {
+            clearInterval(this.timerUjianIntervalId);
+            this.timerUjianIntervalId = null;
+        }
+        this.waktuTargetSelesai = null;
         this.isUjianTerkunci = true;
 
         const subtestData = this.getCurrentSubtestData();
@@ -448,8 +520,13 @@ const istLogic = {
             this.saveProgress();
         }
 
-        // ATURAN MUTLAK: JANGAN tampilkan halaman ringkasan seperti "Soal Telah Ditutup"!
-        // Langsung redirect/navigasi membawa peserta ke halaman "Dashboard Soal IST"
+        // Jika Soal 09 selesai (atau seluruh 9 subtes telah tuntas), langsung selesaikan modul IST dan tampilkan pop-up
+        if (subtestCode === '09' || this.completedSubtests.length >= 9) {
+            this.selesaiDanKembaliKeDashboard();
+            return;
+        }
+
+        // Jika masih mengerjakan subtes perantara (Soal 01..08), kembali ke daftar 9 subtes
         this.tampilkanMenu9Subtes();
     },
 
@@ -478,9 +555,14 @@ const istLogic = {
 
         const jawabanDetail = [];
 
-        subtestData.soal.forEach((item) => {
-            const no = item.no;
-            const rawPilihan = this.jawabanPeserta[no];
+        const offset = this.getSubtestOffset(this.currentSubtestNo);
+
+        subtestData.soal.forEach((item, idx) => {
+            const noLokal = item.no;
+            const noGlobal = offset + (idx + 1);
+            const rawPilihan = this.jawabanPeserta[noGlobal] !== undefined 
+                ? this.jawabanPeserta[noGlobal] 
+                : this.jawabanPeserta[noLokal];
             const pilihanUser = (rawPilihan !== undefined && rawPilihan !== null && String(rawPilihan).trim() !== '') ? String(rawPilihan).trim() : null;
             const kunci = item.jawabanBenar;
             const isIsian = item.tipe === 'isian' || !item.pilihan;
@@ -500,7 +582,8 @@ const istLogic = {
             }
 
             jawabanDetail.push({
-                no: no,
+                no: noGlobal,
+                no_lokal: noLokal,
                 jawaban_peserta: pilihanUser
             });
         });
@@ -539,14 +622,69 @@ const istLogic = {
     /**
      * Menyelesaikan Modul 1 secara keseluruhan dan kembali ke Dashboard Portal
      */
-    selesaiDanKembaliKeDashboard() {
+    async selesaiDanKembaliKeDashboard() {
         console.log("[IST Logic] Menyelesaikan modul IST dan kembali ke Dashboard...");
-        if (typeof completeModule === 'function') {
-            completeModule(1);
-        } else if (typeof showPage === 'function') {
-            showPage('page-dashboard');
+
+        // Kumpulkan hasil data IST untuk disimpan ke Supabase
+        const subtestList = this.completedSubtests || [];
+        const violations = typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0;
+        const dataIST = {
+            id_peserta: localStorage.getItem('id_peserta') || this.id_peserta,
+            nama_peserta: localStorage.getItem('nama_peserta') || 'Peserta',
+            subtest_selesai: subtestList,
+            jawaban_peserta: this.jawabanPeserta || {},
+            pelanggaran_tab_switch: violations,
+            catatan_integritas: violations > 0
+                ? `[⚠️ Terdeteksi ${violations}x perpindahan tab/jendela]`
+                : 'Bersih (Tidak ada perpindahan tab)',
+            waktu_selesai: new Date().toISOString()
+        };
+
+        // Update hasil tes ke Supabase
+        try {
+            if (typeof updateHasilTes === 'function') {
+                await updateHasilTes('hasil_ist', dataIST);
+            }
+        } catch (err) {
+            console.warn('[IST Logic] Catatan Supabase:', err);
+        }
+
+        // Tandai IST selesai di localStorage
+        localStorage.setItem('ist_selesai', 'true');
+
+        // Buka kartu modul 1 di dashboard dan aktifkan kartu modul 2 (PAPI Kostick)
+        if (typeof unlockDashboardCard === 'function') {
+            unlockDashboardCard(1);
+        }
+        if (typeof updateDashboardProgress === 'function') {
+            updateDashboardProgress();
+        }
+
+        // Teks pop-up pemberitahuan resmi sesuai instruksi
+        const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes 1 (IST). Kartu Tes 2: PAPI Kostick sekarang telah terbuka pada Dashboard Asesmen.";
+
+        const navigasiKeDashboard = () => {
+            if (typeof pindahFase === 'function') {
+                pindahFase('view-dashboard');
+            } else if (typeof showPage === 'function') {
+                showPage('view-dashboard');
+            }
+        };
+
+        if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
+            istUI.showModal({
+                title: "Tes 1: IST Selesai",
+                message: pesanSelesai,
+                type: "success",
+                iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
+                okText: '<span>Mengerti</span> <i class="fa-solid fa-arrow-right"></i>',
+                onOk: navigasiKeDashboard
+            });
+        } else if (typeof customAlert === 'function') {
+            customAlert("Tes 1: IST Selesai", pesanSelesai, "success", false, navigasiKeDashboard);
         } else {
-            window.location.href = 'index.html';
+            alert(pesanSelesai);
+            navigasiKeDashboard();
         }
     }
 };
@@ -559,17 +697,26 @@ function startISTTest() {
     if (typeof closeModal === 'function') {
         closeModal('modal-module-ist');
     }
-    if (typeof showPage === 'function') {
-        showPage('page-ist');
+    if (typeof pindahFase === 'function') {
+        pindahFase('view-ist');
+    } else if (typeof showPage === 'function') {
+        showPage('view-ist');
     }
-    istLogic.init();
+    if (typeof istLogic !== 'undefined' && typeof istLogic.init === 'function') {
+        istLogic.init();
+    }
+}
+
+// Pastikan istLogic dan startISTTest dapat diakses secara global di window
+if (typeof window !== 'undefined') {
+    window.istLogic = istLogic;
+    window.startISTTest = startISTTest;
 }
 
 // Inisialisasi otomatis jika dokumen siap
-// Pada index.html ber-login: istLogic menunggu tombol 'Mulai Tes 1 (IST)' ditekan
-// Pada standalone ist.html: istLogic langsung menampilkan menu 9 subtes
+// Pada portal ber-login: istLogic menunggu tombol 'Mulai Tes 1 (IST)' ditekan
 document.addEventListener('DOMContentLoaded', () => {
-    const isStandalonePage = !document.getElementById('page-login');
+    const isStandalonePage = !document.getElementById('page-login') && !document.getElementById('view-login');
     if (isStandalonePage && document.getElementById('ist-app-container')) {
         istLogic.init();
     }
@@ -693,10 +840,20 @@ if (typeof window !== 'undefined' && !window._appSecurityLoaded) {
     }
 
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) istHandleViolation('tab atau jendela browser');
+        if (document.hidden) {
+            istHandleViolation('tab atau jendela browser');
+        } else if (istLogic.waktuTargetSelesai && Date.now() >= istLogic.waktuTargetSelesai && !istLogic.isUjianTerkunci) {
+            // Jika peserta kembali ke tab dan waktu pengerjaan telah habis di dunia nyata
+            istLogic.waktuUjianHabis();
+        }
     });
     window.addEventListener('blur', () => {
         istHandleViolation('ke aplikasi lain');
+    });
+    window.addEventListener('focus', () => {
+        if (istLogic.waktuTargetSelesai && Date.now() >= istLogic.waktuTargetSelesai && !istLogic.isUjianTerkunci) {
+            istLogic.waktuUjianHabis();
+        }
     });
 }
 

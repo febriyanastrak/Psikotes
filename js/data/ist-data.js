@@ -402,9 +402,23 @@ const istSoal07 = {
     contoh: [
         { 
             no: "01", 
-            tipe: "gambar_panduan",
+            tipe: "pilihan_gambar",
+            gambarOpsi: "assets/soal_07/soal 1 - 12.png",
             gambarSoal: "assets/soal_07/contoh soal 07.png", 
-            penjelasan: "Cara mengerjakan: Jika potongan-potongan pada kotak contoh pertama digabungkan, akan menghasilkan bentuk A. Potongan contoh kedua menghasilkan bentuk E, ketiga menjadi bentuk B, dan keempat menjadi bentuk D."
+            pertanyaan: "Berdasarkan gambar panduan di atas, jika potongan-potongan pada KOTAK CONTOH PERTAMA (paling kiri) disusun, bentuk manakah (A, B, C, D, atau E) yang dibangun?",
+            pilihan: ["A", "B", "C", "D", "E"],
+            jawabanBenar: "A",
+            penjelasan: "Cara mengerjakan: Jika potongan-potongan pada kotak contoh pertama digabungkan, akan menghasilkan bentuk A. Maka pilihan yang benar adalah A."
+        },
+        { 
+            no: "02", 
+            tipe: "pilihan_gambar",
+            gambarOpsi: "assets/soal_07/soal 1 - 12.png",
+            gambarSoal: "assets/soal_07/contoh soal 07.png", 
+            pertanyaan: "Sekarang cermati KOTAK CONTOH KEDUA (nomor 2 dari kiri): jika potongan-potongannya digabungkan dan diputar, bentuk manakah yang dihasilkan?",
+            pilihan: ["A", "B", "C", "D", "E"],
+            jawabanBenar: "E",
+            penjelasan: "Cara mengerjakan: Potongan-potongan pada kotak contoh kedua jika dirapatkan dan diputar dengan tepat akan menghasilkan bentuk E. Maka pilihan yang benar adalah E."
         }
     ],
     soal: [
@@ -584,6 +598,11 @@ const IST_SUBTESTS_LIST = [
     { no: "08", name: "Soal 08", totalSoal: 20, active: true },
     { no: "09", name: "Soal 09", totalSoal: 20, active: true }
 ];
+
+if (typeof window !== 'undefined') {
+    window.IST_SUBTEST_DATA = IST_SUBTEST_DATA;
+    window.IST_SUBTESTS_LIST = IST_SUBTESTS_LIST;
+}
 
 
 
