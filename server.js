@@ -32,7 +32,15 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    let rawUrl = decodeURIComponent(req.url.split('?')[0].split('#')[0]);
+    let rawUrl = '';
+    try {
+        rawUrl = decodeURIComponent(req.url.split('?')[0].split('#')[0]);
+    } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'text/plain; charset=UTF-8' });
+        res.end('400 - Bad Request');
+        return;
+    }
+
     if (rawUrl === '/' || rawUrl === '') {
         rawUrl = '/index.html';
     }
@@ -41,7 +49,13 @@ const server = http.createServer((req, res) => {
     const safeRelPath = path.normalize(rawUrl).replace(/^(\.\.[\/\\])+/, '');
     const filePath = path.resolve(ROOT_DIR, '.' + path.sep + safeRelPath);
 
-    if (!filePath.startsWith(ROOT_DIR)) {
+    // Proteksi Keamanan: Tolak jika mengarah ke luar root, file/folder tersembunyi (berawalan .), atau file internal sensitif
+    const urlParts = rawUrl.split(/[\/\\]/).filter(Boolean);
+    const hasHiddenPart = urlParts.some(part => part.startsWith('.'));
+    const baseName = path.basename(filePath).toLowerCase();
+    const isSensitiveFile = baseName === 'package.json' || baseName === 'package-lock.json';
+
+    if (!filePath.startsWith(ROOT_DIR) || hasHiddenPart || isSensitiveFile) {
         res.writeHead(403, { 'Content-Type': 'text/html; charset=UTF-8' });
         res.end(`<h2>403 - Akses Ditolak (Security Alert)</h2>`);
         return;
@@ -65,7 +79,7 @@ const server = http.createServer((req, res) => {
             'X-Frame-Options': 'SAMEORIGIN',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin',
-            'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+            'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()'
         });
 
         if (req.method === 'HEAD') {
@@ -86,9 +100,14 @@ server.listen(PORT, () => {
     console.log(`  Tekan Ctrl + C untuk menghentikan server`);
     console.log(`======================================================\n`);
 
-    // Buka browser hanya jika diberikan argumen --open (mencegah tab terbuka 2 kali saat menggunakan Go Live / debugger)
+    // Buka browser jika diberikan argumen --open (mendukung Windows, macOS, dan Linux)
     if (process.argv.includes('--open')) {
-        const startCmd = process.platform === 'win32' ? `start "" "${url}"` : `open "${url}"`;
+        let startCmd = `xdg-open "${url}"`;
+        if (process.platform === 'win32') {
+            startCmd = `start "" "${url}"`;
+        } else if (process.platform === 'darwin') {
+            startCmd = `open "${url}"`;
+        }
         exec(startCmd, () => {});
     }
 });

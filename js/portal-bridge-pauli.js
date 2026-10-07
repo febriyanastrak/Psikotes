@@ -85,19 +85,20 @@
                 unlockDashboardCard(1); // Buka kunci Tes 2: PAPI Kostick
             }
 
-            // Kirim update hasil IST ke Supabase jika belum terkirim
+            // Kirim update hasil IST ke Supabase dinonaktifkan agar tidak menimpa skor IST dari database
             if (!localStorage.getItem('ist_terkirim_supabase')) {
-                const dataIST = {
-                    id_peserta: localStorage.getItem('id_peserta') || 'kandidat',
-                    nama_peserta: localStorage.getItem('nama_peserta') || 'Peserta',
-                    subtest_selesai: subtestsSelesai,
-                    waktu_selesai: new Date().toISOString()
-                };
-                if (typeof updateHasilTes === 'function') {
-                    updateHasilTes('hasil_ist', dataIST).then(sukses => {
-                        if (sukses) localStorage.setItem('ist_terkirim_supabase', 'true');
-                    });
-                }
+                // const dataIST = {
+                //     id_peserta: localStorage.getItem('id_peserta') || 'kandidat',
+                //     nama_peserta: localStorage.getItem('nama_peserta') || 'Peserta',
+                //     subtest_selesai: subtestsSelesai,
+                //     waktu_selesai: new Date().toISOString()
+                // };
+                // if (typeof updateHasilTes === 'function') {
+                //     updateHasilTes('hasil_ist', dataIST).then(sukses => {
+                //         if (sukses) localStorage.setItem('ist_terkirim_supabase', 'true');
+                //     });
+                // }
+                localStorage.setItem('ist_terkirim_supabase', 'true');
             }
         }
 
@@ -138,9 +139,13 @@
                     localStorage.removeItem('pauli_selesai');
                     localStorage.removeItem('ist_terkirim_supabase');
                     localStorage.removeItem('altrak_ist_completed_subtests');
+                    localStorage.removeItem('papi_answers');
 
-                    // Lakukan pendaftaran / INSERT ke Supabase
-                    let idPesertaBaru = null;
+                    // Periksa apakah ID peserta sudah ada dari sesi sebelumnya di localStorage
+                    let idPesertaBaru = localStorage.getItem('id_peserta') || null;
+                    const cleanPhone = (state.user && (state.user.phone || state.user.no_wa) || '').replace(/[^0-9]/g, '');
+                    const cleanEmail = (state.user && state.user.email || '').toLowerCase().trim();
+
                     try {
                         const sbUrl = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
                         const sbKey = window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2Zmxtem5iaWh1bmV6enFob2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM4OTcsImV4cCI6MjEwNTU1OTg5N30.tHXAXhKRvChZOqKjRq9S8AvvSo59PiYizpgDI9FmHcE';
@@ -156,23 +161,72 @@
                         }
 
                         if (supabase && typeof supabase.from === 'function') {
-                            const { data, error } = await supabase
-                                .from('kandidat_psikotes')
-                                .insert([
-                                    {
-                                        nama_lengkap: rawName,
-                                        email: (state.user && state.user.email) || '',
-                                        no_wa: (state.user && (state.user.phone || state.user.no_wa)) || '',
-                                        posisi_dilamar: 'Peserta Seleksi'
+                            // Jika belum ada ID di localStorage, cari kandidat yang sudah terdaftar agar tidak dobel
+                            if (!idPesertaBaru) {
+                                try {
+                                    // 1. Cek berdasarkan Email
+                                    if (cleanEmail && !cleanEmail.includes('altrak1978.co.id')) {
+                                        const { data: byEmail } = await supabase.from('kandidat_psikotes').select('id').eq('email', cleanEmail).limit(1);
+                                        if (byEmail && byEmail.length > 0 && byEmail[0].id) {
+                                            idPesertaBaru = byEmail[0].id;
+                                        }
                                     }
-                                ])
-                                .select();
+                                    // 2. Cek berdasarkan No WhatsApp jika belum ketemu
+                                    if (!idPesertaBaru && cleanPhone && cleanPhone.length >= 6) {
+                                        const waVars = [cleanPhone];
+                                        if (cleanPhone.startsWith('0')) {
+                                            waVars.push('62' + cleanPhone.slice(1));
+                                        } else if (cleanPhone.startsWith('62')) {
+                                            waVars.push('0' + cleanPhone.slice(2));
+                                        }
+                                        for (const w of waVars) {
+                                            const { data: byWa } = await supabase.from('kandidat_psikotes').select('id').eq('no_wa', w).limit(1);
+                                            if (byWa && byWa.length > 0 && byWa[0].id) {
+                                                idPesertaBaru = byWa[0].id;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    // 3. Cek berdasarkan Nama Lengkap jika belum ketemu
+                                    if (!idPesertaBaru && rawName && rawName.length >= 3) {
+                                        const { data: byName } = await supabase.from('kandidat_psikotes').select('id').eq('nama_lengkap', rawName).limit(1);
+                                        if (byName && byName.length > 0 && byName[0].id) {
+                                            idPesertaBaru = byName[0].id;
+                                        }
+                                    }
+                                } catch (eFind) {}
+                            }
 
-                            if (!error && data && data.length > 0 && data[0].id) {
-                                idPesertaBaru = data[0].id;
-                                console.log('[Portal Login] Kandidat berhasil tersimpan di Supabase dengan ID:', idPesertaBaru);
-                            } else if (error) {
-                                console.warn('[Portal Login] Catatan Supabase RLS/Insert:', error.message || error);
+                            if (idPesertaBaru) {
+                                // Sudah ada kandidat: perbarui data profil tanpa membuat baris baru (mencegah dobel)
+                                console.log('[Portal Login] Menggunakan sesi kandidat terdaftar. ID:', idPesertaBaru);
+                                try {
+                                    await supabase.from('kandidat_psikotes').update({
+                                        nama_lengkap: rawName,
+                                        email: cleanEmail,
+                                        no_wa: cleanPhone
+                                    }).eq('id', idPesertaBaru);
+                                } catch (eUp) {}
+                            } else {
+                                // Benar-benar kandidat baru: lakukan INSERT tepat satu kali
+                                const { data, error } = await supabase
+                                    .from('kandidat_psikotes')
+                                    .insert([
+                                        {
+                                            nama_lengkap: rawName,
+                                            email: cleanEmail,
+                                            no_wa: cleanPhone,
+                                            posisi_dilamar: 'Peserta Seleksi'
+                                        }
+                                    ])
+                                    .select();
+
+                                if (!error && data && data.length > 0 && data[0].id) {
+                                    idPesertaBaru = data[0].id;
+                                    console.log('[Portal Login] Kandidat baru tersimpan di Supabase dengan ID:', idPesertaBaru);
+                                } else if (error) {
+                                    console.warn('[Portal Login] Catatan Supabase RLS/Insert:', error.message || error);
+                                }
                             }
                         }
                     } catch (err) {
@@ -212,18 +266,9 @@
                 const namaPeserta = localStorage.getItem('nama_peserta') || (state.user && state.user.name) || 'Peserta';
 
                 if (testNum === 2) {
-                    console.log('[Portal Bridge] Tes 2 (PAPI) selesai, menyimpan ke Supabase...');
-                    const dataPapi = {
-                        id_peserta: idPeserta,
-                        nama_peserta: namaPeserta,
-                        status: 'selesai',
-                        modul: 'PAPI Kostick',
-                        waktu_selesai: new Date().toISOString()
-                    };
-
-                    if (typeof updateHasilTes === 'function') {
-                        await updateHasilTes('hasil_papi', dataPapi);
-                    }
+                    // Hasil PAPI sudah disimpan dengan lengkap (skor/jawaban) oleh papi.js
+                    // Jangan menimpa kolom hasil_papi di sini
+                    console.log('[Portal Bridge] Tes 2 (PAPI) selesai.');
                     localStorage.setItem('papi_selesai', 'true');
 
                 } else if (testNum === 3) {

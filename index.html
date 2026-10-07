@@ -10,12 +10,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js untuk Grafik HRD -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS Eksternal -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Modul Kamera Pengawas Wajib -->
+    <script src="js/camera.js"></script>
 
     <!-- Router SPA Tunggal & Logika Navigasi Fase -->
     <script src="js/spa-router.js"></script>
@@ -42,8 +44,8 @@
     <!-- Navbar -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div onclick="handleLogoClick()" title="PT Altrak 1978"
-                class="flex items-center gap-3 select-none cursor-pointer">
+            <div title="PT Altrak 1978"
+                class="flex items-center gap-3 select-none">
                 <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978" draggable="false" style="pointer-events: none;"
                     class="h-12 w-auto object-contain rounded-lg shadow-sm border border-slate-200 bg-white select-none"
                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -81,7 +83,7 @@
                     </div>
                     <!-- Logo di card header -->
                     <div class="flex justify-center mb-4">
-                        <div onclick="handleLogoClick()" title="PT Altrak 1978" class="cursor-pointer select-none">
+                        <div title="PT Altrak 1978" class="select-none">
                             <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978" draggable="false" style="pointer-events: none;"
                                 class="h-20 w-auto object-contain rounded-xl bg-white shadow-sm border border-white/20 p-1 select-none"
                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -115,6 +117,9 @@
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
                                     placeholder="Contoh: Budi Santoso">
                             </div>
+                            <p id="errorName" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
                         </div>
 
                         <!-- 2. Alamat Email Aktif -->
@@ -129,6 +134,9 @@
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
                                     placeholder="Contoh: budi@gmail.com">
                             </div>
+                            <p id="errorEmail" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
                         </div>
 
                         <!-- 3. Nomor WhatsApp / HP -->
@@ -143,6 +151,9 @@
                                     class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
                                     placeholder="Contoh: 08123456789">
                             </div>
+                            <p id="errorPhone" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
                         </div>
 
                         <!-- Checkbox Persetujuan & Pakta Integritas (Wajib) -->
@@ -154,20 +165,27 @@
                                     Saya menyatakan bahwa data yang saya masukkan adalah benar dan menyetujui Pakta Integritas
                                 </label>
                             </div>
+                            <p id="errorConsent" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
                         </div>
 
-                        <button type="submit" id="btnSubmitLogin"
-                            class="w-full mt-2 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer">
-                            <span id="btnSubmitLoginText">Masuk ke Portal Tes</span>
+                        <button type="submit" id="btnSubmitLogin" disabled="true"
+                            class="w-full mt-2 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-base py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer">
+                            <span id="btnSubmitLoginText">Mulai Tes</span>
                             <i id="btnSubmitLoginIcon" class="fa-solid fa-arrow-right-long"></i>
                         </button>
+                        <p id="peringatan-kamera" style="color: red; font-weight: bold;" class="mt-2 text-xs text-center"></p>
+
+                        <!-- Elemen stream video kamera & canvas snapshot -->
+                        <video id="camera-stream" autoplay playsinline muted style="display: none;"></video>
+                        <canvas id="camera-canvas" style="display: none;"></canvas>
                     </form>
                 </div>
             </div>
             <div class="mt-8 text-center text-xs text-blue-200/80 font-medium relative z-10 flex flex-col items-center gap-1.5">
                 <span>&copy; PT Altrak 1978 &bull; Human Resources Department</span>
             </div>
-        </section>
         </section>
 
         <!-- FASE 2: DASHBOARD (SPA VIEW-DASHBOARD) -->
@@ -402,98 +420,8 @@
                 </div>
             </div>
 
-            <!-- PREVIEW KAMERA PENGAWAS WAKTU TES (WEBCAM PROCTORING) - DINONAKTIFKAN TOTAL -->
-            <div id="proctoring-camera-container" style="display: none !important; pointer-events: none !important;"
-                class="hide-section fixed bottom-4 right-4 z-40 bg-slate-900/95 backdrop-blur-md border border-[#003865]/40 rounded-2xl p-2.5 shadow-2xl transition-all duration-300 select-none">
-                <div class="flex items-center justify-between gap-2 px-1 mb-1.5">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                        <span class="text-[10px] font-black text-white tracking-wider uppercase">Pengawasan Kamera</span>
-                    </div>
-                    <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
-                </div>
-                <div class="relative w-36 h-28 sm:w-44 sm:h-32 bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
-                    <video id="proctoringVideo" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
-                    <div id="cameraStatusFallback" class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-slate-950 text-slate-400 text-[10px]">
-                        <i class="fa-solid fa-video text-base text-blue-400 mb-1 animate-pulse"></i>
-                        <span>Memulai kamera...</span>
-                    </div>
-                </div>
-            </div>
         </section>
 
-        <!-- FASE 5: PORTAL ADMIN / HRD (SPA VIEW-HRD) -->
-        <section id="view-hrd" class="hide-section flex-grow w-full p-6 sm:p-10 bg-slate-950">
-            <div class="max-w-6xl mx-auto">
-                <div
-                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-300 flex items-center justify-center text-xl font-black border border-blue-500/20">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-black text-white">Dashboard Analitik HRD</h2>
-                            <p class="text-xs text-slate-400">Data & Grafik Performa Tes Pauli Kandidat</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="exportHrdToExcel()"
-                            class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">
-                            <i class="fa-solid fa-file-excel mr-2"></i> Download Excel
-                        </button>
-                        <button onclick="hapusSemuaData()"
-                            class="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">
-                            <i class="fa-solid fa-trash-can mr-2"></i> Kosongkan Data
-                        </button>
-                        <button onclick="logoutHrd()"
-                            class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition">
-                            <i class="fa-solid fa-arrow-left mr-2"></i> Keluar
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl mb-8">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                        <h3 class="font-bold text-white text-base whitespace-nowrap">Daftar Kandidat Masuk</h3>
-                        <div class="flex gap-2 w-full sm:w-auto">
-                            <!-- Kolom Pencarian -->
-                            <div class="relative flex-grow sm:w-64">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i
-                                        class="fa-solid fa-magnifying-glass text-xs"></i></span>
-                                <input type="text" id="hrdSearchInput" onkeyup="filterHrdTable()"
-                                    placeholder="Cari nama kandidat..."
-                                    class="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500">
-                            </div>
-                            <!-- Tombol Perbarui -->
-                            <button onclick="loadHrdData()"
-                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition whitespace-nowrap">
-                                <i class="fa-solid fa-rotate mr-1"></i> Perbarui
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
-                                <tr>
-                                    <th class="p-3">ID</th>
-                                    <th class="p-3">Nama Kandidat</th>
-                                    <th class="p-3">Email / WhatsApp</th>
-                                    <th class="p-3">Waktu Selesai</th>
-                                    <th class="p-3 text-center">Total Soal</th>
-                                    <th class="p-3 text-center">Benar / Salah</th>
-                                    <th class="p-3 text-center">Aksi Grafik HRD</th>
-                                </tr>
-                            </thead>
-                            <tbody id="hrdTableBody" class="divide-y divide-slate-800">
-                                <!-- Data dimuat via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- FASE 6: SELESAI / COMPLETION PAGE (SPA VIEW-SELESAI) -->
         <section id="view-selesai"
@@ -607,6 +535,11 @@
         <!-- FASE 7: MODUL IST 9 SUBTES (SPA VIEW-IST) -->
         <section id="view-ist" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc]">
             <div id="ist-app-container" class="w-full max-w-6xl mx-auto"></div>
+        </section>
+
+        <!-- FASE 8: MODUL PAPI KOSTICK (SPA VIEW-PAPI) -->
+        <section id="view-papi" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc] corporate-modern-bg">
+            <div id="papi-app-container" class="w-full max-w-4xl mx-auto"></div>
         </section>
     </main>
 
@@ -738,9 +671,9 @@
                 </div>
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button onclick="completeModule(2)"
+                    <button onclick="startPapiTest()"
                         class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Konfirmasi Selesai &amp; Buka Tes DISC</span>
+                        <span>Mulai Tes PAPI Kostick</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-papi')"
@@ -823,199 +756,6 @@
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL GRAFIK KHUSUS HRD -->
-    <div id="modal-hrd-chart"
-        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-sm overflow-y-auto custom-scrollbar">
-        <div
-            class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full relative text-slate-800 font-sans mx-auto my-auto overflow-hidden flex flex-col max-h-[95vh]">
-            <!-- Header Modal -->
-            <div
-                class="bg-slate-50 border-b border-slate-200 px-6 py-5 flex justify-between items-center sticky top-0 z-10">
-                <div class="flex items-center gap-3">
-                    <div class="bg-[#003865] p-2.5 rounded-lg text-white">
-                        <i class="fa-solid fa-chart-area"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800 leading-none">Laporan Analisis Pauli</h2>
-                        <p class="text-xs text-slate-500 mt-1">Grafik Performa & Ketahanan Kerja Kandidat</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-hrd-chart')"
-                    class="text-slate-400 hover:text-slate-800 hover:bg-slate-200 bg-white border border-slate-200 w-9 h-9 rounded-full flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <!-- Body Modal -->
-            <div class="p-6 overflow-y-auto custom-scrollbar">
-
-                <!-- Biodata -->
-                <div
-                    class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-start gap-4">
-                    <div class="space-y-1">
-                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Nama Lengkap</p>
-                        <p class="text-lg font-bold text-slate-800 capitalize" id="rptName">-</p>
-                    </div>
-                    <div class="space-y-1">
-                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kontak (WhatsApp)</p>
-                        <p class="text-base font-semibold text-slate-700" id="rptWa">-</p>
-                    </div>
-                    <div class="space-y-1">
-                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tanggal Penyelesaian
-                        </p>
-                        <p class="text-base font-semibold text-slate-700" id="rptDate">-</p>
-                </div>
-                </div>
-
-                <!-- METRIK SKORING RESMI HRD PT ALTRAK 1978 -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Rata-Rata</p>
-                        <p class="text-2xl font-black text-[#003865]" id="rptAvg">-</p>
-                        <span id="evalRata" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Jumlah</p>
-                        <p class="text-2xl font-black text-[#003865]" id="rptJumlah">-</p>
-                        <span id="evalJumlah" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Salah (%)</p>
-                        <p class="text-2xl font-black text-red-500" id="rptPctSalah">-</p>
-                        <span id="evalSalah" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                        <p class="text-xs text-slate-600 font-semibold mt-1">Jumlah salah: <span id="rptSalah">0</span></p>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Penyimpangan (%)</p>
-                        <p class="text-2xl font-black text-amber-600" id="rptPctPenyimpangan">-</p>
-                        <span id="evalPenyimpangan" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                        <p class="text-xs text-slate-600 font-semibold mt-1">Total simpangan (interval 3–18): <span id="rptTotalPenyimpangan">-</span></p>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Tinggi (Max)</p>
-                        <p class="text-2xl font-black text-[#003865]" id="rptTinggi">-</p>
-                        <span id="evalTinggi" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                    </div>
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Tempat Puncak</p>
-                        <p class="text-2xl font-black text-[#003865]" id="rptTempatPuncak">-</p>
-                        <span id="evalPuncak" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 text-slate-400 bg-slate-50 border-slate-200">-</span>
-                    </div>
-                </div>
-
-                <!-- GRAFIK KURVA PERFORMA -->
-                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
-                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-[#003865]"></i> Kurva Performa (Interval 1 - 20)
-                    </h3>
-                    <div class="relative w-full h-[320px]">
-                        <canvas id="hrdPauliChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- TABEL RINCIAN PER INTERVAL -->
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6">
-                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
-                        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider">Rincian Data Per Interval (3 Menit)</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-center text-sm">
-                            <thead>
-                                <tr id="rptIntervalLabels" class="bg-slate-100 text-slate-500 font-semibold text-xs border-b border-slate-200"></tr>
-                            </thead>
-                            <tbody>
-                                <tr id="rptIntervalData" class="font-bold text-slate-700"></tr>
-                                <tr id="rptIntervalMean" class="border-t border-slate-200 text-slate-500"></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TABEL NORMA SKORING RESMI HRD (SESUAI LEMBAR PENILAIAN RESMI) -->
-                <div class="bg-white border-2 border-slate-800 rounded-xl overflow-hidden shadow-md">
-                    <!-- Garis Merah Atas Sesuai Lembar Kerja Asli HRD -->
-                    <div class="h-1.5 bg-red-600 w-full"></div>
-                    <div class="bg-slate-900 px-4 py-2.5 flex justify-between items-center">
-                        <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-table-list text-amber-400"></i> Skoring Pauli Test — Norma Penilaian Resmi HRD
-                        </h3>
-                        <span class="text-[10px] text-slate-400">Altrak 1978 Psychodiagnostic Norm</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-center text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b-2 border-slate-800 font-black text-slate-800">
-                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-white">RATA-RATA</th>
-                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">JUMLAH</th>
-                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">SALAH</th>
-                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">PENYIMPANGAN</th>
-                                    <th class="px-4 py-3 border-r-2 border-slate-800 bg-[#d8f4fd]">TINGGI</th>
-                                    <th class="px-4 py-3 bg-[#d8f4fd]">TEMPAT PUNCAK</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-slate-800 font-medium">
-                                <tr class="border-b border-slate-400 bg-white hover:bg-emerald-50/40 transition">
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">167.5 ↑</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">3000 ↑</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">1.6 % ↑</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">4.1 % ↑</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">58 ↑</td>
-                                    <td class="px-4 py-3.5 font-black text-sm">19</td>
-                                </tr>
-                                <tr class="border-b border-slate-400 bg-white hover:bg-blue-50/40 transition">
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold text-sm">117.5 – 167.5</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold text-sm">2350 – 2999</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">0.6 – 1.5 %</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">2.6 – 4 %</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800">36 – 57</td>
-                                    <td class="px-4 py-3.5 font-bold text-sm">13 – 18</td>
-                                </tr>
-                                <tr class="bg-white hover:bg-red-50/40 transition">
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">117.5 ↓</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-black text-sm">2350 ↓</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">0.5 % ↓</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">2.5 % ↓</td>
-                                    <td class="px-4 py-3.5 border-r-2 border-slate-800 font-bold">35 ↓</td>
-                                    <td class="px-4 py-3.5 font-bold text-sm">12 ↓ dan 20</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL LOGIN HRD (SANDI) -->
-    <div id="modal-hrd-login"
-        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-        <div
-            class="bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl max-w-sm w-full text-center p-7 relative">
-            <div
-                class="w-16 h-16 bg-blue-500/10 text-blue-300 rounded-2xl border border-blue-500/20 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <h3 class="text-xl font-black text-white mb-1">Otorisasi HRD</h3>
-            <p class="text-xs text-slate-400 mb-5">Masukkan kata sandi untuk mengakses data rekapitulasi kandidat.</p>
-
-            <input type="password" id="inputHrdPin" onkeyup="if(event.key==='Enter') verifyHrdLogin()"
-                class="w-full text-center font-bold text-lg px-4 py-3.5 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-blue-400 focus:outline-none mb-3"
-                placeholder="Masukkan kata sandi HRD">
-
-            <div class="flex gap-2 mb-3">
-                <button onclick="closeModal('modal-hrd-login')"
-                    class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition cursor-pointer">Batal</button>
-                <button onclick="verifyHrdLogin()"
-                    class="w-1/2 bg-[#003865] hover:bg-[#0a4980] text-white font-extrabold py-3 rounded-xl transition shadow-lg cursor-pointer">Masuk</button>
-            </div>
-
-            <div class="mt-2 text-center">
-                <a href="hrd.html" class="text-xs text-blue-400 hover:text-blue-300 underline font-medium">Buka Halaman Portal HRD (hrd.html) &rarr;</a>
-            </div>
-
         </div>
     </div>
 
@@ -1134,6 +874,68 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- CUSTOM MODAL POPUP: VALIDASI KAMERA WAJIB                                 -->
+    <!-- ========================================================================= -->
+    <div id="kameraModal" class="modal-overlay" style="display: none;">
+        <div class="kamera-modal-box">
+            <!-- Ikon Peringatan Elegan -->
+            <div class="kamera-modal-icon-wrapper">
+                <div class="kamera-modal-icon">
+                    <i class="fa-solid fa-camera-slash"></i>
+                </div>
+            </div>
+
+            <!-- Header & Judul Modal -->
+            <h3 class="kamera-modal-title">Akses Kamera Diperlukan</h3>
+            <span class="kamera-modal-badge">
+                <i class="fa-solid fa-shield-halved"></i> Protokol Pengawasan Tes
+            </span>
+
+            <!-- Teks Pesan Error Dinamis -->
+            <div class="kamera-modal-body">
+                <p id="kameraModalPesan" class="kamera-modal-text">
+                    Akses kamera ditolak atau tidak aktif! Anda WAJIB mengizinkan akses kamera untuk mengikuti tes.
+                </p>
+                <div class="kamera-modal-instruction">
+                    <p class="font-bold text-slate-700 mb-1 flex items-center justify-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-circle-info text-[#003865]"></i> Petunjuk Izin Browser:
+                    </p>
+                    <p class="text-xs text-slate-600 leading-relaxed text-center">
+                        Silakan klik ikon <strong>Gembok / Setelan Situs</strong> di sebelah kiri URL browser, ubah <strong>Kamera</strong> ke <strong>Izinkan (Allow)</strong>, lalu tekan tombol di bawah ini.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tombol Mengerti / Coba Lagi -->
+            <div class="kamera-modal-footer">
+                <button type="button" id="btnTutupModalKamera" onclick="tutupModalKamera()" class="kamera-modal-btn">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Mengerti / Coba Lagi</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PREVIEW KAMERA PENGAWAS FLOATING (WEBCAM PROCTORING) - AKTIF PADA PAULI & IST SUBTES 09 -->
+    <div id="proctoring-camera-container" style="display: none !important; pointer-events: none !important;"
+        class="hide-section fixed bottom-4 right-4 z-50 bg-slate-900/95 backdrop-blur-md border border-[#003865]/60 rounded-2xl p-2.5 shadow-2xl transition-all duration-300 select-none">
+        <div class="flex items-center justify-between gap-2 px-1 mb-1.5">
+            <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                <span class="text-[10px] font-black text-white tracking-wider uppercase">Pengawasan Kamera</span>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
+        </div>
+        <div class="relative w-36 h-28 sm:w-44 sm:h-32 bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
+            <video id="proctoringVideo" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+            <div id="cameraStatusFallback" class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-slate-950 text-slate-400 text-[10px]">
+                <i class="fa-solid fa-video text-base text-blue-400 mb-1 animate-pulse"></i>
+                <span>Memulai kamera...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- SCRIPTS MODULAR TERPISAH                                                  -->
     <!-- ========================================================================= -->
     <script src="js/config.js"></script>
@@ -1142,7 +944,6 @@
     <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/pauli.js"></script>
-    <script src="js/hrd.js"></script>
     <script src="js/app.js"></script>
     <!-- Custom Modal HTML / CSS IST -->
     <div id="ist-custom-modal" class="hidden"></div>
@@ -1152,11 +953,13 @@
     <script src="js/ist-ui.js"></script>
     <script src="js/ist-logic.js"></script>
 
-    <!-- Pustaka Supabase & Jembatan Portal Asesmen -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
+    <!-- Jembatan Portal Asesmen -->
     <script src="js/portal-bridge-pauli.js"></script>
     <script src="js/portal-bridge-ist.js"></script>
+
+    <!-- MODUL PAPI KOSTICK -->
+    <script src="js/data/papi-data.js"></script>
+    <script src="js/papi.js"></script>
 </body>
 
 </html>

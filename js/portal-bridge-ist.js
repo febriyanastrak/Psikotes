@@ -40,11 +40,12 @@
                     waktu_selesai: new Date().toISOString()
                 };
 
-                // Kirim update ke kolom 'hasil_ist' tabel kandidat_psikotes di Supabase
+                // Update hasil_ist dinonaktifkan agar tidak menimpa skor IST yang sudah dihitung database Supabase
                 try {
-                    if (typeof updateHasilTes === 'function') {
-                        await updateHasilTes('hasil_ist', dataIST);
-                    }
+                    // if (typeof updateHasilTes === 'function') {
+                    //     await updateHasilTes('hasil_ist', dataIST);
+                    // }
+                    console.log('[Portal Bridge IST] Nilai IST tersimpan aman di Supabase (tidak ditimpa).');
                 } catch (err) {
                     console.warn('[Portal Bridge IST] Catatan penyimpanan Supabase:', err);
                 }

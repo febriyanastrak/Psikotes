@@ -243,60 +243,39 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// --- AKSES TERPROTEKSI HRD (3x Klik Logo Altrak / Shortcut) ---
+// --- AKSES TERPROTEKSI HRD (Shortcut Logo Dinonaktifkan) ---
 
 /**
- * Logo Altrak: tiga klik berurutan membuka modal otorisasi HRD
+ * Logo Altrak: Akses shortcut dinonaktifkan demi pemisahan portal penuh
  */
 function handleLogoClick() {
-    logoClickCount++;
-    if (logoClickTimer) clearTimeout(logoClickTimer);
+    // Dinonaktifkan: portal HRD dan peserta telah dipisahkan secara mandiri
+}
 
-    if (logoClickCount < 3) {
-        logoClickTimer = setTimeout(() => {
-            logoClickCount = 0;
-            logoClickTimer = null;
-        }, 1500);
-        return;
-    }
-
-    logoClickCount = 0;
-    logoClickTimer = null;
-
-    if (isHrdAuthenticated) {
-        showPage('page-hrd');
-        loadHrdData();
-        return;
-    }
-    openHrdLoginModal();
+/**
+ * Membuka dashboard HRD terpadu langsung di halaman utama
+ */
+function openHrdDashboard() {
+    window.location.href = 'hrd.html';
 }
 
 /**
  * Membuka modal login otorisasi HRD
  */
 function openHrdLoginModal() {
-    const pinInput = document.getElementById('inputHrdPin');
-    if (pinInput) pinInput.value = "";
-
-    const modalHrd = document.getElementById('modal-hrd-login');
-    if (modalHrd) {
-        modalHrd.classList.remove('hide-section');
-        if (pinInput) {
-            setTimeout(() => pinInput.focus(), 150);
-        }
-    } else {
-        window.location.href = 'hrd.html';
-    }
+    window.location.href = 'hrd.html';
 }
 
 /**
- * Memverifikasi sandi HRD melalui Supabase Auth
+ * Memverifikasi kredensial HRD langsung melalui Supabase Auth
  */
 async function verifyHrdLogin() {
     const pinInput = document.getElementById('inputHrdPin');
     const pin = pinInput ? pinInput.value.trim() : '';
+
     if (!pin) {
         customAlert("Akses Ditolak", "Kata sandi HRD tidak boleh kosong.", "error");
+        if (pinInput) pinInput.focus();
         return;
     }
 
@@ -316,39 +295,45 @@ async function verifyHrdLogin() {
     if (loadingModal) loadingModal.classList.remove('hide-section');
 
     try {
-        if (supabaseClient && supabaseClient.auth) {
-            // Email akun HRD di Supabase: febriyandah3@gmail.com (dengan fallback)
-            const hrdEmails = ['febriyandah3@gmail.com',];
-            let authResult = null;
+        let authSuccess = false;
 
+        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
+            ? supabaseClient
+            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.auth === 'object') ? window.supabase : null);
+
+        if (sb && sb.auth) {
+            const hrdEmails = [
+                'febriandah3@gmail.com',
+                'febriyandah3@gmail.com',
+                'febriyanh3@gmail.com',
+                'hrd@altrak1978.co.id'
+            ];
             for (const email of hrdEmails) {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: pin
-                });
-                if (!error && data && data.session) {
-                    authResult = data;
-                    break;
-                }
-            }
-
-            if (loadingModal) loadingModal.classList.add('hide-section');
-
-            if (authResult && authResult.session) {
-                isHrdAuthenticated = true;
                 try {
-                    localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
-                    localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+                    const { data, error } = await sb.auth.signInWithPassword({
+                        email: email,
+                        password: pin
+                    });
+                    if (!error && data && data.session) {
+                        authSuccess = true;
+                        break;
+                    }
                 } catch (e) {}
-
-                if (pinInput) pinInput.value = "";
-                closeModal('modal-hrd-login');
-                showPage('page-hrd');
-                loadHrdData();
-                return;
             }
-        } else {
-            if (loadingModal) loadingModal.classList.add('hide-section');
+        }
+
+        if (loadingModal) loadingModal.classList.add('hide-section');
+
+        if (authSuccess) {
+            isHrdAuthenticated = true;
+            try {
+                localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
+                localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+            } catch (e) {}
+
+            if (pinInput) pinInput.value = "";
+            openHrdDashboard();
+            return;
         }
     } catch (err) {
         if (loadingModal) loadingModal.classList.add('hide-section');
@@ -389,7 +374,10 @@ async function logoutHrd() {
     if (loadingModal) loadingModal.classList.remove('hide-section');
 
     try {
-        if (supabaseClient) await supabaseClient.auth.signOut();
+        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
+            ? supabaseClient
+            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.auth === 'object') ? window.supabase : null);
+        if (sb && sb.auth) await sb.auth.signOut();
     } catch (err) {
         console.error('Logout error:', err);
     }

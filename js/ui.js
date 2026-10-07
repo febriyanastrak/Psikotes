@@ -136,7 +136,7 @@ function closeModal(id) {
     const el = document.getElementById(id);
     if (el) {
         el.classList.add('hide-section');
-        el.style.display = 'none';
+        el.style.display = '';
     }
 }
 

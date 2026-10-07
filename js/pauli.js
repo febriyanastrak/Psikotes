@@ -60,32 +60,31 @@ function _updateTutorialButtons() {
 let proctoringStream = null;
 
 /**
- * Kamera pengawas dinonaktifkan sepenuhnya (kamera dimatikan total)
+ * Kontrol widget floating kamera pengawas dikelola secara sentral di camera.js.
+ * Widget hanya muncul pada IST Soal 09 dan tertutup pada tes Pauli maupun subtes lainnya.
  */
-function startProctoringCamera() {
-    stopProctoringCamera();
-}
+
 
 /**
- * Menghentikan stream kamera pengawas dan menyembunyikan kontainer kamera
+ * Mengambil foto snapshot kamera pengawas otomatis selama tes Pauli
+ * Disimpan khusus ke folder terpisah: foto_kandidat/PAULI/
+ * @param {'Awal'|'Tengah'|'Akhir'} fase Fase pengambilan foto
  */
-function stopProctoringCamera() {
-    if (proctoringStream) {
-        try {
-            proctoringStream.getTracks().forEach(track => track.stop());
-        } catch (e) {}
-        proctoringStream = null;
-    }
-    const container = document.getElementById('proctoring-camera-container');
-    if (container) {
-        container.classList.add('hide-section');
-        container.style.display = 'none';
-        container.style.pointerEvents = 'none';
-    }
-    const video = document.getElementById('proctoringVideo');
-    if (video) {
-        video.srcObject = null;
-        try { video.pause(); } catch (e) {}
+function jepretFotoPauli(fase = 'Awal') {
+    if (typeof jepretDanUpload === 'function') {
+        const candidateContact = (state.user && (state.user.phone || state.user.email))
+            ? (state.user.phone || state.user.email)
+            : (localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || 'peserta');
+
+        // Pastikan element camera-stream siap menerima frame dari proctoringVideo jika aktif
+        const camStream = document.getElementById('camera-stream');
+        const procVideo = document.getElementById('proctoringVideo');
+        if (camStream && procVideo && procVideo.srcObject && (!camStream.srcObject || camStream.videoWidth === 0)) {
+            camStream.srcObject = procVideo.srcObject;
+            camStream.play().catch(() => {});
+        }
+
+        jepretDanUpload(candidateContact, 'PAULI', 'Tes-Pauli', fase);
     }
 }
 
@@ -284,6 +283,11 @@ function startPauliTest() {
     renderPauliBoxes();
     runPauliTimer();
     stopProctoringCamera();
+
+    // Jepret foto pengawasan otomatis: Fase Awal tes Pauli (folder PAULI)
+    setTimeout(() => {
+        jepretFotoPauli('Awal');
+    }, 1500);
 }
 
 /**
@@ -299,13 +303,19 @@ function _resetPauliUI() {
     if (ansEl) ansEl.innerText = "";
 
     const bar = document.getElementById('pauliProgressBar');
-    if (bar) bar.style.width = '0%';
+    if (bar) {
+        bar.style.width = '0%';
+        if (bar.parentElement) bar.parentElement.style.display = isTrialMode ? 'block' : 'none';
+    }
 
     const timerEl = document.getElementById('pauliTimer');
     if (timerEl) timerEl.innerText = isTrialMode ? '00:30' : '60:00';
 
     const timerContainer = document.getElementById('pauliTimerContainer');
-    if (timerContainer) timerContainer.classList.remove('timer-urgent');
+    if (timerContainer) {
+        timerContainer.classList.remove('timer-urgent');
+        timerContainer.style.display = isTrialMode ? 'flex' : 'none';
+    }
 }
 
 /**
@@ -480,6 +490,12 @@ function runPauliTimer() {
         state.pauli.timeLeft = Math.max(0, fullDuration - elapsedSeconds);
         updateTimeDisplay();
 
+        // Jepret foto pengawasan otomatis: Fase Tengah tes Pauli (folder PAULI)
+        if (!state.pauli._fotoTengahAmbil && (elapsedSeconds >= 120 || elapsedSeconds >= Math.floor(fullDuration / 2))) {
+            state.pauli._fotoTengahAmbil = true;
+            jepretFotoPauli('Tengah');
+        }
+
         if (state.pauli.timeLeft <= 0) {
             state.pauli.isActive = false;
             clearInterval(state.pauli.timerId);
@@ -502,6 +518,7 @@ function updateTimeDisplay() {
 
     const timerContainer = document.getElementById('pauliTimerContainer');
     if (timerContainer) {
+        timerContainer.style.display = isTrialMode ? 'flex' : 'none';
         const urgentThreshold = isTrialMode ? 10 : 60;
         if (t <= urgentThreshold) {
             timerContainer.classList.add('timer-urgent');
@@ -515,7 +532,10 @@ function updateTimeDisplay() {
         : Number(window.PAULI_DURATION_SECONDS ?? 3600);
     const elapsedPct = ((totalDuration - t) / totalDuration) * 100;
     const bar = document.getElementById('pauliProgressBar');
-    if (bar) bar.style.width = Math.min(100, Math.max(0, elapsedPct)) + '%';
+    if (bar) {
+        bar.style.width = Math.min(100, Math.max(0, elapsedPct)) + '%';
+        if (bar.parentElement) bar.parentElement.style.display = isTrialMode ? 'block' : 'none';
+    }
 }
 
 /**
@@ -631,6 +651,10 @@ function prosesSimpanPauli(isTimeUp = false) {
         clearInterval(state.pauli.timerId);
         state.pauli.timerId = null;
     }
+
+    // Jepret foto pengawasan otomatis: Fase Akhir tes Pauli (folder PAULI) sebelum kamera ditutup
+    jepretFotoPauli('Akhir');
+
     _lockPauliKeypad(true);
     stopProctoringCamera();
 
@@ -733,16 +757,49 @@ function prosesSimpanPauli(isTimeUp = false) {
         const storage = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : (typeof localStorage !== 'undefined' ? localStorage : null);
         if (storage) {
             const localList = JSON.parse(storage.getItem('hasil_psikotes_local') || '[]');
-            localList.unshift(payload);
+            // Cek apakah data kandidat ini sudah ada di cache lokal
+            const existingLocalIdx = localList.findIndex(item => {
+                const idPeserta = storage.getItem('id_peserta');
+                if (idPeserta && String(item.id) === String(idPeserta)) return true;
+                const iWa = (item["No WhatsApp"] || '').replace(/[^0-9]/g, '');
+                const pWa = (payload["No WhatsApp"] || '').replace(/[^0-9]/g, '');
+                if (iWa && pWa && iWa.length >= 8 && iWa.slice(-8) === pWa.slice(-8)) return true;
+                return false;
+            });
+            if (existingLocalIdx >= 0) {
+                localList[existingLocalIdx] = { ...localList[existingLocalIdx], ...payload };
+            } else {
+                localList.unshift(payload);
+            }
             storage.setItem('hasil_psikotes_local', JSON.stringify(localList));
         }
     } catch (e) {
         console.warn('Gagal menyimpan cadangan lokal:', e);
     }
 
-    // 6. Simpan langsung ke memori cachedHrdData jika ada
+    // 6. Simpan atau perbarui langsung ke memori cachedHrdData (mencegah duplikasi baris tabel)
     if (typeof cachedHrdData !== 'undefined' && Array.isArray(cachedHrdData)) {
-        cachedHrdData.unshift(payload);
+        const idPeserta = typeof localStorage !== 'undefined' ? localStorage.getItem('id_peserta') : null;
+        const existingRow = cachedHrdData.find(c => {
+            if (idPeserta && String(c.id) === String(idPeserta)) return true;
+            const wa = (c["No WhatsApp"] || c.no_wa || '').toString().replace(/[^0-9]/g, '');
+            const pWa = (payload["No WhatsApp"] || '').toString().replace(/[^0-9]/g, '');
+            if (wa && pWa && wa.length >= 8 && (wa === pWa || wa.slice(-8) === pWa.slice(-8))) return true;
+            const em = (c["Alamat Email"] || c.email || '').toString().trim().toLowerCase();
+            const pEm = (payload["Alamat Email"] || '').toString().trim().toLowerCase();
+            if (em && pEm && em === pEm && !em.includes('altrak1978.co.id')) return true;
+            return false;
+        });
+
+        if (existingRow) {
+            existingRow["Total Pauli"] = payload["Total Pauli"];
+            existingRow["Jawaban Benar"] = payload["Jawaban Benar"];
+            existingRow["Jawaban Salah"] = payload["Jawaban Salah"];
+            existingRow["Garis Interval (3 Menit)"] = payload["Garis Interval (3 Menit)"];
+            existingRow["Waktu Selesai"] = payload["Waktu Selesai"];
+        } else {
+            cachedHrdData.unshift(payload);
+        }
     }
 
     // 7. Pauli adalah Tes ke-4 (Modul Terakhir) -> Tandai selesai di dashboard
@@ -787,6 +844,7 @@ async function sendToSupabase(payload = null, callback = null) {
         if (callback) callback();
         return;
     }
+    isDataSubmitted = true;
 
     if (!payload) {
         const now = new Date();
@@ -814,45 +872,72 @@ async function sendToSupabase(payload = null, callback = null) {
 
     // Upayakan pengiriman ke database server Supabase
     try {
+        const idPeserta = typeof localStorage !== 'undefined' ? localStorage.getItem('id_peserta') : null;
         if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            const { data, error } = await supabaseClient
-                .from('hasil_psikotes_kandidat')
-                .insert([payload]);
+            let updatedKandidat = false;
 
-            if (error) {
-                console.warn('Supabase Insert Note (tersimpan aman di cadangan lokal):', error);
+            // 1. Perbarui data Pauli pada sesi kandidat terpadu (kandidat_psikotes)
+            if (idPeserta) {
+                const dataPauli = {
+                    total_pengerjaan: Number(state.pauli.totalAnswered || 0),
+                    jawaban_benar: Number(state.pauli.scoredCorrect || 0),
+                    jawaban_salah: Number(state.pauli.scoredWrong || 0),
+                    garis_interval: state.pauli.garisArray || []
+                };
+                const { error: errUp } = await supabaseClient
+                    .from('kandidat_psikotes')
+                    .update({
+                        hasil_pauli: JSON.stringify(dataPauli),
+                        waktu_selesai: payload["Waktu Selesai"]
+                    })
+                    .eq('id', idPeserta);
+                if (!errUp) updatedKandidat = true;
             }
+
+            // 2. Sinkronkan ke tabel legacy (hasil_psikotes_kandidat) tanpa membuat baris dobel
+            try {
+                const emailClean = (payload["Alamat Email"] || '').trim().toLowerCase();
+                const phoneClean = (payload["No WhatsApp"] || '').replace(/[^0-9]/g, '');
+                let existingOldId = null;
+
+                if (emailClean && !emailClean.includes('altrak1978.co.id')) {
+                    const { data: oldByEmail } = await supabaseClient
+                        .from('hasil_psikotes_kandidat')
+                        .select('id')
+                        .eq('Alamat Email', payload["Alamat Email"])
+                        .limit(1);
+                    if (oldByEmail && oldByEmail.length > 0) existingOldId = oldByEmail[0].id;
+                }
+                if (!existingOldId && phoneClean && phoneClean.length >= 6) {
+                    const { data: oldByPhone } = await supabaseClient
+                        .from('hasil_psikotes_kandidat')
+                        .select('id')
+                        .eq('No WhatsApp', payload["No WhatsApp"])
+                        .limit(1);
+                    if (oldByPhone && oldByPhone.length > 0) existingOldId = oldByPhone[0].id;
+                }
+
+                if (existingOldId) {
+                    await supabaseClient
+                        .from('hasil_psikotes_kandidat')
+                        .update(payload)
+                        .eq('id', existingOldId);
+                } else if (!updatedKandidat) {
+                    // Hanya buat baris baru jika kandidat belum tercatat di kandidat_psikotes
+                    await supabaseClient
+                        .from('hasil_psikotes_kandidat')
+                        .insert([payload]);
+                }
+            } catch (errOld) {}
         }
     } catch (err) {
         console.warn('Supabase Network Note (tersimpan aman di cadangan lokal):', err);
     } finally {
-        isDataSubmitted = true;
         if (callback) callback();
     }
 }
 
-// Integrasi data hasil tes Pauli ke dashboard HRD secara otomatis
-if (typeof window !== 'undefined') {
-    window.addEventListener('load', () => {
-        if (typeof window.loadHrdData === 'function') {
-            const origLoadHrd = window.loadHrdData;
-            window.loadHrdData = async function() {
-                await origLoadHrd();
-                try {
-                    const localItems = JSON.parse(localStorage.getItem('hasil_psikotes_local') || '[]');
-                    if (localItems.length > 0 && typeof cachedHrdData !== 'undefined' && Array.isArray(cachedHrdData)) {
-                        localItems.forEach(item => {
-                            const exists = cachedHrdData.some(c => c.id === item.id || (c["Nama Lengkap"] === item["Nama Lengkap"] && c["Waktu Selesai"] === item["Waktu Selesai"]));
-                            if (!exists) cachedHrdData.unshift(item);
-                        });
-                        if (typeof filterHrdTable === 'function') filterHrdTable();
-                    }
-                } catch (e) {}
-            };
-        }
-    });
-
-    // Listener Keyboard Global khusus Pauli: Menjamin angka 0-9 dari baris atas maupun keypad numpad selalu terbaca
+// Listener Keyboard Global khusus Pauli: Menjamin angka 0-9 dari baris atas maupun keypad numpad selalu terbaca
     window.addEventListener('keydown', (e) => {
         const pauliPage = document.getElementById('view-pauli') || document.getElementById('page-pauli');
         if (!pauliPage || pauliPage.classList.contains('hide-section') || window._tesSelesai) {
@@ -885,4 +970,3 @@ if (typeof window !== 'undefined') {
             handlePauliInput(num);
         }
     }, true);
-}

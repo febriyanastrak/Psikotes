@@ -5,23 +5,16 @@
 // =========================================================================
 
 // URL dan Kunci Publik Supabase yang diberikan
-const SUPABASE_URL = 'https://rvflmznbihunezzqhobm.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2Zmxtem5iaWh1bmV6enFob2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM4OTcsImV4cCI6MjEwNTU1OTg5N30.tHXAXhKRvChZOqKjRq9S8AvvSo59PiYizpgDI9FmHcE';
+window.SUPABASE_URL = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
+window.SUPABASE_KEY = window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2Zmxtem5iaWh1bmV6enFob2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM4OTcsImV4cCI6MjEwNTU1OTg5N30.tHXAXhKRvChZOqKjRq9S8AvvSo59PiYizpgDI9FmHcE';
 
 // Inisialisasi Supabase Client jika library CDN sudah dimuat
-let supabase = null;
 try {
     if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
     }
 } catch (e) {
     console.warn('[Supabase Config] Peringatan inisialisasi Supabase:', e);
-}
-// Pastikan variabel supabase tersedia secara global di window
-if (typeof window !== 'undefined') {
-    window.SUPABASE_URL = SUPABASE_URL;
-    window.SUPABASE_KEY = SUPABASE_KEY;
-    window.supabase = supabase;
 }
 
 /**
@@ -59,13 +52,14 @@ async function updateHasilTes(kolomTes, dataJSON) {
     // 4. Jalankan perintah UPDATE ke tabel kandidat_psikotes berdasarkan id
     try {
         // Inisialisasi ulang client jika sebelumnya belum sempat terpasang
-        if (!supabase && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            window.supabase = supabase;
+        if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+            window.supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
         }
 
-        if (supabase) {
-            const { data, error } = await supabase
+        const sbActive = (typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null;
+
+        if (sbActive) {
+            const { data, error } = await sbActive
                 .from('kandidat_psikotes')
                 .update(payloadUpdate)
                 .eq('id', idPeserta);

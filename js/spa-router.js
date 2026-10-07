@@ -69,6 +69,9 @@ function pindahFase(targetId) {
 
     // 4. Jika menuju dashboard, perbarui status kartu dan progres secara otomatis
     if (finalTargetId === 'view-dashboard') {
+        if (typeof stopProctoringCamera === 'function') {
+            stopProctoringCamera();
+        }
         if (typeof terapkanPenguncianDashboard === 'function') {
             terapkanPenguncianDashboard();
         }
@@ -98,34 +101,78 @@ async function handleLoginSPA(event) {
         event.preventDefault();
     }
 
-    // 1. Validasi checkbox persetujuan Pakta Integritas
-    const consentCheck = document.getElementById('checkboxConsent');
-    if (!consentCheck || !consentCheck.checked) {
-        alert("Anda harus menyetujui Pakta Integritas terlebih dahulu!");
-        return;
+    // Bersihkan status error sebelumnya
+    if (typeof clearLoginValidationErrors === 'function') {
+        clearLoginValidationErrors();
+    } else {
+        const alertBox = document.getElementById('loginAlertBox');
+        if (alertBox) alertBox.classList.add('hide-section');
+        ['errorName', 'errorEmail', 'errorPhone', 'errorConsent'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hide-section');
+        });
     }
+
+    // Helper untuk menampilkan error inline tanpa alert popup
+    const triggerError = (inputId, errorId, message) => {
+        if (typeof showLoginFieldError === 'function') {
+            showLoginFieldError(inputId, errorId, message);
+        } else {
+            const errEl = document.getElementById(errorId);
+            if (errEl) {
+                const span = errEl.querySelector('span') || errEl;
+                span.textContent = message;
+                errEl.classList.remove('hide-section');
+            }
+            const alertBox = document.getElementById('loginAlertBox');
+            const alertMsg = document.getElementById('loginAlertMsg');
+            if (alertBox && alertMsg) {
+                alertMsg.textContent = message;
+                alertBox.classList.remove('hide-section');
+            }
+            const inputEl = document.getElementById(inputId);
+            if (inputEl) {
+                inputEl.classList.add('border-red-500', 'bg-red-50/50');
+                inputEl.focus();
+            }
+        }
+    };
 
     // Ambil data dari 3 input formulir
     const nameInput = document.getElementById('inputName');
     const emailInput = document.getElementById('inputEmail');
     const phoneInput = document.getElementById('inputPhone');
+    const consentCheck = document.getElementById('checkboxConsent');
 
     const cleanName = (nameInput ? nameInput.value : '').trim();
     const cleanEmail = (emailInput ? emailInput.value : '').trim();
     const cleanPhone = (phoneInput ? phoneInput.value : '').trim();
 
+    // 1. Validasi Nama Lengkap
     if (!cleanName || cleanName.length < 3) {
-        alert("Harap masukkan Nama Lengkap minimal 3 karakter!");
+        triggerError('inputName', 'errorName', 'Harap masukkan Nama Lengkap minimal 3 karakter!');
         return;
     }
 
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-        alert("Harap masukkan Alamat Email Aktif yang benar!");
+    // 2. Validasi Alamat Email
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+        triggerError('inputEmail', 'errorEmail', 'Harap masukkan Alamat Email Aktif yang benar!');
         return;
     }
 
+    // 3. Validasi Nomor WhatsApp
     if (!cleanPhone || cleanPhone.length < 9) {
-        alert("Harap masukkan Nomor WhatsApp / HP yang valid!");
+        triggerError('inputPhone', 'errorPhone', 'Harap masukkan Nomor WhatsApp / HP yang valid!');
+        return;
+    }
+
+    // 4. Validasi Checkbox Pakta Integritas
+    if (!consentCheck || !consentCheck.checked) {
+        const consentContainer = document.getElementById('checkboxConsentContainer');
+        if (consentContainer) {
+            consentContainer.classList.add('border-red-500', 'bg-red-50/40');
+        }
+        triggerError('checkboxConsent', 'errorConsent', 'Anda harus menyetujui Pakta Integritas terlebih dahulu!');
         return;
     }
 
@@ -155,6 +202,7 @@ async function handleLoginSPA(event) {
     localStorage.removeItem('pauli_selesai');
     localStorage.removeItem('ist_terkirim_supabase');
     localStorage.removeItem('altrak_ist_completed_subtests');
+    localStorage.removeItem('papi_answers');
 
     let idPesertaBaru = null;
 
@@ -174,23 +222,70 @@ async function handleLoginSPA(event) {
         }
 
         if (supabase && typeof supabase.from === 'function') {
-            const { data, error } = await supabase
-                .from('kandidat_psikotes')
-                .insert([
-                    {
+            // Cek apakah kandidat dengan No WA, Email, atau Nama ini sudah terdaftar sebelumnya
+            let existingId = null;
+            try {
+                // 1. Cek berdasarkan Email
+                if (cleanEmail && !cleanEmail.includes('altrak1978.co.id')) {
+                    const { data: byEmail } = await supabase.from('kandidat_psikotes').select('id').eq('email', cleanEmail).limit(1);
+                    if (byEmail && byEmail.length > 0 && byEmail[0].id) {
+                        existingId = byEmail[0].id;
+                    }
+                }
+                // 2. Cek berdasarkan No WA (uji format 08xxx dan 628xxx)
+                if (!existingId && cleanPhone && cleanPhone.length >= 6) {
+                    const waVars = [cleanPhone];
+                    if (cleanPhone.startsWith('0')) {
+                        waVars.push('62' + cleanPhone.slice(1));
+                    } else if (cleanPhone.startsWith('62')) {
+                        waVars.push('0' + cleanPhone.slice(2));
+                    }
+                    for (const w of waVars) {
+                        const { data: byWa } = await supabase.from('kandidat_psikotes').select('id').eq('no_wa', w).limit(1);
+                        if (byWa && byWa.length > 0 && byWa[0].id) {
+                            existingId = byWa[0].id;
+                            break;
+                        }
+                    }
+                }
+                // 3. Cek berdasarkan Nama Lengkap
+                if (!existingId && cleanName && cleanName.length >= 3) {
+                    const { data: byName } = await supabase.from('kandidat_psikotes').select('id').eq('nama_lengkap', cleanName).limit(1);
+                    if (byName && byName.length > 0 && byName[0].id) {
+                        existingId = byName[0].id;
+                    }
+                }
+            } catch (errCheck) {}
+
+            if (existingId) {
+                idPesertaBaru = existingId;
+                console.log('[Supabase SPA] Melanjutkan sesi kandidat terdaftar. ID:', idPesertaBaru);
+                try {
+                    await supabase.from('kandidat_psikotes').update({
                         nama_lengkap: cleanName,
                         email: cleanEmail,
-                        no_wa: cleanPhone,
-                        posisi_dilamar: 'Peserta Seleksi'
-                    }
-                ])
-                .select();
+                        no_wa: cleanPhone
+                    }).eq('id', idPesertaBaru);
+                } catch (eUpdate) {}
+            } else {
+                const { data, error } = await supabase
+                    .from('kandidat_psikotes')
+                    .insert([
+                        {
+                            nama_lengkap: cleanName,
+                            email: cleanEmail,
+                            no_wa: cleanPhone,
+                            posisi_dilamar: 'Peserta Seleksi'
+                        }
+                    ])
+                    .select();
 
-            if (!error && data && data.length > 0 && data[0].id) {
-                idPesertaBaru = data[0].id;
-                console.log('[Supabase SPA] Data kandidat berhasil di-insert ke Supabase. ID:', idPesertaBaru);
-            } else if (error) {
-                console.warn('[Supabase SPA] Respon server (aman tersimpan di cadangan lokal):', error.message || error);
+                if (!error && data && data.length > 0 && data[0].id) {
+                    idPesertaBaru = data[0].id;
+                    console.log('[Supabase SPA] Data kandidat baru berhasil didaftarkan ke Supabase. ID:', idPesertaBaru);
+                } else if (error) {
+                    console.warn('[Supabase SPA] Respon server (aman tersimpan di cadangan lokal):', error.message || error);
+                }
             }
         }
     } catch (err) {
@@ -225,12 +320,23 @@ async function handleLoginSPA(event) {
     const navInfo = document.getElementById('nav-user-info');
     if (navInfo) navInfo.classList.remove('hide-section');
 
+    // 4. Validasi Ganda Kamera: Wajibkan foto snapshot sebelum diperbolehkan masuk ke dashboard
+    if (typeof jepretDanUpload === 'function') {
+        const fotoBerhasil = await jepretDanUpload(cleanEmail);
+        if (!fotoBerhasil) {
+            if (btnSubmit) btnSubmit.disabled = true;
+            if (btnText) btnText.textContent = "Ambil Foto & Mulai Tes";
+            if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right-long";
+            return;
+        }
+    }
+
     // Kembalikan tampilan tombol
     if (btnSubmit) btnSubmit.disabled = false;
-    if (btnText) btnText.textContent = "Masuk ke Portal Tes";
+    if (btnText) btnText.textContent = "Ambil Foto & Mulai Tes";
     if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right-long";
 
-    // 4. Jalankan pindahFase('view-dashboard')
+    // 5. Jalankan pindahFase('view-dashboard')
     pindahFase('view-dashboard');
 }
 
@@ -250,3 +356,4 @@ document.addEventListener('DOMContentLoaded', () => {
         viewLogin.classList.add('fase-aktif');
     }
 });
+

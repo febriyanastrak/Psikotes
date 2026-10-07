@@ -166,12 +166,12 @@ const istUI = {
                         <i class="fa-solid fa-circle-check"></i> Selesai
                     </span>
                 `;
-                cardClass = "border-emerald-200 bg-white hover:shadow-md";
+                cardClass = "border-slate-200 bg-slate-50/60";
                 btnHtml = `
-                    <button type="button" onclick="istLogic.pilihSubtes(${subNoInt})" 
-                        class="w-full py-2.5 px-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-rotate-right"></i>
-                        <span>Buka Kembali Soal ${sub.no}</span>
+                    <button type="button" disabled
+                        class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80">
+                        <i class="fa-solid fa-lock text-slate-400"></i>
+                        <span>Soal ${sub.no} Selesai &amp; Terkunci</span>
                     </button>
                 `;
             } else if (isUnlocked) {
@@ -263,18 +263,96 @@ const istUI = {
                     ${cardsHtml}
                 </div>
 
-                <!-- Tombol Kembali ke Dashboard Utama -->
-                <div class="pt-4 text-center">
-                    <button type="button" onclick="if(typeof pindahFase === 'function') pindahFase('view-dashboard'); else if(typeof showPage === 'function') showPage('view-dashboard');"
-                        class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#003865] bg-white px-5 py-2.5 rounded-full border border-slate-200 shadow-sm transition hover:border-[#b9d0e7]">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>Kembali ke Dashboard Utama</span>
-                    </button>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    },
+
+    // =====================================================================
+    // 1B. FASE PANDUAN RESMI SUBTES (DIBACA TELITI SEBELUM PERCOBAAN)
+    // =====================================================================
+
+    /**
+     * Menampilkan panduan dan instruksi resmi subtes sebelum peserta masuk ke sesi percobaan
+     */
+    renderFasePanduan() {
+        const container = this.getContainer();
+        if (!container) return;
+
+        const subtestData = istLogic.getCurrentSubtestData();
+        const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
+        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const kodeSubtes = subtestData.kodeSubtes 
+            || (typeof IST_SUBTESTS_LIST !== 'undefined' && IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1] ? IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1].kodeSubtes : '')
+            || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : '');
+        const judulLengkap = kodeSubtes ? `${kodeSubtes} - ${subtestName}` : subtestName;
+        const totalSoal = subtestData.soal ? subtestData.soal.length : 20;
+
+        const html = `
+            <div id="fase-panduan-wrapper" class="w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in pb-4">
+                <!-- Header Card Panduan -->
+                <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#071f38] px-6 py-6 text-white border-b border-[#0b4578]">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md text-[#ffbe1a] border border-white/15 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                                <i class="fa-solid fa-book-open-reader"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#f5b300] text-[#051627] uppercase tracking-wider">PANDUAN &amp; INSTRUKSI</span>
+                                    <span class="text-xs text-sky-200 font-bold">${judulLengkap}</span>
+                                </div>
+                                <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Panduan ${judulLengkap}</h2>
+                                <p class="text-xs sm:text-sm text-blue-100/80 mt-0.5">
+                                    Bacalah instruksi di bawah ini dengan teliti sebelum memulai sesi latihan percobaan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 text-center shrink-0 self-start sm:self-auto">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-blue-200 block">Jumlah Soal</span>
+                            <span class="text-lg font-black text-[#ffbe1a]">${totalSoal} Butir Soal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Konten Panduan Lengkap Standar Resmi IST -->
+                <div class="p-6 sm:p-8 space-y-6">
+                    ${this.generatePetunjukHtml(subtestData, istLogic.currentSubtestNo, subtestName)}
+
+                    <!-- Kotak Informasi Pelaksanaan -->
+                    <div class="rounded-2xl p-4 sm:p-5 bg-blue-50/70 border border-blue-200 flex items-start gap-3.5 shadow-xs">
+                        <div class="w-8 h-8 rounded-xl bg-[#003865] text-white flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-circle-check text-sm text-[#ffbe1a]"></i>
+                        </div>
+                        <div class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            <p class="font-bold text-[#003865] mb-1">Alur Pengerjaan:</p>
+                            <ol class="list-decimal list-inside space-y-1 text-slate-600 font-medium">
+                                <li>Setelah membaca panduan ini, Anda akan diarahkan ke <strong>Sesi Latihan (Percobaan)</strong> untuk mencoba menjawab contoh soal.</li>
+                                <li>Durasi pengerjaan diatur secara otomatis oleh sistem PT Altrak 1978.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi Bawah: Lanjut ke Contoh Soal & Kembali -->
+                    <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center">
+                        <button type="button" onclick="istLogic.mulaiFaseContoh()"
+                            class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 sm:py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base">
+                            <span>Lanjut ke Latihan Contoh Soal</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button type="button" onclick="istLogic.tampilkanMenu9Subtes()"
+                            class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 sm:py-4 rounded-xl transition cursor-pointer text-sm text-center">
+                            Daftar Bagian Soal
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
 
         container.innerHTML = html;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
     // =====================================================================
@@ -332,7 +410,7 @@ const istUI = {
                 }).join('');
 
                 contohCardsHtml += `
-                    <div id="card-hafalan-soal-09" class="bg-gradient-to-br from-slate-50 via-white to-sky-50/40 border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                    <div id="card-hafalan-soal-09" class="bg-gradient-to-br from-slate-50 via-white to-sky-50/40 border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm select-none" style="user-select: none; -webkit-user-select: none;">
                         <!-- Header Card Hafalan -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80">
                             <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#003865] text-white font-extrabold text-xs shadow-sm">
@@ -345,6 +423,24 @@ const istUI = {
                             <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
                                 <i class="fa-solid fa-eye text-amber-600"></i> Fokus Menghafal • Dilarang Mencatat
                             </span>
+                        </div>
+
+                        <!-- KOTAK PERINGATAN TEGAS PENGAWASAN KAMERA (TUGAS 2 POIN 1) -->
+                        <div class="mb-6 p-4 sm:p-5 rounded-2xl bg-red-50 border-2 border-red-500 shadow-sm text-red-900">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shrink-0 mt-0.5 shadow-sm">
+                                    <i class="fa-solid fa-video"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
+                                        <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                                        PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                                    </h4>
+                                    <p class="text-xs sm:text-sm font-bold text-red-950 mt-1.5 leading-relaxed">
+                                        Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda WAJIB mengangkat dan meletakkan kedua tangan Anda di atas meja agar terlihat oleh kamera selama 3 menit penuh. Dilarang keras mencatat atau memfoto layar. Sistem akan memantau postur Anda. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Pertanyaan / Instruksi -->
@@ -615,7 +711,9 @@ const istUI = {
                         <div class="text-left">
                             <div class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">${isHafalan ? 'Waktu Menghafal' : 'Waktu Mempelajari'}</div>
                             <div id="contoh-timer-display" class="text-lg font-black text-[#ffbe1a]">
-                                ${sisaDetik >= 60 ? `${Math.floor(sisaDetik / 60)}:${String(sisaDetik % 60).padStart(2, '0')}` : `${sisaDetik} Detik`}
+                                ${isHafalan 
+                                    ? `${String(Math.floor(sisaDetik / 60)).padStart(2, '0')}:${String(sisaDetik % 60).padStart(2, '0')}` 
+                                    : (sisaDetik >= 60 ? `${Math.floor(sisaDetik / 60)}:${String(sisaDetik % 60).padStart(2, '0')}` : `${sisaDetik} Detik`)}
                             </div>
                         </div>
                     </div>
@@ -653,6 +751,25 @@ const istUI = {
         `;
 
         container.innerHTML = html;
+
+        // Anti-Cheat Subtes 09 (Hafalan / ME): Blokir contextmenu dan selectstart
+        if (isHafalan) {
+            const cardHafalan = document.getElementById('card-hafalan-soal-09') || container;
+            if (cardHafalan) {
+                cardHafalan.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+                cardHafalan.addEventListener('selectstart', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+                cardHafalan.addEventListener('copy', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+            }
+        }
     },
 
     /**
@@ -894,10 +1011,11 @@ const istUI = {
         const progressBar = document.getElementById('contoh-progress-bar');
         
         if (timerDisplay) {
-            if (sisaDetik >= 60) {
-                const m = Math.floor(sisaDetik / 60);
-                const s = sisaDetik % 60;
-                timerDisplay.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            const isHafalan = istLogic.currentSubtestNo === 9;
+            const m = Math.floor(Math.max(0, sisaDetik) / 60);
+            const s = Math.max(0, sisaDetik) % 60;
+            if (isHafalan || sisaDetik >= 60) {
+                timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             } else {
                 timerDisplay.textContent = `${sisaDetik} Detik`;
             }
@@ -930,6 +1048,9 @@ const istUI = {
         const totalSoal = subtestData.soal ? subtestData.soal.length : 20;
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const kodeSubtes = subtestData.kodeSubtes 
+            || (typeof IST_SUBTESTS_LIST !== 'undefined' && IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1] ? IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1].kodeSubtes : '')
+            || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : '');
         const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
             ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
             : 0;
@@ -952,14 +1073,14 @@ const istUI = {
             <div id="fase-ujian-wrapper" class="w-full max-w-4xl mx-auto space-y-4 animate-fade-in pb-8">
                 <!-- Bar Status & Navigasi Nomor Soal (Tata Letak 2 Baris Simetris & Proporsional) -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-6 space-y-4">
-                    <!-- Header Atas: Judul Soal (misal: "06 Soal 06") & Status Pengerjaan (TANPA WAKTU) -->
+                    <!-- Header Atas: Judul Soal dengan Kode Subtes (misal: "GE - Soal 04") & Status Pengerjaan (TANPA WAKTU) -->
                     <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
                         <div class="flex items-center gap-3">
                             <span class="w-9 h-9 rounded-2xl bg-[#003865] text-white flex items-center justify-center font-black text-sm shadow-sm">
                                 ${subtestCode}
                             </span>
                             <div>
-                                <h2 class="text-lg sm:text-xl font-black text-[#003865] leading-tight">${subtestCode} ${subtestName}</h2>
+                                <h2 class="text-lg sm:text-xl font-black text-[#003865] leading-tight">${kodeSubtes ? `${kodeSubtes} - ` : ''}${subtestName}</h2>
                             </div>
                         </div>
 
@@ -1025,6 +1146,7 @@ const istUI = {
      */
     generatePaletteHtml() {
         const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
+        const kodeSubtes = subtestData.kodeSubtes || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : "SE");
         const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
             ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
             : 0;
@@ -1049,7 +1171,7 @@ const istUI = {
             }
 
             return `
-                <button type="button" onclick="istLogic.lompatKeSoal(${idx})" class="${cls}" title="Nomor ${noUrut}">
+                <button type="button" onclick="istLogic.lompatKeSoal(${idx})" class="${cls}" title="${kodeSubtes} - Soal No. ${noUrut}">
                     ${noUrut}
                 </button>
             `;
@@ -1104,7 +1226,9 @@ const istUI = {
         const offset = (istLogic.getSubtestOffset && typeof istLogic.getSubtestOffset === 'function')
             ? istLogic.getSubtestOffset(istLogic.currentSubtestNo)
             : 0;
+        const kodeSubtes = subtestData.kodeSubtes || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : "SE");
         const noUrut = offset + (istLogic.currentSoalIndex + 1);
+        const labelNomorSoal = `Soal No. ${noUrut}`;
 
         const rawJawaban = istLogic.jawabanPeserta[noUrut] !== undefined 
             ? istLogic.jawabanPeserta[noUrut] 
@@ -1277,7 +1401,7 @@ const istUI = {
                             <span class="w-8 h-8 rounded-xl bg-[#003865] text-white flex items-center justify-center font-black text-sm shadow-sm">
                                 ${noUrut}
                             </span>
-                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${noUrut}</span>
+                            <span class="text-sm sm:text-base font-bold text-slate-700">${labelNomorSoal}</span>
                         </div>
 
                         ${badgeStatusJawaban}
@@ -1315,7 +1439,7 @@ const istUI = {
                             <span class="w-8 h-8 rounded-xl bg-[#003865] text-white flex items-center justify-center font-black text-sm shadow-sm">
                                 ${noUrut}
                             </span>
-                            <span class="text-sm sm:text-base font-bold text-slate-700">Soal ${noUrut}</span>
+                            <span class="text-sm sm:text-base font-bold text-slate-700">${labelNomorSoal}</span>
                         </div>
 
                         ${badgeStatusJawaban}

@@ -26,13 +26,22 @@ function tampilkanHalamanSelesai() {
 function handleStartModule(testNum) {
     if (testNum === 1) {
         const modal = document.getElementById('modal-module-ist');
-        if (modal) modal.classList.remove('hide-section');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        }
     } else if (testNum === 2) {
         const modal = document.getElementById('modal-module-papi');
-        if (modal) modal.classList.remove('hide-section');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        }
     } else if (testNum === 3) {
         const modal = document.getElementById('modal-module-disc');
-        if (modal) modal.classList.remove('hide-section');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        }
     } else if (testNum === 4) {
         showPauliTutorial();
     }
@@ -150,8 +159,13 @@ document.addEventListener('keydown', (e) => {
     // 2. Blokir tombol PrintScreen (Anti-Screenshot) & langsung bersihkan clipboard
     if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
+        e.stopPropagation();
         clearUserClipboard();
-        return;
+        const testStatus = isTestActive();
+        if (testStatus.active) {
+            handleIntegrityViolation('percobaan tangkapan layar (screenshot)');
+        }
+        return false;
     }
 
     // 3. Blokir tombol F12 (Inspect Element / Developer Tools)
@@ -354,7 +368,25 @@ document.addEventListener('visibilitychange', () => {
 
 // 2. Deteksi saat berpindah ke aplikasi lain / jendela kehilangan fokus (blur)
 window.addEventListener('blur', () => {
+    const isSubtes09 = typeof istLogic !== 'undefined' && istLogic.currentSubtestNo === 9 &&
+                       (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN');
+    if (isSubtes09) {
+        // Samarkan / blur seketika lembar hafalan dan soal agar tidak tertangkap oleh Snipping Tool / aplikasi lain
+        const cardHafalan = document.getElementById('card-hafalan-soal-09');
+        if (cardHafalan) cardHafalan.style.filter = 'blur(25px)';
+        const istContainer = document.getElementById('ist-app-container');
+        if (istContainer) istContainer.style.filter = 'blur(25px)';
+        clearUserClipboard();
+    }
     handleIntegrityViolation('ke aplikasi lain');
+});
+
+// Kembalikan tampilan normal saat jendela kembali aktif (focus)
+window.addEventListener('focus', () => {
+    const cardHafalan = document.getElementById('card-hafalan-soal-09');
+    if (cardHafalan) cardHafalan.style.filter = 'none';
+    const istContainer = document.getElementById('ist-app-container');
+    if (istContainer) istContainer.style.filter = 'none';
 });
 
 // Inisialisasi awal saat aplikasi selesai dimuat
