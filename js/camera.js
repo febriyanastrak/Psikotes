@@ -169,8 +169,8 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
             : (typeof supabase !== 'undefined' && supabase && typeof supabase.storage !== 'undefined' ? supabase : null);
 
         if (!sbClient || !sbClient.storage) {
-            const sbUrl = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
-            const sbKey = window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2Zmxtem5iaWh1bmV6enFob2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM4OTcsImV4cCI6MjEwNTU1OTg5N30.tHXAXhKRvChZOqKjRq9S8AvvSo59PiYizpgDI9FmHcE';
+            const sbUrl = window.SUPABASE_URL || '';
+            const sbKey = window.SUPABASE_KEY || '';
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 try {
                     sbClient = window.supabase.createClient(sbUrl, sbKey);
@@ -184,7 +184,20 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
         }
 
         if (sbClient && sbClient.storage) {
-            const blob = await (await fetch(dataUrl)).blob();
+            // Konversi aman dataUrl (base64) ke Blob tanpa fetch (mencegah pelanggaran CSP)
+            let blob;
+            try {
+                const byteCharacters = atob(dataUrl.split(',')[1]);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                blob = new Blob([byteArray], { type: 'image/jpeg' });
+            } catch (convErr) {
+                console.warn('[Kamera] Gagal konversi base64 ke blob:', convErr);
+                return true;
+            }
             const folder = (namaFolderTes || 'IST').trim();
             const subtes = (namaSubtes || 'Subtes-1').trim().replace(/\s+/g, '-');
             const fase = (faseWaktu || 'Awal').trim();
@@ -242,6 +255,7 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
                     waktu: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
                     fileName,
                     filePath,
+                    path: filePath,
                     url: publicUrl
                 });
                 localStorage.setItem('kandidat_foto_pengawasan', JSON.stringify(fotoList));
@@ -266,6 +280,17 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
 }
 
 function startProctoringCamera() {
+    // Kunci Ketat: Floating live camera HANYA diizinkan menyala pada IST Subtes 09 (Mengingat Kata)
+    const isSubtes09 = typeof istLogic !== 'undefined' && 
+                       Number(istLogic.currentSubtestNo) === 9 && 
+                       (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN') &&
+                       !istLogic.isUjianTerkunci;
+
+    if (!isSubtes09) {
+        stopProctoringCamera();
+        return;
+    }
+
     const container = document.getElementById('proctoring-camera-container');
     const video = document.getElementById('proctoringVideo');
     const fallback = document.getElementById('cameraStatusFallback');

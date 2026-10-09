@@ -1,7 +1,28 @@
-// =========================================================================
-// DASHBOARD ANALITIK & LAPORAN HRD (SECURITY HARDENED)
-// PT Altrak 1978 - Online Assessment System
-// =========================================================================
+/**
+ * Memformat timestamp (ISO atau teks) ke format waktu lokal Indonesia yang seragam
+ * @param {string|Date} val Timestamp
+ * @returns {string} String waktu terformat
+ */
+function formatWaktuDisplay(val) {
+    if (!val || val === '-' || val === 'null' || val === 'undefined') return '-';
+    let str = String(val).trim();
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) return str;
+
+    let note = '';
+    const idxBracket = str.indexOf('[');
+    if (idxBracket !== -1) {
+        note = ' ' + str.substring(idxBracket).trim();
+        str = str.substring(0, idxBracket).trim();
+    }
+
+    try {
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleString('id-ID') + note;
+        }
+    } catch (e) {}
+    return String(val);
+}
 
 /**
  * Menampilkan daftar baris kandidat ke dalam tabel HRD
@@ -27,19 +48,57 @@ function renderHrdTable(dataList) {
         const namaSafe = escapeHtml(row["Nama Lengkap"] || '-');
         const emailSafe = escapeHtml(row["Alamat Email"] || '-');
         const waSafe = escapeHtml(row["No WhatsApp"] || '-');
+        const posisiSafe = escapeHtml(row["Posisi"] || row.posisi || row.posisi_dilamar || '-');
+        const penempatanSafe = escapeHtml(row["Penempatan"] || row.penempatan || '-');
+        const domisiliSafe = escapeHtml(row["Domisili"] || row.domisili || '-');
         const waktuMulaiSafe = escapeHtml(row["Waktu Mulai"] || (row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-'));
         const waktuSelesaiSafe = escapeHtml(row["Waktu Selesai"] || '-');
 
+        // Deteksi riwayat pelanggaran integritas (pindah tab)
+        const vCount = Number(row["Pelanggaran Tab"] || 0);
+        let badgeIntegritas = '';
+        if (vCount === 0) {
+            badgeIntegritas = '<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-shield-check text-[9px]"></i> 0 Pelanggaran (Jujur)</span>';
+        } else if (vCount <= 2) {
+            badgeIntegritas = `<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Pernah ${vCount}x Ganti Tab</span>`;
+        } else {
+            badgeIntegritas = `<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse"><i class="fa-solid fa-ban text-[9px]"></i> ${vCount}x Pelanggaran (Diskualifikasi/Auto-Submit)</span>`;
+        }
+
+        const infoPosisiHtml = (posisiSafe !== '-' || penempatanSafe !== '-')
+            ? `<div class="text-[11px] font-normal text-amber-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+                ${posisiSafe !== '-' ? `<span><i class="fa-solid fa-briefcase text-[10px] mr-1"></i>${posisiSafe}</span>` : ''}
+                ${penempatanSafe !== '-' ? `<span>&bull; <i class="fa-solid fa-location-dot text-[10px] mr-1"></i>${penempatanSafe}</span>` : ''}
+               </div>`
+            : '';
+
+        const infoDomisiliHtml = (domisiliSafe !== '-')
+            ? `<div class="text-[10px] font-normal text-slate-400"><i class="fa-solid fa-house-user text-[9px] mr-1"></i>Domisili: ${domisiliSafe}</div>`
+            : '';
+
+        const tokenSafe = escapeHtml(row["Token"] || row.token || '');
+        const infoTokenHtml = (tokenSafe && tokenSafe !== '-')
+            ? `<span class="inline-flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 text-amber-300 bg-amber-500/10 rounded border border-amber-500/20 uppercase font-bold tracking-wider"><i class="fa-solid fa-key text-[9px]"></i> Token: ${tokenSafe}</span>`
+            : '';
+
         tr.innerHTML = `
             <td class="p-3 font-mono font-bold text-amber-400">${loopIdx + 1}</td>
-            <td class="p-3 font-bold text-white">${namaSafe}</td>
+            <td class="p-3 font-bold text-white">
+                <div>${namaSafe}</div>
+                ${infoPosisiHtml}
+                ${infoDomisiliHtml}
+                <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                    ${badgeIntegritas}
+                    ${infoTokenHtml}
+                </div>
+            </td>
             <td class="p-3 text-xs text-slate-400">${emailSafe}<br>${waSafe}</td>
             <td class="p-3 text-xs text-slate-400 leading-relaxed">
                 <div><span class="text-slate-300 font-medium">Mulai:</span> ${waktuMulaiSafe}</div>
                 <div><span class="text-slate-300 font-medium">Selesai:</span> ${waktuSelesaiSafe}</div>
             </td>
             <td class="p-3 text-center">
-                <button onclick="viewCandidateChart(${index})" class="bg-[#003865] hover:bg-[#0a4980] text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow border border-[#0a4980]">
+                <button onclick="viewCandidateChart(${index})" class="bg-[#003865] hover:bg-[#0a4980] text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow border border-[#0a4980] cursor-pointer">
                     <i class="fa-solid fa-chart-line mr-1"></i> Buka Laporan
                 </button>
             </td>
@@ -65,8 +124,14 @@ function filterHrdTable() {
         const name = (row["Nama Lengkap"] || '').toLowerCase();
         const email = (row["Alamat Email"] || '').toLowerCase();
         const wa = (row["No WhatsApp"] || '').toLowerCase();
+        const posisi = (row["Posisi"] || row.posisi || row.posisi_dilamar || '').toLowerCase();
+        const penempatan = (row["Penempatan"] || row.penempatan || '').toLowerCase();
+        const domisili = (row["Domisili"] || row.domisili || '').toLowerCase();
+        const token = (row["Token"] || row.token || '').toLowerCase();
         const id = String(row.id || '');
-        return name.includes(query) || email.includes(query) || wa.includes(query) || id.includes(query);
+        return name.includes(query) || email.includes(query) || wa.includes(query) || 
+               posisi.includes(query) || penempatan.includes(query) || domisili.includes(query) ||
+               token.includes(query) || id.includes(query);
     });
     
     renderHrdTable(filtered);
@@ -113,19 +178,79 @@ async function loadHrdData() {
                     row["Nama Lengkap"] = row.nama_lengkap || row["Nama Lengkap"] || '-';
                     row["Alamat Email"] = row.email || row["Alamat Email"] || '-';
                     row["No WhatsApp"] = row.no_wa || row["No WhatsApp"] || '-';
-                    row["Waktu Mulai"] = row.waktu_mulai || row["Waktu Mulai"] || (row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-');
-                    row["Waktu Selesai"] = row.waktu_selesai || row["Waktu Selesai"] || '-';
+                    row["Posisi"] = row.posisi || row.posisi_dilamar || '-';
+                    row["Penempatan"] = row.penempatan || '-';
+                    row["Domisili"] = row.domisili || '-';
+                    row["Token"] = row.token || '-';
+                    row["Waktu Mulai"] = formatWaktuDisplay(row.waktu_mulai || row["Waktu Mulai"] || (row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-'));
+                    let rawWaktuSelesai = row.waktu_selesai || row["Waktu Selesai"] || null;
+                    if (rawWaktuSelesai === '-') rawWaktuSelesai = null;
 
+                    let tabViolations = 0;
                     if (row.hasil_pauli) {
                         try {
                             const p = typeof row.hasil_pauli === 'string' ? JSON.parse(row.hasil_pauli) : row.hasil_pauli;
-                            row["Total Pauli"] = p.total_pengerjaan || p.total || p.jawaban_benar || 0;
-                            row["Jawaban Salah"] = p.jawaban_salah || p.salah || 0;
-                            if (p.garis_interval) {
-                                row["Garis Interval (3 Menit)"] = Array.isArray(p.garis_interval) ? p.garis_interval.join(',') : p.garis_interval;
+                            row["Total Pauli"] = p.total_pauli !== undefined ? p.total_pauli : (p.total_pengerjaan || p.total || p.jawaban_benar || 0);
+                            row["Jawaban Benar"] = p.jawaban_benar !== undefined ? p.jawaban_benar : (p.benar || 0);
+                            row["Jawaban Salah"] = p.jawaban_salah !== undefined ? p.jawaban_salah : (p.salah || 0);
+                            if (p.pelanggaran_tab !== undefined) tabViolations = Math.max(tabViolations, Number(p.pelanggaran_tab) || 0);
+                            const rawInterval = p.garis_interval_3_menit || p.garis_interval;
+                            if (rawInterval) {
+                                row["Garis Interval (3 Menit)"] = Array.isArray(rawInterval) ? rawInterval.join(',') : rawInterval;
+                            }
+                            // Fallback 1: Waktu selesai dari hasil_pauli jika kolom utama kosong
+                            if (!rawWaktuSelesai) {
+                                if (p.waktu_selesai) rawWaktuSelesai = p.waktu_selesai;
+                                else if (p.waktu_selesai_teks) rawWaktuSelesai = p.waktu_selesai_teks;
                             }
                         } catch (e) {}
                     }
+                    // Fallback 2: Waktu selesai dari hasil_disc jika belum ada
+                    if (!rawWaktuSelesai && row.hasil_disc) {
+                        try {
+                            const d = typeof row.hasil_disc === 'string' ? JSON.parse(row.hasil_disc) : row.hasil_disc;
+                            if (d && d.waktu_selesai) rawWaktuSelesai = d.waktu_selesai;
+                        } catch (e) {}
+                    }
+                    // Fallback 3: Waktu selesai dari hasil_papi jika belum ada
+                    if (row.hasil_papi) {
+                        try {
+                            const papi = typeof row.hasil_papi === 'string' ? JSON.parse(row.hasil_papi) : row.hasil_papi;
+                            if (papi && papi.pelanggaran_tab_switch !== undefined) {
+                                tabViolations = Math.max(tabViolations, Number(papi.pelanggaran_tab_switch) || 0);
+                            }
+                            if (!rawWaktuSelesai && papi) {
+                                if (papi.selesai_pada) rawWaktuSelesai = papi.selesai_pada;
+                                else if (papi.waktu_selesai) rawWaktuSelesai = papi.waktu_selesai;
+                            }
+                        } catch (e) {}
+                    }
+                    // Fallback 4: Waktu selesai dari hasil_ist jika belum ada
+                    if (row.hasil_ist) {
+                        try {
+                            const ist = typeof row.hasil_ist === 'string' ? JSON.parse(row.hasil_ist) : row.hasil_ist;
+                            if (ist.pelanggaran_tab_switch !== undefined) tabViolations = Math.max(tabViolations, Number(ist.pelanggaran_tab_switch) || 0);
+                            if (!rawWaktuSelesai && ist) {
+                                if (ist.waktu_selesai) {
+                                    rawWaktuSelesai = ist.waktu_selesai;
+                                } else if (typeof ist === 'object') {
+                                    for (let s = 9; s >= 1; s--) {
+                                        const k = 'subtes_' + String(s).padStart(2, '0');
+                                        if (ist[k] && ist[k].waktu_selesai) {
+                                            rawWaktuSelesai = ist[k].waktu_selesai;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (e) {}
+                    }
+                    // Fallback deteksi jika terdapat string "Tab Switch: Nx" di waktu selesai
+                    const mTab = String(rawWaktuSelesai || '').match(/Tab Switch:\s*(\d+)x/i);
+                    if (mTab) tabViolations = Math.max(tabViolations, parseInt(mTab[1], 10));
+
+                    row["Waktu Selesai"] = rawWaktuSelesai ? formatWaktuDisplay(rawWaktuSelesai) : '-';
+                    row["Pelanggaran Tab"] = tabViolations;
                     combinedData.push(row);
                 });
             }
@@ -196,6 +321,13 @@ async function loadHrdData() {
             if ((!target["Waktu Selesai"] || target["Waktu Selesai"] === '-') && source["Waktu Selesai"] && source["Waktu Selesai"] !== '-') {
                 target["Waktu Selesai"] = source["Waktu Selesai"];
             }
+            if (source["Pelanggaran Tab"] !== undefined) {
+                target["Pelanggaran Tab"] = Math.max(Number(target["Pelanggaran Tab"] || 0), Number(source["Pelanggaran Tab"] || 0));
+            }
+            if ((!target["Posisi"] || target["Posisi"] === '-') && source["Posisi"]) target["Posisi"] = source["Posisi"];
+            if ((!target["Penempatan"] || target["Penempatan"] === '-') && source["Penempatan"]) target["Penempatan"] = source["Penempatan"];
+            if ((!target["Domisili"] || target["Domisili"] === '-') && source["Domisili"]) target["Domisili"] = source["Domisili"];
+            if ((!target["Token"] || target["Token"] === '-') && source["Token"]) target["Token"] = source["Token"];
         };
 
         // 2. Ambil dari tabel lama (hasil_psikotes_kandidat) jika ada dan satukan ke data kandidat yang cocok
@@ -250,7 +382,7 @@ function exportHrdToExcel() {
     }
 
     let headers = [
-        "ID", "Waktu Mulai", "Waktu Selesai", "Nama Lengkap", "Alamat Email", "No WhatsApp",
+        "ID", "Waktu Mulai", "Waktu Selesai", "Nama Lengkap", "Alamat Email", "No WhatsApp", "Posisi Dilamar", "Penempatan", "Domisili", "Token Ujian", "Integritas Ujian",
         "Total Pauli", "Jawaban Salah", "Rata-Rata", "% Salah", "% Penyimpangan", "Total Simpangan (Interval 3-18)", "Tinggi", "Tempat Puncak"
     ];
     for (let i = 1; i <= 20; i++) headers.push(`Interval ${i}`);
@@ -297,6 +429,11 @@ function exportHrdToExcel() {
             sanitizeForCsv(row["Nama Lengkap"]),
             sanitizeForCsv(row["Alamat Email"]),
             sanitizeForCsv(row["No WhatsApp"]),
+            sanitizeForCsv(row["Posisi"] || row.posisi || row.posisi_dilamar || '-'),
+            sanitizeForCsv(row["Penempatan"] || row.penempatan || '-'),
+            sanitizeForCsv(row["Domisili"] || row.domisili || '-'),
+            sanitizeForCsv(row["Token"] || row.token || '-'),
+            sanitizeForCsv(Number(row["Pelanggaran Tab"] || 0) === 0 ? "Bersih (0 Pelanggaran)" : `Pernah ${row["Pelanggaran Tab"]}x Ganti Tab`),
             jumlah,
             salah,
             `"${rRata.toFixed(1)}"`,
@@ -344,14 +481,45 @@ function viewCandidateChart(index) {
     const rptName = document.getElementById('rptName');
     const rptWa = document.getElementById('rptWa');
     const rptDate = document.getElementById('rptDate');
+    const rptPosisi = document.getElementById('rptPosisi');
 
     if (rptName) rptName.innerText = row["Nama Lengkap"] || '-';
     if (rptWa) rptWa.innerText = row["No WhatsApp"] || '-';
+
+    if (rptPosisi) {
+        const p = row["Posisi"] || row.posisi || row.posisi_dilamar || '-';
+        const c = row["Penempatan"] || row.penempatan || '';
+        const d = row["Domisili"] || row.domisili || '';
+        const t = row["Token"] || row.token || '';
+        let txt = p;
+        if (c && c !== '-') txt += ` (${c})`;
+        if (d && d !== '-') txt += ` | Dom: ${d}`;
+        if (t && t !== '-') txt += ` | Token: ${t.toUpperCase()}`;
+        rptPosisi.innerText = txt;
+    }
     
-    let rawDate = row["Waktu Selesai"] || '-';
-    if (rptDate) rptDate.innerText = rawDate.split(',')[0];
+    let rawDate = (row["Waktu Selesai"] && row["Waktu Selesai"] !== '-') ? row["Waktu Selesai"] : (row["Waktu Mulai"] || '-');
+    if (rptDate) {
+        const vCount = Number(row["Pelanggaran Tab"] || 0);
+        let badgeHtml = vCount === 0 
+            ? ' <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 ml-2">✓ 0 Pelanggaran (Jujur)</span>'
+            : (vCount <= 2
+                ? ` <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700 ml-2">⚠️ ${vCount}x Ganti Tab</span>`
+                : ` <span class="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700 ml-2">⛔ ${vCount}x Pelanggaran (Auto-Submit)</span>`);
+        rptDate.innerHTML = escapeHtml(rawDate.split(',')[0]) + badgeHtml;
+    }
 
     let intervalString = row["Garis Interval (3 Menit)"] || "";
+    if (!intervalString && row.hasil_pauli) {
+        try {
+            const p = typeof row.hasil_pauli === 'string' ? JSON.parse(row.hasil_pauli) : row.hasil_pauli;
+            const rawInterval = p.garis_interval_3_menit || p.garis_interval;
+            if (rawInterval) {
+                intervalString = Array.isArray(rawInterval) ? rawInterval.join(',') : String(rawInterval);
+            }
+        } catch (e) {}
+    }
+
     let parsedData = [];
     if (intervalString) {
         parsedData = intervalString.split(',').map(num => parseInt(num.trim()) || 0);
@@ -362,7 +530,19 @@ function viewCandidateChart(index) {
     // RUMUS RESMI HRD PT ALTRAK 1978 - SKORING PAULI TEST
     // =========================================================================
     let jumlah = Number(row["Total Pauli"] || 0);
+    if (!jumlah && row.hasil_pauli) {
+        try {
+            const p = typeof row.hasil_pauli === 'string' ? JSON.parse(row.hasil_pauli) : row.hasil_pauli;
+            jumlah = Number(p.total_pauli !== undefined ? p.total_pauli : (p.total_pengerjaan || p.total || 0));
+        } catch (e) {}
+    }
     let salah = Number(row["Jawaban Salah"] || 0);
+    if (!salah && row.hasil_pauli) {
+        try {
+            const p = typeof row.hasil_pauli === 'string' ? JSON.parse(row.hasil_pauli) : row.hasil_pauli;
+            salah = Number(p.jawaban_salah !== undefined ? p.jawaban_salah : (p.salah || 0));
+        } catch (e) {}
+    }
 
     // 1. Rata-rata = Total Pengerjaan / 20
     let rataRata = jumlah / 20;
@@ -616,21 +796,145 @@ function viewCandidateChart(index) {
 }
 
 /**
+ * Menampilkan modal dialog input teks modern (pengganti window.prompt)
+ * @param {string} title Judul modal
+ * @param {string} desc Deskripsi pesan
+ * @param {string} confirmWord Kata kunci yang harus diketikkan
+ * @param {Function} onConfirm Callback jika kata kunci cocok
+ * @param {Function} onCancel Callback jika dibatalkan
+ */
+function showModernHrdPrompt(title, desc, confirmWord, onConfirm, onCancel) {
+    const modal = document.getElementById('modal-hrd-prompt');
+    const titleEl = document.getElementById('promptTitle');
+    const descEl = document.getElementById('promptDesc');
+    const inputEl = document.getElementById('promptInput');
+    const errEl = document.getElementById('promptError');
+    const btnCancel = document.getElementById('promptBtnCancel');
+    const btnConfirm = document.getElementById('promptBtnConfirm');
+
+    if (!modal) {
+        const res = window.prompt(`${title}\n\n${desc.replace(/<[^>]*>/g, '')}`);
+        if (res === confirmWord) {
+            if (onConfirm) onConfirm();
+        } else {
+            if (onCancel) onCancel();
+        }
+        return;
+    }
+
+    if (titleEl) titleEl.innerText = title;
+    if (descEl) descEl.innerHTML = desc;
+    if (inputEl) {
+        inputEl.value = '';
+        inputEl.placeholder = `Ketik ${confirmWord} di sini...`;
+        inputEl.classList.remove('border-red-500', 'ring-2', 'ring-red-500/20');
+    }
+    if (errEl) errEl.classList.add('hidden');
+
+    modal.classList.remove('hide-section');
+    modal.style.display = 'flex';
+    if (inputEl) setTimeout(() => inputEl.focus(), 60);
+
+    const closeModal = () => {
+        modal.classList.add('hide-section');
+        modal.style.display = 'none';
+        btnCancel.onclick = null;
+        btnConfirm.onclick = null;
+        if (inputEl) inputEl.onkeydown = null;
+    };
+
+    btnCancel.onclick = () => {
+        closeModal();
+        if (onCancel) onCancel();
+    };
+
+    btnConfirm.onclick = () => {
+        const val = inputEl ? inputEl.value.trim() : '';
+        if (val === confirmWord) {
+            closeModal();
+            if (onConfirm) onConfirm();
+        } else {
+            if (inputEl) {
+                inputEl.classList.add('border-red-500', 'ring-2', 'ring-red-500/20');
+                inputEl.focus();
+            }
+            if (errEl) errEl.classList.remove('hidden');
+        }
+    };
+
+    if (inputEl) {
+        inputEl.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                btnConfirm.click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                btnCancel.click();
+            }
+        };
+    }
+}
+
+/**
+ * Menampilkan floating toast notification elegan untuk panel HRD
+ * @param {string} message Pesan yang ditampilkan
+ * @param {'success'|'info'} type Jenis notifikasi
+ */
+let hrdToastTimer = null;
+function showHrdToast(message, type = 'success') {
+    const toast = document.getElementById('hrdToast');
+    if (!toast) {
+        if (typeof customAlert === 'function') {
+            customAlert(type === 'success' ? 'Berhasil' : 'Informasi', message, type);
+        }
+        return;
+    }
+
+    const toastMsg = document.getElementById('hrdToastMsg');
+    const toastIcon = document.getElementById('hrdToastIcon');
+    if (toastMsg) toastMsg.innerText = message;
+
+    if (toastIcon) {
+        if (type === 'success') {
+            toastIcon.className = "w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-sm border border-emerald-500/30";
+            toastIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+        } else {
+            toastIcon.className = "w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-sm border border-blue-500/30";
+            toastIcon.innerHTML = '<i class="fa-solid fa-info"></i>';
+        }
+    }
+
+    toast.classList.remove('hide-section');
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+
+    if (hrdToastTimer) clearTimeout(hrdToastTimer);
+    hrdToastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => toast.classList.add('hide-section'), 300);
+    }, 2800);
+}
+
+/**
  * Menghapus seluruh data lama di web HRD dan mereset ID kembali ke 1
  */
 async function hapusSemuaData() {
-    customAlert(
-        "Konfirmasi Hapus Data",
-        "Apakah Anda yakin ingin menghapus SEMUA data hasil tes peserta?\nSemua riwayat akan dikosongkan dan nomor urut ID akan direset kembali ke 1.",
-        "error",
-        true,
+    showModernHrdPrompt(
+        "Konfirmasi Hapus Seluruh Data",
+        "PERINGATAN KRUSIAL:<br>Anda akan menghapus <strong>SEMUA data hasil tes peserta</strong> dan nomor urut akan direset ke 1. Tindakan ini permanen.<br><br>Ketik <strong class='text-red-400 font-mono tracking-widest bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20'>HAPUS</strong> untuk mengonfirmasi:",
+        "HAPUS",
         async () => {
+            const loadingEl = document.getElementById('modal-loading');
+            if (loadingEl) loadingEl.classList.remove('hide-section');
+
             try {
                 const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
                     ? supabaseClient
                     : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
 
                 if (!sb) {
+                    if (loadingEl) loadingEl.classList.add('hide-section');
                     customAlert("Koneksi Terputus", "Koneksi ke database Supabase tidak tersedia.", "error");
                     return;
                 }
@@ -665,12 +969,17 @@ async function hapusSemuaData() {
                 localStorage.removeItem('hasil_psikotes_local');
                 cachedHrdData = [];
 
+                if (loadingEl) loadingEl.classList.add('hide-section');
                 customAlert("Berhasil Dikosongkan", "Semua riwayat hasil tes peserta telah berhasil dikosongkan.", "success");
                 await loadHrdData();
             } catch (err) {
+                if (loadingEl) loadingEl.classList.add('hide-section');
                 console.error("Gagal mengosongkan data:", err);
                 customAlert("Gagal Menghapus Data", "Terjadi kesalahan saat menghapus data: " + (err.message || err), "error");
             }
+        },
+        () => {
+            showHrdToast("Penghapusan data dibatalkan.", "info");
         }
     );
 }
@@ -717,6 +1026,10 @@ function switchHrdTab(tabId) {
 
     if (tabId === 'papi' && currentSelectedCandidate) {
         renderPapiResults(currentSelectedCandidate.hasil_papi);
+    }
+
+    if (tabId === 'disc' && currentSelectedCandidate) {
+        renderDiscResults(currentSelectedCandidate.hasil_disc);
     }
 }
 
@@ -1588,6 +1901,14 @@ function renderPapiResults(hasilPapi) {
             });
         });
 
+        const papiViolations = (data && data.pelanggaran_tab_switch !== undefined) ? Number(data.pelanggaran_tab_switch) : null;
+        let integrityBadge = '';
+        if (papiViolations !== null) {
+            integrityBadge = papiViolations === 0
+                ? `<div class="mt-2.5"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-shield-check"></i> 0 Pelanggaran (Jujur)</span></div>`
+                : `<div class="mt-2.5"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-triangle-exclamation"></i> ${papiViolations}x Pelanggaran Ganti Tab</span></div>`;
+        }
+
         // Inject 3 Bagian Vertikal ke DOM
         container.innerHTML = `
             <!-- BAGIAN A: KARTU PUTIH RODA INTERPRETASI -->
@@ -1595,6 +1916,7 @@ function renderPapiResults(hasilPapi) {
                 <div class="text-center mb-4">
                     <h3 class="text-base sm:text-lg font-black text-[#003865] tracking-wide uppercase">LEMBAR INTERPRETASI PAPI KOSTICK</h3>
                     <p class="text-xs text-slate-500 mt-0.5">Personality &amp; Preference Inventory &bull; Roda Profil 20 Dimensi Kerja</p>
+                    ${integrityBadge}
                     ${validationNotice}
                 </div>
                 <div class="flex justify-center items-center py-2">
@@ -1654,45 +1976,284 @@ function renderPapiResults(hasilPapi) {
     }
 }
 
+// Instance Chart.js DISC untuk pencegahan tabrakan & memory leak
+let discChartInstances = [];
+
 /**
- * Merender profil perilaku DISC
+ * Merender profil perilaku DISC komprehensif: Tabel Skor Mentah, 3 Line Charts (Mask, Core, Mirror) & Analisis Kepribadian
  * @param {Object|string} hasilDisc 
  */
 function renderDiscResults(hasilDisc) {
-    const container = document.getElementById('discResultsContainer');
-    if (!container) return;
+    const emptyNotice = document.getElementById('discEmptyNotice');
+    const contentWrapper = document.getElementById('discContentWrapper');
+
+    // Bersihkan instance chart lama agar tidak terjadi memory leak atau canvas overlap
+    discChartInstances.forEach(ch => {
+        try { ch.destroy(); } catch (e) {}
+    });
+    discChartInstances = [];
+
+    // Empty state ramah jika hasil_disc kosong/null
     if (!hasilDisc) {
-        container.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400">Data hasil tes DISC belum tersedia untuk peserta ini.</div>';
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (contentWrapper) contentWrapper.classList.add('hidden');
         return;
     }
+
     try {
         const data = typeof hasilDisc === 'string' ? JSON.parse(hasilDisc) : hasilDisc;
-        const dVal = data.D !== undefined ? data.D : (data.scores ? data.scores.D : 0);
-        const iVal = data.I !== undefined ? data.I : (data.scores ? data.scores.I : 0);
-        const sVal = data.S !== undefined ? data.S : (data.scores ? data.scores.S : 0);
-        const cVal = data.C !== undefined ? data.C : (data.scores ? data.scores.C : 0);
 
-        container.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-                <p class="text-xs uppercase font-bold text-red-600">Dominance (D)</p>
-                <p class="text-2xl font-black text-red-700 mt-1">${dVal}</p>
-            </div>
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-                <p class="text-xs uppercase font-bold text-amber-600">Influence (I)</p>
-                <p class="text-2xl font-black text-amber-700 mt-1">${iVal}</p>
-            </div>
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-                <p class="text-xs uppercase font-bold text-emerald-600">Steadiness (S)</p>
-                <p class="text-2xl font-black text-emerald-700 mt-1">${sVal}</p>
-            </div>
-            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                <p class="text-xs uppercase font-bold text-blue-600">Compliance (C)</p>
-                <p class="text-2xl font-black text-blue-700 mt-1">${cVal}</p>
-            </div>
-        `;
+        if (emptyNotice) emptyNotice.classList.add('hidden');
+        if (contentWrapper) contentWrapper.classList.remove('hidden');
+
+        // Helper ekstraksi nilai
+        const getVal = (obj, key, fallback = '-') => (obj && obj[key] !== undefined && obj[key] !== null) ? obj[key] : fallback;
+
+        // 1. ISI TABEL SKOR MENTAH (RAW SCORES) PERSIS SESUAI IDENTIFIER TABEL
+        const rawTable = data.table_raw || data.raw_table || data.raw_scores || {};
+        const l1 = rawTable.line1 || rawTable.l1 || data.line1_raw || data.mask_raw || data.raw_p || {};
+        const l2 = rawTable.line2 || rawTable.l2 || data.line2_raw || data.core_raw || data.raw_k || {};
+        const l3 = rawTable.line3 || rawTable.l3 || data.line3_raw || data.mirror_raw || data.raw_diff || {};
+
+        // Line 1: Paling (P)
+        const l1D = getVal(l1, 'D', getVal(l1, 'd', '-'));
+        const l1I = getVal(l1, 'I', getVal(l1, 'i', '-'));
+        const l1S = getVal(l1, 'S', getVal(l1, 's', '-'));
+        const l1C = getVal(l1, 'C', getVal(l1, 'c', '-'));
+        let l1StarVal = getVal(l1, '*', getVal(l1, 'star', null));
+        if (l1StarVal === null || l1StarVal === undefined) {
+            if (l1D !== '-' && l1I !== '-' && l1S !== '-' && l1C !== '-') {
+                const sum1 = Number(l1D) + Number(l1I) + Number(l1S) + Number(l1C);
+                l1StarVal = Math.max(0, 24 - sum1);
+            } else {
+                l1StarVal = getVal(rawTable, 'star_1', '0');
+            }
+        }
+        const l1Star = l1StarVal;
+        const l1Tot = getVal(l1, 'tot', getVal(l1, 'total', '24'));
+
+        // Line 2: Kurang (K)
+        const l2D = getVal(l2, 'D', getVal(l2, 'd', '-'));
+        const l2I = getVal(l2, 'I', getVal(l2, 'i', '-'));
+        const l2S = getVal(l2, 'S', getVal(l2, 's', '-'));
+        const l2C = getVal(l2, 'C', getVal(l2, 'c', '-'));
+        let l2StarVal = getVal(l2, '*', getVal(l2, 'star', null));
+        if (l2StarVal === null || l2StarVal === undefined) {
+            if (l2D !== '-' && l2I !== '-' && l2S !== '-' && l2C !== '-') {
+                const sum2 = Number(l2D) + Number(l2I) + Number(l2S) + Number(l2C);
+                l2StarVal = Math.max(0, 24 - sum2);
+            } else {
+                l2StarVal = getVal(rawTable, 'star_2', '0');
+            }
+        }
+        const l2Star = l2StarVal;
+        const l2Tot = getVal(l2, 'tot', getVal(l2, 'total', '24'));
+
+        // Line 3: Selisih (L1 - L2)
+        const calcL3 = (val1, val2) => {
+            if (val1 !== '-' && val2 !== '-' && !isNaN(val1) && !isNaN(val2)) {
+                const diff = Number(val1) - Number(val2);
+                return diff > 0 ? `+${diff}` : String(diff);
+            }
+            return '-';
+        };
+        const l3D = getVal(l3, 'D', getVal(l3, 'd', calcL3(l1D, l2D)));
+        const l3I = getVal(l3, 'I', getVal(l3, 'i', calcL3(l1I, l2I)));
+        const l3S = getVal(l3, 'S', getVal(l3, 's', calcL3(l1S, l2S)));
+        const l3C = getVal(l3, 'C', getVal(l3, 'c', calcL3(l1C, l2C)));
+
+        const setTxt = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+
+        setTxt('discTblL1D', l1D);
+        setTxt('discTblL1I', l1I);
+        setTxt('discTblL1S', l1S);
+        setTxt('discTblL1C', l1C);
+        setTxt('discTblL1Star', l1Star);
+        setTxt('discTblL1Tot', l1Tot);
+
+        setTxt('discTblL2D', l2D);
+        setTxt('discTblL2I', l2I);
+        setTxt('discTblL2S', l2S);
+        setTxt('discTblL2C', l2C);
+        setTxt('discTblL2Star', l2Star);
+        setTxt('discTblL2Tot', l2Tot);
+
+        setTxt('discTblL3D', l3D);
+        setTxt('discTblL3I', l3I);
+        setTxt('discTblL3S', l3S);
+        setTxt('discTblL3C', l3C);
+
+        // 2. EKSTRAKSI SKOR SKALA TERSKALA UNTUK 3 GRAFIK GARIS (MASK, CORE, MIRROR)
+        const getPoints = (src) => {
+            if (!src) return [0, 0, 0, 0];
+            if (Array.isArray(src) && src.length >= 4) return src.map(Number);
+            return [
+                Number(src.D !== undefined ? src.D : (src.d || 0)),
+                Number(src.I !== undefined ? src.I : (src.i || 0)),
+                Number(src.S !== undefined ? src.S : (src.s || 0)),
+                Number(src.C !== undefined ? src.C : (src.c || 0))
+            ];
+        };
+
+        const maskPts = getPoints(data.mask_norm || data.mask || data.graph1 || data.grafik1 || data.line1 || data.public_self || data.perilaku_adaptif);
+        const corePts = getPoints(data.core_norm || data.core || data.graph2 || data.grafik2 || data.line2 || data.private_self || data.bawah_tekanan);
+        const mirrorPts = getPoints(data.mirror_norm || data.mirror || data.graph3 || data.grafik3 || data.line3 || data.perceived_self || data.karakter_asli);
+
+        // Nilai ringkas di bawah tiap grafik
+        const setChartVals = (id, pts) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = `
+                    <div class="p-1 rounded bg-red-50 text-red-700">D: ${pts[0]}</div>
+                    <div class="p-1 rounded bg-amber-50 text-amber-700">I: ${pts[1]}</div>
+                    <div class="p-1 rounded bg-emerald-50 text-emerald-700">S: ${pts[2]}</div>
+                    <div class="p-1 rounded bg-blue-50 text-blue-700">C: ${pts[3]}</div>
+                `;
+            }
+        };
+        setChartVals('discValsMask', maskPts);
+        setChartVals('discValsCore', corePts);
+        setChartVals('discValsMirror', mirrorPts);
+
+        // 3. INFORMASI PANEL ANALISIS KEPRIBADIAN
+        const patternName = data.pattern_name 
+            ? (data.pattern_combo ? `${data.pattern_name} (${data.pattern_combo})` : data.pattern_name)
+            : (data.tipe_kepribadian || data.tipe || data.pattern || 'Profil DISC Terpetakan');
+        setTxt('discPatternTitle', patternName);
+
+        let traits = data.pattern_traits || data.traits || data.karakteristik || [];
+        if (typeof traits === 'string') {
+            traits = traits.split(/[,;\n]/).map(t => t.trim()).filter(Boolean);
+        } else if (!Array.isArray(traits)) {
+            traits = [];
+        }
+
+        const traitsContainer = document.getElementById('discTraitsContainer');
+        if (traitsContainer) {
+            if (traits.length > 0) {
+                traitsContainer.innerHTML = traits.map(t => `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200/80">
+                        <i class="fa-solid fa-check text-blue-600 text-[10px]"></i>
+                        ${escapeHtml(t)}
+                    </span>
+                `).join('');
+            } else {
+                traitsContainer.innerHTML = `
+                    <span class="text-xs text-slate-500 italic">Karakteristik dinamis berdasarkan kombinasi grafik D, I, S, dan C.</span>
+                `;
+            }
+        }
+
+        const narrative = data.pattern_narrative || data.narrative || data.deskripsi || data.penjelasan || 'Kandidat telah menyelesaikan asesmen DISC. Grafik di atas memetakan dinamika perilaku adaptif, respons di bawah tekanan, dan persepsi karakter asli.';
+        setTxt('discNarrativeText', narrative);
+
+        const jobMatch = data.pattern_job_match || data.job_match || data.rekomendasi_posisi || data.rekomendasi || 'Sesuai dengan pemetaan karakter kerja operasional dan analitikal PT Altrak 1978.';
+        setTxt('discJobMatchText', jobMatch);
+
+        // 4. GAMBAR 3 GRAFIK GARIS CHART.JS (-8.0 sampai +8.0, garis netral horizontal di 0)
+        setTimeout(() => {
+            const chart1 = createDiscLineChart('discChartMask', 'Mask (Public Self)', maskPts, '#0284c7');
+            const chart2 = createDiscLineChart('discChartCore', 'Core (Private Self)', corePts, '#d97706');
+            const chart3 = createDiscLineChart('discChartMirror', 'Mirror (Perceived Self)', mirrorPts, '#059669');
+
+            if (chart1) discChartInstances.push(chart1);
+            if (chart2) discChartInstances.push(chart2);
+            if (chart3) discChartInstances.push(chart3);
+        }, 50);
+
     } catch (e) {
-        container.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400">Format data DISC tidak valid.</div>';
+        console.error('Gagal merender hasil DISC:', e);
+        if (emptyNotice) {
+            emptyNotice.classList.remove('hidden');
+            emptyNotice.innerHTML = '<div class="text-center py-8 text-red-500 text-xs">Format data hasil tes DISC tidak valid.</div>';
+        }
+        if (contentWrapper) contentWrapper.classList.add('hidden');
     }
+}
+
+/**
+ * Helper konfigurasi Line Chart Chart.js untuk tes DISC (-8.0 sampai +8.0, garis netral di 0)
+ */
+function createDiscLineChart(canvasId, label, points, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined') return null;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['D', 'I', 'S', 'C'],
+            datasets: [{
+                label: label,
+                data: points,
+                borderColor: color,
+                backgroundColor: color,
+                borderWidth: 3,
+                tension: 0.1,
+                fill: false,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: color,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    min: -8,
+                    max: 8,
+                    ticks: {
+                        stepSize: 2,
+                        font: { size: 10, weight: 'bold' }
+                    },
+                    grid: {
+                        color: (context) => {
+                            if (context.tick && context.tick.value === 0) {
+                                return 'rgba(239, 68, 68, 0.85)'; // Garis netral 0 berwarna merah tegas
+                            }
+                            return 'rgba(226, 232, 240, 0.8)';
+                        },
+                        lineWidth: (context) => {
+                            if (context.tick && context.tick.value === 0) {
+                                return 2;
+                            }
+                            return 1;
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 12, weight: 'bold' },
+                        color: '#003865'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(241, 245, 249, 1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 /**
@@ -1742,50 +2303,11 @@ async function renderCandidatePhotos(candidate) {
             return false;
         };
 
-        // 1. Ambil foto yang tersimpan langsung pada objek hasil_ist kandidat di database
-        if (candidate && candidate.hasil_ist) {
-            try {
-                const parsedIst = typeof candidate.hasil_ist === 'string' ? JSON.parse(candidate.hasil_ist) : candidate.hasil_ist;
-                if (parsedIst && Array.isArray(parsedIst.foto_pengawasan)) {
-                    parsedIst.foto_pengawasan.forEach(p => {
-                        allPhotos.push({
-                            labelSubtes: p.subtes || 'IST Subtes',
-                            labelWaktu: p.waktu || '-',
-                            url: p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`
-                        });
-                    });
-                }
-            } catch (errParse) {}
-        }
-
-        // 2. Ambil dari cache lokal HANYA jika foto tersebut milik kandidat ini
-        try {
-            const localPhotos = JSON.parse(localStorage.getItem('kandidat_foto_pengawasan') || '[]');
-            if (Array.isArray(localPhotos)) {
-                localPhotos.forEach(p => {
-                    const fn = (p.fileName || p.filePath || '').toLowerCase();
-                    const pPhone = (p.candidatePhone || '').replace(/[^0-9]/g, '');
-                    const pEmail = (p.candidateEmail || '').toLowerCase();
-                    const isOwner = isMatchCurrentCandidate(fn) ||
-                        (candPhone && pPhone && pPhone === candPhone) ||
-                        (candEmail && pEmail && pEmail === candEmail.toLowerCase());
-
-                    if (isOwner) {
-                        const url = p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`;
-                        if (!allPhotos.some(item => item.url === url)) {
-                            allPhotos.push({
-                                labelSubtes: p.subtes || 'IST Subtes',
-                                labelWaktu: p.waktu || '-',
-                                url: url
-                            });
-                        }
-                    }
-                });
-            }
-        } catch (errLocal) {}
-
-        // 3. Ambil daftar file dari folder Supabase Storage bucket foto_kandidat (terpisah: IST, PAULI, PAPI, DISC) khusus kandidat ini
+        // 1. PRIORITAS UTAMA: Ambil langsung dari Supabase Storage Cloud (resmi & berlabel lengkap)
+        const seenFileNames = new Set();
+        const seenTimestamps = new Set();
         const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+
         if (sbClient && sbClient.storage) {
             const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC'];
             for (const folderName of targetFolders) {
@@ -1801,9 +2323,36 @@ async function renderCandidatePhotos(candidate) {
                             (f.metadata ? f.metadata.size > 100 : true) &&
                             isMatchCurrentCandidate(f.name)
                         );
-                        photoFiles.forEach(f => {
-                            const publicUrl = `${sbUrl}/storage/v1/object/public/foto_kandidat/${folderName}/${encodeURIComponent(f.name)}`;
-                            if (!allPhotos.some(item => item.url === publicUrl)) {
+
+                        if (photoFiles.length > 0) {
+                            // Dapatkan Signed URL sekaligus (Batch/Borongan)
+                            const filePaths = photoFiles.map(f => `${folderName}/${f.name}`);
+                            let signedMap = {};
+
+                            if (typeof sbClient.storage.from('foto_kandidat').createSignedUrls === 'function') {
+                                try {
+                                    const { data: signedList, error: signedErr } = await sbClient.storage
+                                        .from('foto_kandidat')
+                                        .createSignedUrls(filePaths, 3600);
+                                    if (!signedErr && Array.isArray(signedList)) {
+                                        signedList.forEach((item, idx) => {
+                                            if (item && item.signedUrl) {
+                                                const pth = item.path || filePaths[idx];
+                                                signedMap[pth] = item.signedUrl;
+                                                const fn = pth.split('/').pop();
+                                                if (fn) signedMap[fn] = item.signedUrl;
+                                            }
+                                        });
+                                    }
+                                } catch (eBatch) {
+                                    console.warn(`[HRD] Batch signed URL error folder ${folderName}:`, eBatch);
+                                }
+                            }
+
+                            photoFiles.forEach(f => {
+                                const filePath = `${folderName}/${f.name}`;
+                                const photoUrl = signedMap[filePath] || signedMap[f.name] || `${sbUrl}/storage/v1/object/public/foto_kandidat/${folderName}/${encodeURIComponent(f.name)}`;
+
                                 let labelSubtes = folderName;
                                 let labelWaktu = "-";
 
@@ -1826,13 +2375,21 @@ async function renderCandidatePhotos(candidate) {
                                     labelWaktu = dt.toLocaleString('id-ID');
                                 }
 
-                                allPhotos.push({
-                                    labelSubtes: labelSubtes,
-                                    labelWaktu: labelWaktu,
-                                    url: publicUrl
-                                });
-                            }
-                        });
+                                const cleanBaseName = f.name.toLowerCase().trim();
+                                if (!seenFileNames.has(cleanBaseName)) {
+                                    seenFileNames.add(cleanBaseName);
+                                    if (labelWaktu !== '-') seenTimestamps.add(labelWaktu);
+
+                                    allPhotos.push({
+                                        labelSubtes: labelSubtes,
+                                        labelWaktu: labelWaktu,
+                                        url: photoUrl,
+                                        path: filePath,
+                                        fileName: f.name
+                                    });
+                                }
+                            });
+                        }
                     }
                 } catch (errStorage) {
                     console.warn(`Catatan pembacaan storage folder ${folderName}:`, errStorage);
@@ -1840,12 +2397,106 @@ async function renderCandidatePhotos(candidate) {
             }
         }
 
+        // 2. CADANGAN: Ambil dari objek hasil_ist kandidat HANYA jika file/waktu belum ada dari Supabase Storage
+        if (candidate && candidate.hasil_ist) {
+            try {
+                const parsedIst = typeof candidate.hasil_ist === 'string' ? JSON.parse(candidate.hasil_ist) : candidate.hasil_ist;
+                if (parsedIst && Array.isArray(parsedIst.foto_pengawasan)) {
+                    parsedIst.foto_pengawasan.forEach(p => {
+                        const fn = (p.fileName || p.filePath || '').split('/').pop().toLowerCase().trim();
+                        const waktu = (p.waktu || '-').trim();
+
+                        // Deduplikasi ketat: lewati jika nama file atau waktu sudah ada di storage
+                        if (fn && seenFileNames.has(fn)) return;
+                        if (waktu !== '-' && seenTimestamps.has(waktu)) return;
+
+                        if (fn) seenFileNames.add(fn);
+                        if (waktu !== '-') seenTimestamps.add(waktu);
+
+                        allPhotos.push({
+                            labelSubtes: p.subtes || 'IST Subtes',
+                            labelWaktu: waktu,
+                            url: p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`,
+                            path: p.filePath || p.fileName,
+                            fileName: fn
+                        });
+                    });
+                }
+            } catch (errParse) {}
+        }
+
+        // 3. CADANGAN TERAKHIR: Ambil dari cache lokal HANYA jika belum ada di Supabase Storage
+        try {
+            const localPhotos = JSON.parse(localStorage.getItem('kandidat_foto_pengawasan') || '[]');
+            if (Array.isArray(localPhotos)) {
+                localPhotos.forEach(p => {
+                    const fn = (p.fileName || p.filePath || '').split('/').pop().toLowerCase().trim();
+                    const waktu = (p.waktu || '-').trim();
+                    const pPhone = (p.candidatePhone || '').replace(/[^0-9]/g, '');
+                    const pEmail = (p.candidateEmail || '').toLowerCase();
+                    const isOwner = isMatchCurrentCandidate(fn) ||
+                        (candPhone && pPhone && pPhone === candPhone) ||
+                        (candEmail && pEmail && pEmail === candEmail.toLowerCase());
+
+                    if (isOwner) {
+                        // Deduplikasi ketat: lewati jika nama file atau waktu sudah ada di storage
+                        if (fn && seenFileNames.has(fn)) return;
+                        if (waktu !== '-' && seenTimestamps.has(waktu)) return;
+
+                        if (fn) seenFileNames.add(fn);
+                        if (waktu !== '-') seenTimestamps.add(waktu);
+
+                        const url = p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`;
+                        allPhotos.push({
+                            labelSubtes: p.subtes || 'IST Subtes',
+                            labelWaktu: waktu,
+                            url: url,
+                            path: p.filePath || p.fileName,
+                            fileName: fn
+                        });
+                    }
+                });
+            }
+        } catch (errLocal) {}
+
         // Tampilkan foto jika ditemukan
         if (allPhotos.length === 0) {
             grid.innerHTML = '';
             if (emptyNotice) emptyNotice.classList.remove('hidden');
             return;
         }
+
+        // Urutkan seluruh foto secara kronologis yang benar (Subtes 1..9, Awal -> Tengah -> Akhir)
+        allPhotos.sort((a, b) => {
+            const getSubtestNumber = (label) => {
+                const match = (label || '').match(/subtes\s*(\d+)/i);
+                if (match) return parseInt(match[1], 10);
+                if (/papi/i.test(label)) return 10;
+                if (/disc/i.test(label)) return 11;
+                if (/pauli/i.test(label)) return 12;
+                return 999;
+            };
+
+            const getFaseWeight = (label) => {
+                const l = (label || '').toLowerCase();
+                if (l.includes('awal') || l.includes('login') || l.includes('profil')) return 1;
+                if (l.includes('tengah')) return 2;
+                if (l.includes('akhir') || l.includes('selesai')) return 3;
+                return 4;
+            };
+
+            const numA = getSubtestNumber(a.labelSubtes);
+            const numB = getSubtestNumber(b.labelSubtes);
+            if (numA !== numB) return numA - numB;
+
+            const faseA = getFaseWeight(a.labelSubtes);
+            const faseB = getFaseWeight(b.labelSubtes);
+            if (faseA !== faseB) return faseA - faseB;
+
+            const timeA = a.labelWaktu || '';
+            const timeB = b.labelWaktu || '';
+            return timeA.localeCompare(timeB);
+        });
 
         grid.innerHTML = '';
         allPhotos.forEach(p => {
@@ -1898,23 +2549,23 @@ async function handleDirectHrdLogin(e) {
         let authSuccess = false;
         const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
         if (sb && sb.auth) {
-            const hrdEmails = [
-                'febriandah3@gmail.com',
-                'febriyandah3@gmail.com',
-                'febriyanh3@gmail.com',
-                'hrd@altrak1978.co.id'
-            ];
-            for (const email of hrdEmails) {
-                try {
-                    const { data, error } = await sb.auth.signInWithPassword({
-                        email: email,
-                        password: pin
-                    });
-                    if (!error && data && data.session) {
-                        authSuccess = true;
-                        break;
-                    }
-                } catch (e) {}
+            const hrdAdminEmail = atob('ZmVicml5YW5kYWgzQGdtYWlsLmNvbQ=='); // Encoded untuk keamanan
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({
+                    email: hrdAdminEmail,
+                    password: pin
+                });
+                if (!error && data && data.session) {
+                    authSuccess = true;
+                } else if (error && (error.status === 429 || (error.message && error.message.toLowerCase().includes('rate limit')))) {
+                    const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
+                    localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
+                    if (typeof setLockCookie === 'function') setLockCookie(lockTime);
+                    if (loadingEl) loadingEl.classList.add('hide-section');
+                    return customAlert("Akses Terkunci", "Terlalu banyak percobaan pada server (Rate Limited). Akses dibekukan sementara demi keamanan.", "error");
+                }
+            } catch (e) {
+                console.warn('[HRD Login] Verifikasi sandi gagal:', e);
             }
         }
 
@@ -1924,6 +2575,7 @@ async function handleDirectHrdLogin(e) {
             try {
                 localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
                 localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+                if (typeof clearLockCookie === 'function') clearLockCookie();
             } catch (e) {}
             isHrdAuthenticated = true;
             if (pinInput) pinInput.value = '';
@@ -1942,6 +2594,7 @@ async function handleDirectHrdLogin(e) {
             if (currentAttempts >= MAX_HRD_ATTEMPTS) {
                 const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
                 localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
+                if (typeof setLockCookie === 'function') setLockCookie(lockTime);
                 customAlert(
                     "Akses Dikunci",
                     "Terlalu banyak percobaan (3x). Akses otorisasi HRD dikunci 15 menit demi keamanan.",
@@ -1981,13 +2634,201 @@ async function logoutDirectHrd() {
     if (loginView) loginView.classList.remove('hide-section');
 }
 
+// =========================================================================
+// SISTEM MANAJEMEN TOKEN UJIAN (HRD PANEL)
+// =========================================================================
+
+let cachedTokenList = [];
+
+function toggleTokenSection() {
+    const card = document.getElementById('hrd-token-card');
+    if (!card) return;
+    if (card.classList.contains('hide-section')) {
+        card.classList.remove('hide-section');
+        loadHrdTokens();
+    } else {
+        card.classList.add('hide-section');
+    }
+}
+
+async function loadHrdTokens() {
+    const tbody = document.getElementById('tokenTableBody');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data token...</td></tr>`;
+    }
+
+    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    if (!sb) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-amber-500">Supabase belum terhubung.</td></tr>`;
+        return;
+    }
+
+    try {
+        const { data, error } = await sb
+            .from('token_ujian')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.warn('[HRD Token]', error.message || error);
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-400">Tabel <code>token_ujian</code> belum terdeteksi di Supabase atau belum ada token. Klik <strong>+ Buat Token</strong> untuk memulai.</td></tr>`;
+            }
+            return;
+        }
+
+        cachedTokenList = data || [];
+        renderTokenTable(cachedTokenList);
+    } catch (err) {
+        console.warn('[HRD Token Exception]', err);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-500">Belum ada token yang dibuat.</td></tr>`;
+        }
+    }
+}
+
+function renderTokenTable(tokens) {
+    const tbody = document.getElementById('tokenTableBody');
+    if (!tbody) return;
+
+    if (!tokens || tokens.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-500">Belum ada token. Silakan klik tombol <strong>+ Buat Token</strong> di atas.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    tokens.forEach((item, idx) => {
+        const isTersedia = (item.status || 'tersedia') === 'tersedia';
+        const badgeStatus = isTersedia
+            ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Tersedia</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-400">Sudah Terpakai</span>`;
+
+        const pemakai = item.digunakan_oleh 
+            ? `${escapeHtml(item.digunakan_oleh)} ${item.nomor_hp ? `(${escapeHtml(item.nomor_hp)})` : ''}`
+            : '-';
+        
+        const waktuPakai = item.waktu_digunakan
+            ? new Date(item.waktu_digunakan).toLocaleString('id-ID')
+            : (item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '-');
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+        tr.innerHTML = `
+            <td class="p-2.5 font-mono text-slate-400 font-bold">${idx + 1}</td>
+            <td class="p-2.5 font-mono font-black text-amber-400 text-sm tracking-wider uppercase">${escapeHtml(item.token)}</td>
+            <td class="p-2.5">${badgeStatus}</td>
+            <td class="p-2.5 text-slate-300">${pemakai}</td>
+            <td class="p-2.5 text-slate-400">${waktuPakai}</td>
+            <td class="p-2.5 text-center">
+                <button onclick="copySingleToken('${escapeHtml(item.token)}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-2.5 py-1 rounded text-xs transition border border-slate-700 flex items-center gap-1 mx-auto cursor-pointer" title="Salin Kode Token">
+                    <i class="fa-solid fa-copy text-[10px]"></i>
+                    <span>Salin</span>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function handleBuatTokenHrd() {
+    const inputJumlah = document.getElementById('inputJumlahToken');
+    const jumlah = inputJumlah ? (parseInt(inputJumlah.value, 10) || 10) : 10;
+
+    const btn = document.getElementById('btnGenerateToken');
+    const btnText = document.getElementById('btnGenerateTokenText');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuat...';
+
+    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    if (!sb) {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = '+ Buat Token';
+        if (typeof customAlert === 'function') {
+            customAlert('Koneksi Terputus', 'Koneksi ke database Supabase belum siap.', 'error');
+        }
+        return;
+    }
+
+    try {
+        let dibuatCount = 0;
+        let rpcSuccess = false;
+        try {
+            const { data, error } = await sb.rpc('buat_batch_token', { p_jumlah: jumlah });
+            if (!error && data) {
+                rpcSuccess = true;
+                dibuatCount = Array.isArray(data) ? data.length : jumlah;
+            }
+        } catch (eRpc) {}
+
+        // Fallback langsung jika RPC belum dibuat di database
+        if (!rpcSuccess) {
+            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+            const batchTokens = [];
+            for (let i = 0; i < jumlah; i++) {
+                let tokenStr = '';
+                for (let j = 0; j < 5; j++) {
+                    tokenStr += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                batchTokens.push({ token: tokenStr, status: 'tersedia' });
+            }
+            const { error: insErr } = await sb.from('token_ujian').insert(batchTokens);
+            if (!insErr) dibuatCount = jumlah;
+            else console.warn('[Fallback Insert Token]', insErr.message || insErr);
+        }
+
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = '+ Buat Token';
+
+        await loadHrdTokens();
+        showHrdToast(`Berhasil membuat ${dibuatCount} token baru!`, 'success');
+    } catch (err) {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = '+ Buat Token';
+        console.error('Gagal generate token:', err);
+    }
+}
+
+function copySingleToken(token) {
+    if (!token) return;
+    navigator.clipboard.writeText(token).then(() => {
+        showHrdToast(`Token "${token.toUpperCase()}" berhasil disalin ke clipboard!`, 'success');
+    }).catch(() => {
+        if (typeof customAlert === 'function') {
+            customAlert("Salin Token", `Kode token Anda: ${token.toUpperCase()}`, "info");
+        }
+    });
+}
+
+function handleSalinSemuaToken() {
+    const tersediaList = cachedTokenList.filter(t => (t.status || 'tersedia') === 'tersedia');
+    if (tersediaList.length === 0) {
+        if (typeof customAlert === 'function') {
+            customAlert("Tidak Ada Token", "Saat ini tidak ada token yang berstatus 'tersedia'.", "info");
+        }
+        return;
+    }
+    const tokenStrings = tersediaList.map(t => t.token.toUpperCase()).join('\n');
+    navigator.clipboard.writeText(tokenStrings).then(() => {
+        showHrdToast(`${tersediaList.length} token yang tersedia berhasil disalin!`, 'success');
+    }).catch(() => {
+        if (typeof customAlert === 'function') {
+            customAlert("Daftar Token", tokenStrings, "info");
+        }
+    });
+}
+
 // Inisialisasi otomatis jika dibuka di halaman hrd.html
 if (typeof window !== 'undefined') {
     window.handleDirectHrdLogin = handleDirectHrdLogin;
     window.logoutDirectHrd = logoutDirectHrd;
+    window.toggleTokenSection = toggleTokenSection;
+    window.loadHrdTokens = loadHrdTokens;
+    window.handleBuatTokenHrd = handleBuatTokenHrd;
+    window.copySingleToken = copySingleToken;
+    window.handleSalinSemuaToken = handleSalinSemuaToken;
 
     window.addEventListener('DOMContentLoaded', async () => {
-        if (!document.getElementById('hrd-login-view')) return; // Hanya jalankan jika di halaman hrd.html
+        if (!document.getElementById('hrd-login-view')) return;
 
         if (window.location.hash) {
             history.replaceState(null, '', window.location.pathname);
@@ -2004,6 +2845,7 @@ if (typeof window !== 'undefined') {
                 const dashView = document.getElementById('hrd-dashboard-view');
                 if (dashView) dashView.classList.remove('hide-section');
                 loadHrdData();
+                loadHrdTokens();
             }
         } catch (e) {}
     });

@@ -212,3 +212,40 @@ function unlockDashboardCard(completedTestNum) {
     updateDashboardProgress();
 }
 
+/**
+ * Mereset seluruh kartu dashboard ke kondisi awal (Tes 1 aktif, Tes 2-4 terkunci, progres 0/4)
+ */
+function resetDashboardState() {
+    // 1. Reset Kartu 1: IST (Aktif)
+    setDashCardState(1, 'active');
+    const btn1 = document.getElementById('btn-test-1');
+    if (btn1) {
+        btn1.innerText = "Mulai Tes 1 (IST)";
+        btn1.disabled = false;
+        btn1.className = "dash-btn dash-btn-active";
+        btn1.onclick = function() { handleStartModule(1); };
+    }
+
+    // 2. Reset Kartu 2, 3, 4: Terkunci
+    [2, 3, 4].forEach(num => {
+        setDashCardState(num, 'locked');
+        const btn = document.getElementById('btn-test-' + num);
+        if (btn) {
+            btn.innerText = "Terkunci";
+            btn.disabled = true;
+            btn.className = "dash-btn dash-btn-locked";
+            btn.onclick = function() { handleLockedModule(num); };
+        }
+    });
+
+    // 3. Reset progress bar ke 0%
+    const fill = document.getElementById('dashProgressFill');
+    const label = document.getElementById('dashProgressLabel');
+    if (fill) fill.style.width = '0%';
+    if (label) label.textContent = '0 / 4 modul';
+}
+
+if (typeof window !== 'undefined') {
+    window.resetDashboardState = resetDashboardState;
+}
+

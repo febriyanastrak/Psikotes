@@ -92,6 +92,9 @@ async function updateHasilTes(kolomTes, dataJSON) {
     // 3. Siapkan payload pembaruan untuk Supabase
     const payloadUpdate = {};
     payloadUpdate[kolomTes] = dataJSON;
+    if (kolomTes === 'hasil_pauli') {
+        payloadUpdate['waktu_selesai'] = new Date().toISOString();
+    }
 
     // 4. Jalankan perintah UPDATE ke tabel kandidat_psikotes berdasarkan id
     try {

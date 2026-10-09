@@ -89,7 +89,11 @@
                             <p class="text-xs text-slate-400">Rekapitulasi Hasil Tes Pauli & Kurva Kinerja Peserta Asesmen</p>
                         </div>
                     </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <button onclick="toggleTokenSection()"
+                            class="flex-1 sm:flex-none bg-[#0a4980] hover:bg-[#003865] text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow flex items-center justify-center gap-2 border border-blue-400/30 cursor-pointer">
+                            <i class="fa-solid fa-key text-amber-400"></i> Kelola Token
+                        </button>
                         <button onclick="exportHrdToExcel()"
                             class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow flex items-center justify-center gap-2">
                             <i class="fa-solid fa-file-excel"></i> Unduh Excel
@@ -102,6 +106,60 @@
                             class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-right-from-bracket"></i> Keluar
                         </button>
+                    </div>
+                </div>
+
+                <!-- KELOLA TOKEN UJIAN SECTION -->
+                <div id="hrd-token-card" class="bg-slate-900 border border-blue-500/30 rounded-2xl p-4 sm:p-6 shadow-xl mb-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-3 border-b border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg border border-amber-500/20">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-base">Manajemen Token Ujian (5 Karakter Sekali Pakai)</h3>
+                                <p class="text-xs text-slate-400">Generate token acak dari database dan pantau penggunaannya secara langsung</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-700 px-3 py-1.5 rounded-xl">
+                                <span class="text-xs text-slate-400">Jumlah:</span>
+                                <input type="number" id="inputJumlahToken" value="10" min="1" max="100" class="w-14 bg-transparent text-white text-xs font-bold text-center focus:outline-none">
+                            </div>
+                            <button onclick="handleBuatTokenHrd()" id="btnGenerateToken"
+                                class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition shadow flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span id="btnGenerateTokenText">+ Buat Token</span>
+                            </button>
+                            <button onclick="handleSalinSemuaToken()"
+                                class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-xl transition border border-slate-700 flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-copy text-amber-400"></i>
+                                <span>Salin Yang Tersedia</span>
+                            </button>
+                            <button onclick="loadHrdTokens()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1 cursor-pointer" title="Perbarui Token">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TABEL TOKEN -->
+                    <div class="overflow-x-auto max-h-64 overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-950 text-[11px] uppercase text-slate-400 sticky top-0 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-2.5">No</th>
+                                    <th class="p-2.5">Kode Token</th>
+                                    <th class="p-2.5">Status</th>
+                                    <th class="p-2.5">Digunakan Oleh</th>
+                                    <th class="p-2.5">Waktu Digunakan</th>
+                                    <th class="p-2.5 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tokenTableBody" class="divide-y divide-slate-800">
+                                <tr><td colspan="6" class="text-center p-4 text-slate-500">Memuat data token...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -168,7 +226,7 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar">
-                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-start gap-4">
+                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="space-y-1">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Nama Lengkap</p>
                         <p class="text-lg font-bold text-slate-800 capitalize" id="rptName">-</p>
@@ -176,6 +234,10 @@
                     <div class="space-y-1">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kontak (WhatsApp)</p>
                         <p class="text-base font-semibold text-slate-700" id="rptWa">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Posisi &amp; Lokasi</p>
+                        <p class="text-xs font-bold text-[#003865] leading-snug" id="rptPosisi">-</p>
                     </div>
                     <div class="space-y-1">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tanggal Penyelesaian</p>
@@ -390,15 +452,194 @@
 
                 <!-- 4. PANEL TAB DISC -->
                 <div id="panelTabDisc" class="hidden space-y-6">
-                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                            <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                <i class="fa-solid fa-chart-pie text-blue-600"></i> Profil Kepribadian & Gaya Kerja DISC
-                            </h3>
-                            <span class="text-xs text-slate-400 font-medium">Dominance, Influence, Steadiness, Conscientiousness</span>
+                    <!-- Notice jika data DISC belum ada -->
+                    <div id="discEmptyNotice" class="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-400 space-y-3">
+                        <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-chart-pie"></i>
                         </div>
-                        <div id="discResultsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div class="col-span-full text-center py-8 text-slate-400">Data hasil tes DISC belum tersedia untuk peserta ini.</div>
+                        <h4 class="text-base font-bold text-slate-700">Kandidat belum menyelesaikan tes DISC</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                            Data tabel skor mentah, 3 grafik perilaku (Mask, Core, Mirror) beserta analisis kepribadian dan job match akan otomatis tampil setelah kandidat menyelesaikan Modul 3: DISC Assessment.
+                        </p>
+                    </div>
+
+                    <!-- Konten Lengkap DISC -->
+                    <div id="discContentWrapper" class="hidden space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-3">
+                                <h3 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-pie text-blue-600"></i> Profil Kepribadian &amp; Gaya Kerja DISC
+                                </h3>
+                                <span class="text-xs text-slate-400 font-medium">Dominance, Influence, Steadiness, Conscientiousness</span>
+                            </div>
+
+                            <!-- TABEL SKOR MENTAH (RAW SCORES) PERSIS PERMINTAAN USER -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-6">
+                                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <i class="fa-solid fa-table-cells text-[#003865]"></i> Tabel Skor Mentah (Raw Scores)
+                                </h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-center border-collapse border border-slate-300 text-sm font-semibold">
+                                        <thead class="bg-slate-100 text-slate-700">
+                                            <tr>
+                                                <th class="border border-slate-300 py-2.5 px-4">Line</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-bold text-blue-900">D</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-bold text-blue-900">I</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-bold text-blue-900">S</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-bold text-blue-900">C</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-bold text-slate-500">*</th>
+                                                <th class="border border-slate-300 py-2.5 px-4 font-black text-red-600">tot</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold bg-slate-50">1</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL1D">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL1I">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL1S">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL1C">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 text-slate-500" id="discTblL1Star">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-black text-red-600" id="discTblL1Tot">24</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold bg-slate-50">2</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL2D">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL2I">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL2S">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4" id="discTblL2C">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 text-slate-500" id="discTblL2Star">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-black text-red-600" id="discTblL2Tot">24</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold bg-slate-50">3</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold text-[#003865]" id="discTblL3D">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold text-[#003865]" id="discTblL3I">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold text-[#003865]" id="discTblL3S">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 font-bold text-[#003865]" id="discTblL3C">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 bg-slate-200 text-slate-400">-</td>
+                                                <td class="border border-slate-300 py-2.5 px-4 bg-slate-200 text-slate-400">-</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 3 GRAFIK GARIS (MASK, CORE, MIRROR) -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                                <!-- Grafik 1: Mask -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                                            <div>
+                                                <h4 class="text-xs font-black text-[#003865] uppercase tracking-wide">Grafik 1: Mask</h4>
+                                                <p class="text-[10px] text-slate-500 font-semibold">Public Self (Perilaku Adaptif)</p>
+                                            </div>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#003865] border border-blue-200">Gaya Luar</span>
+                                        </div>
+                                        <div class="relative w-full h-[260px]">
+                                            <canvas id="discChartMask"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-1 mt-3 pt-2.5 border-t border-slate-100 text-center text-xs font-extrabold" id="discValsMask">
+                                        <div class="p-1 rounded bg-red-50 text-red-700">D: -</div>
+                                        <div class="p-1 rounded bg-amber-50 text-amber-700">I: -</div>
+                                        <div class="p-1 rounded bg-emerald-50 text-emerald-700">S: -</div>
+                                        <div class="p-1 rounded bg-blue-50 text-blue-700">C: -</div>
+                                    </div>
+                                </div>
+
+                                <!-- Grafik 2: Core -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                                            <div>
+                                                <h4 class="text-xs font-black text-amber-700 uppercase tracking-wide">Grafik 2: Core</h4>
+                                                <p class="text-[10px] text-slate-500 font-semibold">Private Self (Bawah Tekanan)</p>
+                                            </div>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">Tekanan</span>
+                                        </div>
+                                        <div class="relative w-full h-[260px]">
+                                            <canvas id="discChartCore"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-1 mt-3 pt-2.5 border-t border-slate-100 text-center text-xs font-extrabold" id="discValsCore">
+                                        <div class="p-1 rounded bg-red-50 text-red-700">D: -</div>
+                                        <div class="p-1 rounded bg-amber-50 text-amber-700">I: -</div>
+                                        <div class="p-1 rounded bg-emerald-50 text-emerald-700">S: -</div>
+                                        <div class="p-1 rounded bg-blue-50 text-blue-700">C: -</div>
+                                    </div>
+                                </div>
+
+                                <!-- Grafik 3: Mirror -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                                            <div>
+                                                <h4 class="text-xs font-black text-emerald-700 uppercase tracking-wide">Grafik 3: Mirror</h4>
+                                                <p class="text-[10px] text-slate-500 font-semibold">Perceived Self (Karakter Asli)</p>
+                                            </div>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">Asli / Sintesis</span>
+                                        </div>
+                                        <div class="relative w-full h-[260px]">
+                                            <canvas id="discChartMirror"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-1 mt-3 pt-2.5 border-t border-slate-100 text-center text-xs font-extrabold" id="discValsMirror">
+                                        <div class="p-1 rounded bg-red-50 text-red-700">D: -</div>
+                                        <div class="p-1 rounded bg-amber-50 text-amber-700">I: -</div>
+                                        <div class="p-1 rounded bg-emerald-50 text-emerald-700">S: -</div>
+                                        <div class="p-1 rounded bg-blue-50 text-blue-700">C: -</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PANEL ANALISIS KEPRIBADIAN LENGKAP -->
+                            <div class="space-y-4">
+                                <!-- BADGE TIPE KEPRIBADIAN UTAMA -->
+                                <div class="bg-gradient-to-r from-[#003865] via-[#0a4980] to-[#002747] text-white p-5 sm:p-6 rounded-2xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold tracking-widest text-blue-200 block mb-1">Tipe Kepribadian Utama (DISC Pattern)</span>
+                                        <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                                            <i class="fa-solid fa-user-check text-amber-400 text-lg"></i>
+                                            <span id="discPatternTitle">-</span>
+                                        </h3>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-amber-300 self-start sm:self-auto">
+                                        <i class="fa-solid fa-award"></i> Terverifikasi Skoring DISC
+                                    </span>
+                                </div>
+
+                                <!-- KARTU KARAKTERISTIK UTAMA (pattern_traits) -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                        <i class="fa-solid fa-tags text-blue-600"></i> Karakteristik Utama &amp; Gaya Kerja
+                                    </h4>
+                                    <div class="flex flex-wrap gap-2" id="discTraitsContainer">
+                                        <!-- Diisi via renderDiscResults -->
+                                    </div>
+                                </div>
+
+                                <!-- PARAGRAF NARASI KEPRIBADIAN (pattern_narrative) -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                        <i class="fa-solid fa-file-lines text-emerald-600"></i> Deskripsi &amp; Narasi Evaluasi Kepribadian
+                                    </h4>
+                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100" id="discNarrativeText">
+                                        -
+                                    </p>
+                                </div>
+
+                                <!-- REKOMENDASI JOB MATCH (pattern_job_match) -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                        <i class="fa-solid fa-briefcase text-amber-600"></i> Rekomendasi Penempatan Kerja (Job Match)
+                                    </h4>
+                                    <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200 text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed flex items-start gap-2.5">
+                                        <i class="fa-solid fa-circle-check text-amber-600 mt-0.5 text-base flex-shrink-0"></i>
+                                        <span id="discJobMatchText">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -477,6 +718,43 @@
             <h3 class="text-lg font-bold text-white">Memproses autentikasi server...</h3>
             <p class="text-xs text-slate-400 mt-1">Menunggu respon keamanan</p>
         </div>
+    </div>
+
+    <!-- MODAL MODERN KONFIRMASI HRD (PENGGANTI WINDOW.PROMPT) -->
+    <div id="modal-hrd-prompt" class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 text-center relative overflow-hidden">
+            <div id="promptIcon" class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-red-500/10 text-red-400 border border-red-500/20">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="promptTitle" class="text-xl font-black text-white mb-2 tracking-wide">Konfirmasi Tindakan</h3>
+            <p id="promptDesc" class="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed mb-4">
+                Ketik <strong class="text-red-400 font-mono tracking-widest bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">HAPUS</strong> untuk mengonfirmasi penghapusan permanen seluruh database:
+            </p>
+            <div class="mb-5">
+                <input type="text" id="promptInput" autocomplete="off"
+                    class="w-full text-center px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold tracking-widest uppercase focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition text-sm"
+                    placeholder="Ketik HAPUS di sini...">
+                <p id="promptError" class="hidden text-red-400 text-xs font-semibold mt-2 flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span>Kata konfirmasi tidak cocok.</span>
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button id="promptBtnCancel" type="button" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition text-xs sm:text-sm cursor-pointer">
+                    Batal
+                </button>
+                <button id="promptBtnConfirm" type="button" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl transition text-xs sm:text-sm shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-trash-can text-xs"></i> <span>Hapus Permanen</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFIKASI HRD ELEGAN (PENGGANTI WINDOW.ALERT SALIN TOKEN) -->
+    <div id="hrdToast" class="hide-section fixed top-5 right-5 z-50 flex items-center gap-3 bg-slate-900/95 text-white px-5 py-3.5 rounded-2xl border border-slate-700 shadow-2xl backdrop-blur-md transition-all duration-300 select-none pointer-events-none">
+        <div id="hrdToastIcon" class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-sm border border-emerald-500/30">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="text-xs font-bold leading-snug" id="hrdToastMsg">Token berhasil disalin!</div>
     </div>
 
     <!-- Scripts Modular -->

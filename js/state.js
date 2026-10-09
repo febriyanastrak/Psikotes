@@ -22,6 +22,53 @@ const HRD_ATTEMPTS_STORAGE_KEY = '_altrak_sec_hrd_attempts';
 const MAX_HRD_ATTEMPTS = 3;
 const HRD_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 menit
 
+// =========================================================================
+// SISTEM INTEGRITAS & CHECKSUM LOCALSTORAGE (ANTI-TAMPERING PESERTA)
+// =========================================================================
+(function() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const CRITICAL_KEYS = ['ist_selesai', 'pauli_selesai', 'papi_selesai', 'disc_selesai'];
+    const SECRET_SALT = 'Altrak_Assessment_2026_SecureHash_' + Math.floor(Date.now() / 86400000);
+
+    function calcChecksum(k, v) {
+        const raw = `${k}:${v}:${SECRET_SALT}`;
+        let hash = 0;
+        for (let i = 0; i < raw.length; i++) {
+            hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+            hash |= 0;
+        }
+        return 'sig_' + Math.abs(hash).toString(36);
+    }
+
+    const _origSetItem = localStorage.setItem.bind(localStorage);
+    const _origGetItem = localStorage.getItem.bind(localStorage);
+    const _origRemoveItem = localStorage.removeItem.bind(localStorage);
+
+    localStorage.setItem = function(k, v) {
+        _origSetItem(k, v);
+        if (CRITICAL_KEYS.includes(k)) {
+            _origSetItem('_sig_' + k, calcChecksum(k, String(v)));
+        }
+    };
+
+    localStorage.getItem = function(k) {
+        const val = _origGetItem(k);
+        if (val === null) return null;
+        if (CRITICAL_KEYS.includes(k)) {
+            const expected = calcChecksum(k, val);
+            const actual = _origGetItem('_sig_' + k);
+            if (actual !== expected) {
+                console.warn(`[Security Alert] Integritas data '${k}' tidak valid (diduga dimodifikasi). Reset status.`);
+                _origRemoveItem(k);
+                _origRemoveItem('_sig_' + k);
+                return null;
+            }
+        }
+    
+        return val;
+    };
+})();
+
 let logoClickCount = 0;
 let logoClickTimer = null;
 

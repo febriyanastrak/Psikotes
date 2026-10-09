@@ -79,7 +79,18 @@ const server = http.createServer((req, res) => {
             'X-Frame-Options': 'SAMEORIGIN',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin',
-            'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()'
+            'Permissions-Policy': 'camera=(self), microphone=(), geolocation=()',
+            'Content-Security-Policy': [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+                "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net",
+                "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com",
+                "img-src 'self' data: blob: https://rvflmznbihunezzqhobm.supabase.co",
+                "connect-src 'self' https://rvflmznbihunezzqhobm.supabase.co",
+                "media-src 'self' blob:",
+                "frame-ancestors 'self'"
+            ].join('; '),
+            'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
         });
 
         if (req.method === 'HEAD') {

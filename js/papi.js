@@ -22,6 +22,24 @@
         papiAnswers = {};
     }
 
+    // --- FITUR DOKUMENTASI FOTO PENGAWASAN KAMERA PAPI ---
+    let fotoPapiAwalTaken = false;
+    let fotoPapiTengahTaken = false;
+
+    function ambilFotoPapi(fase, subtesLabel = 'PAPI-Kostick') {
+        if (typeof window.jepretDanUpload !== 'function') return;
+        let identifier = '';
+        try {
+            if (typeof state !== 'undefined' && state.user) {
+                identifier = state.user.phone || state.user.email || '';
+            }
+            if (!identifier && typeof localStorage !== 'undefined') {
+                identifier = localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || '';
+            }
+        } catch (e) {}
+        window.jepretDanUpload(identifier, 'PAPI', subtesLabel, fase);
+    }
+
     // --- SISTEM PENGATUR WAKTU PAPI KOSTICK (5 Menit Latihan, 25 Menit Ujian) ---
     let instructionsTimerInterval = null;
     let examTimerInterval = null;
@@ -93,12 +111,36 @@
         }
     }
 
+    let hasShownTimeUpWarning = false;
+    let lastOvertimePromptTime = 0;
+
+    function isExamOvertime() {
+        const endTimeStr = localStorage.getItem('papi_exam_end_time');
+        const endTime = endTimeStr ? parseInt(endTimeStr, 10) : null;
+        return !!(endTime && Date.now() > endTime);
+    }
+
     function getExamRemainingTimeFormatted() {
         const endTimeStr = localStorage.getItem('papi_exam_end_time');
         const endTime = endTimeStr ? parseInt(endTimeStr, 10) : null;
         if (!endTime || isNaN(endTime)) return "25:00";
-        const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-        return formatTime(remaining);
+        const diff = Math.ceil((endTime - Date.now()) / 1000);
+        if (diff <= 0) {
+            const overtime = Math.abs(diff);
+            return `+${formatTime(overtime)}`;
+        }
+        return formatTime(diff);
+    }
+
+    function getFirstUnansweredIndex() {
+        const questions = window.PAPI_QUESTIONS || [];
+        const totalSoal = questions.length || 90;
+        for (let i = 1; i <= totalSoal; i++) {
+            if (!papiAnswers[i]) {
+                return i - 1;
+            }
+        }
+        return 0;
     }
 
     function startExamTimer() {
@@ -106,7 +148,7 @@
 
         let endTimeStr = localStorage.getItem('papi_exam_end_time');
         let endTime = endTimeStr ? parseInt(endTimeStr, 10) : null;
-        if (!endTime || isNaN(endTime) || endTime <= Date.now()) {
+        if (!endTime || isNaN(endTime)) {
             endTime = Date.now() + 25 * 60 * 1000; // 25 Menit
             localStorage.setItem('papi_exam_end_time', String(endTime));
         }
@@ -115,21 +157,56 @@
             const el = document.getElementById('papi-exam-timer');
             const container = document.getElementById('papi-exam-timer-container');
             const iconWrap = document.getElementById('papi-exam-timer-icon-wrap');
-            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            const labelEl = document.getElementById('papi-exam-timer-label');
+            const diffSeconds = Math.ceil((endTime - Date.now()) / 1000);
 
-            if (el) {
-                el.textContent = formatTime(remaining);
-            }
-            if (remaining <= 180 && container && iconWrap) {
-                container.className = "bg-rose-50 border border-rose-300 px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm animate-pulse";
-                iconWrap.className = "w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center text-sm font-bold shadow-sm";
-                if (el) el.className = "text-base sm:text-lg font-black text-rose-600 font-mono tracking-wider";
-            }
+            const questions = window.PAPI_QUESTIONS || [];
+            const totalSoal = questions.length || 90;
+            const totalTerjawab = Object.keys(papiAnswers).length;
 
-            if (remaining <= 0) {
-                stopExamTimer();
-                localStorage.removeItem('papi_exam_end_time');
-                handlePapiTimeUp();
+            if (diffSeconds > 0) {
+                // Sisa waktu normal
+                if (el) el.textContent = formatTime(diffSeconds);
+                if (diffSeconds <= 180 && container && iconWrap) {
+                    container.className = "bg-rose-50 border border-rose-300 px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm animate-pulse";
+                    iconWrap.className = "w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center text-sm font-bold shadow-sm";
+                    if (el) el.className = "text-base sm:text-lg font-black text-rose-600 font-mono tracking-wider";
+                }
+            } else {
+                // Batas 25 Menit Habis (Mode Overtime)
+                const overtimeSec = Math.abs(diffSeconds);
+                if (el) {
+                    el.textContent = `+${formatTime(overtimeSec)}`;
+                    el.className = "text-base sm:text-lg font-black text-rose-600 font-mono tracking-wider";
+                }
+                if (labelEl) {
+                    labelEl.textContent = "WAKTU HABIS (OVERTIME)";
+                    labelEl.className = "text-[10px] uppercase font-black text-rose-600 tracking-wider block";
+                }
+                if (container && iconWrap) {
+                    container.className = "bg-rose-50 border-2 border-rose-500 px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm animate-pulse";
+                    iconWrap.className = "w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center text-sm font-bold shadow-sm";
+                }
+
+                // Cek apakah seluruh 90 soal sudah dijawab
+                if (totalTerjawab < totalSoal) {
+                    // PAPI Kostick WAJIB 100% SELESAI: Beri peringatan terus sampai selesai!
+                    const now = Date.now();
+                    if (!hasShownTimeUpWarning) {
+                        hasShownTimeUpWarning = true;
+                        lastOvertimePromptTime = now;
+                        showPapiOvertimeWarning();
+                    } else if (now - lastOvertimePromptTime >= 60000) {
+                        // Ulangi peringatan setiap 1 menit
+                        lastOvertimePromptTime = now;
+                        showPapiOvertimeWarning();
+                    }
+                } else {
+                    // Seluruh 90 soal sudah terjawab
+                    stopExamTimer();
+                    localStorage.removeItem('papi_exam_end_time');
+                    handlePapiTimeUpCompleted();
+                }
             }
         };
 
@@ -144,18 +221,44 @@
         }
     }
 
-    function handlePapiTimeUp() {
-        stopExamTimer();
-        localStorage.removeItem('papi_exam_end_time');
+    function showPapiOvertimeWarning() {
+        const questions = window.PAPI_QUESTIONS || [];
+        const totalSoal = questions.length || 90;
         const totalTerjawab = Object.keys(papiAnswers).length;
-        const pesan = `Batas waktu 25 menit telah habis! Seluruh ${totalTerjawab} dari 90 soal yang telah Anda jawab akan otomatis disimpan dan dikumpulkan.`;
+        const sisa = totalSoal - totalTerjawab;
+
+        const pesan = `Batas waktu standar 25 menit telah habis!\n\nUntuk Tes PAPI Kostick, seluruh ${totalSoal} nomor WAJIB diselesaikan 100% (tidak boleh ada yang kosong) agar perhitungan profil kepribadian kerja Anda valid.\n\nMasih ada ${sisa} nomor yang belum Anda jawab. Silakan segera lengkapi seluruh nomor yang kosong!`;
 
         if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
             istUI.showModal({
-                title: "Waktu Tes Telah Habis",
+                title: "WAKTU HABIS - SOAL WAJIB LENGKAP!",
                 message: pesan,
                 type: "warning",
-                iconHtml: '<i class="fa-solid fa-hourglass-end text-rose-500"></i>',
+                iconHtml: '<i class="fa-solid fa-triangle-exclamation text-rose-500"></i>',
+                okText: '<span>Lengkapi Soal Sekarang</span> <i class="fa-solid fa-arrow-right"></i>',
+                onOk: () => {
+                    const firstUnanswered = getFirstUnansweredIndex();
+                    renderPapiQuestion(firstUnanswered);
+                }
+            });
+        } else {
+            alert(pesan);
+            const firstUnanswered = getFirstUnansweredIndex();
+            renderPapiQuestion(firstUnanswered);
+        }
+    }
+
+    function handlePapiTimeUpCompleted() {
+        stopExamTimer();
+        localStorage.removeItem('papi_exam_end_time');
+        const pesan = `Waktu ujian telah berakhir dan seluruh 90 soal telah Anda selesaikan dengan lengkap. Jawaban Anda akan otomatis disimpan dan dikumpulkan ke server.`;
+
+        if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
+            istUI.showModal({
+                title: "Tes PAPI Kostick Selesai",
+                message: pesan,
+                type: "success",
+                iconHtml: '<i class="fa-solid fa-circle-check text-emerald-500"></i>',
                 okText: '<span>Simpan & Selesai</span> <i class="fa-solid fa-check"></i>',
                 onOk: () => {
                     if (typeof window.eksekusiPengirimanPapi === 'function') {
@@ -201,7 +304,19 @@
             papiAnswers = {};
         }
 
+        // Bersihkan dan pastikan overlay sensor hafalan IST tertutup sepenuhnya
+        const overlaySensor = document.getElementById('ist-sensor-overlay-09');
+        if (overlaySensor) {
+            overlaySensor.style.display = 'none';
+        }
+        if (typeof window.sensorLayarHafalan === 'function') {
+            window.sensorLayarHafalan(false);
+        }
+
         const totalTerjawab = Object.keys(papiAnswers).length;
+        if (totalTerjawab === 0 && typeof tabSwitchViolations !== 'undefined') {
+            tabSwitchViolations = 0; // Reset toleransi pelanggaran khusus sesi tes PAPI
+        }
         if (totalTerjawab > 0 && totalTerjawab < 90) {
             stopInstructionsTimer();
             startExamTimer();
@@ -463,6 +578,15 @@
         const totalTerjawab = Object.keys(papiAnswers).length;
         const progressPct = Math.round((totalTerjawab / totalSoal) * 100);
 
+        // Ambil foto pengawasan otomatis: Soal 1 (Awal) dan Soal 45 (Tengah)
+        if (index === 0 && !fotoPapiAwalTaken) {
+            fotoPapiAwalTaken = true;
+            setTimeout(() => ambilFotoPapi('Awal', 'PAPI-Kostick'), 800);
+        } else if (index === 44 && !fotoPapiTengahTaken) {
+            fotoPapiTengahTaken = true;
+            setTimeout(() => ambilFotoPapi('Tengah', 'PAPI-Kostick'), 800);
+        }
+
         const currentAnswer = papiAnswers[noSoal] || null;
 
         const container = document.getElementById('papi-app-container');
@@ -510,6 +634,7 @@
 
         const isLastQuestion = (index === totalSoal - 1);
         const allCompleted = (totalTerjawab === totalSoal);
+        const isOvertime = isExamOvertime();
 
         container.innerHTML = `
             <div class="space-y-6 my-6">
@@ -527,13 +652,15 @@
                         </div>
 
                         <!-- Timer Ujian 25 Menit -->
-                        <div id="papi-exam-timer-container" class="bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm">
-                            <div id="papi-exam-timer-icon-wrap" class="w-8 h-8 rounded-lg bg-[#003865] text-white flex items-center justify-center text-sm font-bold shadow-sm">
-                                <i class="fa-solid fa-hourglass-half animate-pulse"></i>
+                        <div id="papi-exam-timer-container" class="${isOvertime ? 'bg-rose-50 border-2 border-rose-500 animate-pulse' : 'bg-blue-50 border border-blue-200'} px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm">
+                            <div id="papi-exam-timer-icon-wrap" class="w-8 h-8 rounded-lg ${isOvertime ? 'bg-rose-600' : 'bg-[#003865]'} text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                                <i class="fa-solid fa-hourglass-${isOvertime ? 'end animate-bounce' : 'half animate-pulse'}"></i>
                             </div>
                             <div>
-                                <span id="papi-exam-timer-label" class="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Sisa Waktu</span>
-                                <span id="papi-exam-timer" class="text-base sm:text-lg font-black text-[#003865] font-mono tracking-wider">${getExamRemainingTimeFormatted()}</span>
+                                <span id="papi-exam-timer-label" class="text-[10px] uppercase font-bold ${isOvertime ? 'text-rose-600 font-black' : 'text-slate-500'} tracking-wider block">
+                                    ${isOvertime ? 'WAKTU HABIS (OVERTIME)' : 'Sisa Waktu'}
+                                </span>
+                                <span id="papi-exam-timer" class="text-base sm:text-lg font-black ${isOvertime ? 'text-rose-600' : 'text-[#003865]'} font-mono tracking-wider">${getExamRemainingTimeFormatted()}</span>
                             </div>
                         </div>
 
@@ -547,6 +674,28 @@
                         <div class="bg-gradient-to-r from-blue-600 to-[#003865] h-2.5 rounded-full transition-all duration-300" style="width: ${progressPct}%;"></div>
                     </div>
                 </div>
+
+                ${isOvertime && totalTerjawab < totalSoal ? `
+                    <!-- Banner Peringatan Waktu Habis & Wajib Selesai -->
+                    <div class="bg-rose-50 border-2 border-rose-500 rounded-3xl p-4 sm:p-5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 shadow-md animate-pulse">
+                        <div class="flex items-center gap-3.5 text-rose-800">
+                            <span class="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl font-bold flex-shrink-0 shadow-sm">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </span>
+                            <div>
+                                <h5 class="font-black text-sm sm:text-base text-rose-900 uppercase tracking-wide">PERINGATAN: WAKTU 25 MENIT TELAH HABIS!</h5>
+                                <p class="text-xs sm:text-sm text-rose-700">
+                                    Tes PAPI Kostick <strong>WAJIB diselesaikan 100%</strong>. Masih ada <strong>${totalSoal - totalTerjawab} soal</strong> yang belum terisi. Harap segera lengkapi!
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.papiJumpToFirstUnanswered()"
+                            class="w-full sm:w-auto px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs sm:text-sm font-black transition flex-shrink-0 shadow-md cursor-pointer flex items-center justify-center gap-2">
+                            <span>Ke Soal Kosong</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                ` : ''}
 
                 <!-- Palet Nomor 1 s/d 90 (Posisi di Atas) -->
                 <div class="bg-white rounded-3xl border border-[#b9d0e7] p-5 sm:p-6 shadow-sm">
@@ -641,7 +790,18 @@
         } catch (e) {}
 
         const questions = window.PAPI_QUESTIONS || [];
+        const totalSoal = questions.length || 90;
+        const totalTerjawab = Object.keys(papiAnswers).length;
         const nextIdx = currentPapiIndex + 1;
+
+        // Jika dalam kondisi Overtime dan ini jawaban yang melengkapi seluruh 90 soal:
+        if (totalTerjawab >= totalSoal && isExamOvertime()) {
+            renderPapiQuestion(currentPapiIndex);
+            setTimeout(function() {
+                handlePapiTimeUpCompleted();
+            }, 300);
+            return;
+        }
 
         renderPapiQuestion(currentPapiIndex);
 
@@ -681,17 +841,21 @@
         const totalSoal = questions.length || 90;
         const totalTerjawab = Object.keys(papiAnswers).length;
 
-        // 1. Validasi apakah seluruh 90 soal sudah dijawab
+        // 1. Validasi ketat: Seluruh 90 soal wajib dijawab tanpa kecuali
         if (totalTerjawab < totalSoal) {
             const sisa = totalSoal - totalTerjawab;
-            const pesanBelum = `Masih ada ${sisa} soal yang belum dijawab. Harap lengkapi seluruh 90 soal sebelum mengumpulkan.`;
+            const pesanBelum = `Masih ada ${sisa} nomor yang belum dijawab.\n\nPada Tes PAPI Kostick, seluruh ${totalSoal} nomor WAJIB diselesaikan 100% (tidak boleh ada yang kosong) agar profil kepribadian kerja Anda valid.`;
             if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
                 istUI.showModal({
-                    title: "Soal Belum Lengkap",
+                    title: "Soal Belum Lengkap (Wajib 90 Soal)",
                     message: pesanBelum,
                     type: "warning",
-                    iconHtml: '<i class="fa-solid fa-triangle-exclamation text-amber-400"></i>',
-                    okText: '<span>Saya Mengerti</span>'
+                    iconHtml: '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>',
+                    okText: '<span>Lengkapi Soal Sekarang</span> <i class="fa-solid fa-arrow-right"></i>',
+                    onOk: () => {
+                        const firstUnanswered = getFirstUnansweredIndex();
+                        renderPapiQuestion(firstUnanswered);
+                    }
                 });
             } else if (typeof customAlert === 'function') {
                 customAlert("Soal Belum Lengkap", pesanBelum, "error");
@@ -727,6 +891,47 @@
     }
 
     /**
+     * Kunci pemetaan standar psikometri 90 butir soal PAPI Kostick (20 dimensi)
+     */
+    const PAPI_SCORING_KEY = [
+        { no: 1, a: 'G', b: 'E' }, { no: 2, a: 'A', b: 'N' }, { no: 3, a: 'P', b: 'A' }, { no: 4, a: 'X', b: 'P' }, { no: 5, a: 'B', b: 'X' },
+        { no: 6, a: 'O', b: 'B' }, { no: 7, a: 'Z', b: 'O' }, { no: 8, a: 'K', b: 'Z' }, { no: 9, a: 'F', b: 'K' }, { no: 10, a: 'W', b: 'F' },
+        { no: 11, a: 'G', b: 'C' }, { no: 12, a: 'L', b: 'E' }, { no: 13, a: 'P', b: 'N' }, { no: 14, a: 'X', b: 'A' }, { no: 15, a: 'B', b: 'P' },
+        { no: 16, a: 'O', b: 'X' }, { no: 17, a: 'Z', b: 'B' }, { no: 18, a: 'K', b: 'O' }, { no: 19, a: 'F', b: 'Z' }, { no: 20, a: 'W', b: 'K' },
+        { no: 21, a: 'G', b: 'D' }, { no: 22, a: 'L', b: 'C' }, { no: 23, a: 'E', b: 'I' }, { no: 24, a: 'T', b: 'S' }, { no: 25, a: 'S', b: 'A' },
+        { no: 26, a: 'O', b: 'P' }, { no: 27, a: 'Z', b: 'X' }, { no: 28, a: 'K', b: 'B' }, { no: 29, a: 'F', b: 'O' }, { no: 30, a: 'W', b: 'Z' },
+        { no: 31, a: 'G', b: 'R' }, { no: 32, a: 'L', b: 'D' }, { no: 33, a: 'I', b: 'C' }, { no: 34, a: 'T', b: 'E' }, { no: 35, a: 'B', b: 'N' },
+        { no: 36, a: 'O', b: 'A' }, { no: 37, a: 'Z', b: 'P' }, { no: 38, a: 'K', b: 'X' }, { no: 39, a: 'F', b: 'B' }, { no: 40, a: 'W', b: 'O' },
+        { no: 41, a: 'G', b: 'S' }, { no: 42, a: 'L', b: 'R' }, { no: 43, a: 'I', b: 'D' }, { no: 44, a: 'T', b: 'C' }, { no: 45, a: 'V', b: 'E' },
+        { no: 46, a: 'O', b: 'N' }, { no: 47, a: 'Z', b: 'A' }, { no: 48, a: 'K', b: 'P' }, { no: 49, a: 'F', b: 'X' }, { no: 50, a: 'W', b: 'B' },
+        { no: 51, a: 'G', b: 'V' }, { no: 52, a: 'L', b: 'S' }, { no: 53, a: 'I', b: 'R' }, { no: 54, a: 'T', b: 'D' }, { no: 55, a: 'V', b: 'C' },
+        { no: 56, a: 'S', b: 'E' }, { no: 57, a: 'Z', b: 'N' }, { no: 58, a: 'K', b: 'A' }, { no: 59, a: 'F', b: 'P' }, { no: 60, a: 'W', b: 'X' },
+        { no: 61, a: 'G', b: 'T' }, { no: 62, a: 'L', b: 'V' }, { no: 63, a: 'S', b: 'I' }, { no: 64, a: 'T', b: 'R' }, { no: 65, a: 'V', b: 'D' },
+        { no: 66, a: 'S', b: 'C' }, { no: 67, a: 'R', b: 'E' }, { no: 68, a: 'K', b: 'N' }, { no: 69, a: 'F', b: 'A' }, { no: 70, a: 'W', b: 'P' },
+        { no: 71, a: 'G', b: 'I' }, { no: 72, a: 'L', b: 'T' }, { no: 73, a: 'V', b: 'I' }, { no: 74, a: 'T', b: 'S' }, { no: 75, a: 'V', b: 'R' },
+        { no: 76, a: 'S', b: 'D' }, { no: 77, a: 'R', b: 'C' }, { no: 78, a: 'D', b: 'E' }, { no: 79, a: 'F', b: 'N' }, { no: 80, a: 'W', b: 'A' },
+        { no: 81, a: 'G', b: 'L' }, { no: 82, a: 'L', b: 'I' }, { no: 83, a: 'I', b: 'T' }, { no: 84, a: 'T', b: 'V' }, { no: 85, a: 'S', b: 'V' },
+        { no: 86, a: 'S', b: 'R' }, { no: 87, a: 'R', b: 'D' }, { no: 88, a: 'D', b: 'C' }, { no: 89, a: 'C', b: 'E' }, { no: 90, a: 'W', b: 'N' }
+    ];
+
+    function hitungSkorPapi20Dimensi(jawaban) {
+        const scores = {};
+        const aspectKeys = ['N', 'G', 'A', 'L', 'P', 'I', 'T', 'V', 'X', 'S', 'B', 'O', 'R', 'D', 'C', 'Z', 'E', 'K', 'F', 'W'];
+        aspectKeys.forEach(k => { scores[k] = 0; });
+        if (!jawaban || typeof jawaban !== 'object') return scores;
+
+        PAPI_SCORING_KEY.forEach(item => {
+            const ans = (jawaban[item.no] || jawaban[String(item.no)] || '').toString().trim().toUpperCase();
+            if (ans === 'A' && item.a && scores[item.a] !== undefined) {
+                scores[item.a]++;
+            } else if (ans === 'B' && item.b && scores[item.b] !== undefined) {
+                scores[item.b]++;
+            }
+        });
+        return scores;
+    }
+
+    /**
      * Eksekusi penyimpanan data PAPI ke Supabase dan pembersihan timer
      */
     async function eksekusiPengirimanPapi(isAutoSubmit = false) {
@@ -750,6 +955,9 @@
             `;
         }
 
+        // Ambil foto pengawasan otomatis fase Akhir saat pengumpulan
+        ambilFotoPapi('Akhir', 'PAPI-Kostick');
+
         // Kirim ke Supabase
         try {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -768,16 +976,28 @@
                         p_id_peserta: candidateId,
                         p_jawaban: papiAnswers
                     });
-                    console.log('[PAPI] Supabase RPC hitung_dan_simpan_papi:', data, error);
+                    if (error) {
+                        console.warn('[PAPI] RPC hitung_dan_simpan_papi error:', error.message || error);
+                    }
                 } catch (rpcErr) {
                     console.warn('[PAPI] Panggilan RPC gagal (dicadangkan):', rpcErr);
                 }
             }
 
-            // Simpan juga ke kolom hasil_papi lewat fungsi updateHasilTes
+            // Hitung skor 20 dimensi secara otomatis (Safe Merge - Cegah Penimpaan Skor)
+            const calculatedScores = hitungSkorPapi20Dimensi(papiAnswers);
+
+            // Catat pelanggaran integritas jika ada perpindahan tab selama ujian PAPI
+            const violations = (typeof tabSwitchViolations !== 'undefined') ? tabSwitchViolations : 0;
+
+            // Simpan paket lengkap (jawaban + skor 20 dimensi + integritas + waktu) ke kolom hasil_papi lewat updateHasilTes
             if (typeof updateHasilTes === 'function') {
                 await updateHasilTes('hasil_papi', {
                     jawaban: papiAnswers,
+                    scores: calculatedScores,
+                    skor_dimensi: calculatedScores,
+                    pelanggaran_tab_switch: violations,
+                    catatan_integritas: violations > 0 ? `Pernah ${violations}x ganti tab` : 'Bersih (0 Pelanggaran)',
                     selesai_pada: new Date().toISOString()
                 });
             }
@@ -813,10 +1033,25 @@
         startExamTimer();
         renderPapiQuestion(0);
     };
+    window.papiAutoSubmit = function() {
+        const questions = window.PAPI_QUESTIONS || [];
+        const totalSoal = questions.length || 90;
+        const totalTerjawab = Object.keys(papiAnswers).length;
+        if (totalTerjawab < totalSoal) {
+            console.warn('[PAPI] Auto-submit dicegah: Seluruh 90 soal wajib dijawab!');
+            showPapiOvertimeWarning();
+            return;
+        }
+        eksekusiPengirimanPapi(true);
+    };
     window.papiSelectAnswer = selectAnswer;
     window.papiPrevQuestion = prevQuestion;
     window.papiNextQuestion = nextQuestion;
     window.papiJumpToQuestion = jumpToQuestion;
+    window.papiJumpToFirstUnanswered = function() {
+        const idx = getFirstUnansweredIndex();
+        renderPapiQuestion(idx);
+    };
     window.submitPapiTest = submitPapiTest;
     window.eksekusiPengirimanPapi = eksekusiPengirimanPapi;
     window.papiBackToDashboard = papiBackToDashboard;

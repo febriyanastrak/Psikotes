@@ -40,12 +40,44 @@
                     waktu_selesai: new Date().toISOString()
                 };
 
-                // Update hasil_ist dinonaktifkan agar tidak menimpa skor IST yang sudah dihitung database Supabase
+                // Update hasil_ist menggunakan teknik Safe Merge agar tidak menimpa skor subtes dari database
                 try {
-                    // if (typeof updateHasilTes === 'function') {
-                    //     await updateHasilTes('hasil_ist', dataIST);
-                    // }
-                    console.log('[Portal Bridge IST] Nilai IST tersimpan aman di Supabase (tidak ditimpa).');
+                    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
+                        ? supabaseClient
+                        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+
+                    const idPesertaAktif = localStorage.getItem('id_peserta') || 'kandidat';
+                    const violations = typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0;
+
+                    if (sb && idPesertaAktif && idPesertaAktif !== 'kandidat') {
+                        // 1. Ambil data hasil_ist yang ada saat ini dari Supabase
+                        const { data: rowKandidat } = await sb
+                            .from('kandidat_psikotes')
+                            .select('hasil_ist')
+                            .eq('id', idPesertaAktif)
+                            .single();
+
+                        const existingIst = (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object')
+                            ? rowKandidat.hasil_ist
+                            : {};
+
+                        // 2. Selipkan catatan pelanggaran tanpa menghapus satu pun subtes hasil SQL
+                        const mergedIst = {
+                            ...existingIst,
+                            pelanggaran_tab_switch: violations,
+                            catatan_integritas: violations > 0
+                                ? `[⚠️ Terdeteksi ${violations}x perpindahan tab/jendela]`
+                                : 'Bersih (Tidak ada perpindahan tab)'
+                        };
+
+                        // 3. Simpan kembali data gabungan
+                        await sb
+                            .from('kandidat_psikotes')
+                            .update({ hasil_ist: mergedIst })
+                            .eq('id', idPesertaAktif);
+
+                        console.log('[Portal Bridge IST] Safe Merge sukses: Catatan integritas tersimpan di Supabase.');
+                    }
                 } catch (err) {
                     console.warn('[Portal Bridge IST] Catatan penyimpanan Supabase:', err);
                 }

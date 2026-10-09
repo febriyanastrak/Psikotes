@@ -23,12 +23,9 @@
     <script src="js/spa-router.js"></script>
 
     <style>
-        /* Pengaturan Default SPA: Sembunyikan semua section secara default kecuali view-login */
+        /* Pengaturan Default SPA: Sembunyikan semua section secara default */
         main > section {
             display: none !important;
-        }
-        main > section#view-login {
-            display: flex !important;
         }
         main > section.fase-aktif {
             display: flex !important;
@@ -156,13 +153,145 @@
                             </p>
                         </div>
 
+                        <!-- 4. Posisi / Jabatan yang Dilamar -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Posisi / Jabatan yang Dilamar <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
+                                        class="fa-solid fa-briefcase"></i></span>
+                                <input type="text" id="inputPosisi" name="posisi" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
+                                    placeholder="Contoh: Mechanic, Sales Engineer, MT">
+                            </div>
+                            <p id="errorPosisi" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
+                        </div>
+
+                        <!-- 5. Lokasi Domisili (Ketik Sendiri) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Lokasi Domisili Saat Ini <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
+                                        class="fa-solid fa-house-user"></i></span>
+                                <input type="text" id="inputDomisili" name="domisili" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
+                                    placeholder="Contoh: Balikpapan, Jakarta Selatan, Bandung">
+                            </div>
+                            <p id="errorDomisili" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
+                        </div>
+
+                        <!-- 6. Penempatan Kerja (Searchable 52 Cabang Altrak) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Penempatan Kerja <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
+                                        class="fa-solid fa-location-dot"></i></span>
+                                <input type="text" list="list-penempatan" id="inputPenempatan" name="penempatan" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-medium"
+                                    placeholder="Ketik atau pilih lokasi cabang penempatan...">
+                                <datalist id="list-penempatan">
+                                    <!-- Head Office -->
+                                    <option value="Jakarta (Head Office)">
+                                    <!-- Branches -->
+                                    <option value="Balikpapan (Branch)">
+                                    <option value="Bandung (Branch)">
+                                    <option value="Banjarmasin (Branch)">
+                                    <option value="Batam (Branch)">
+                                    <option value="Bitung (Branch)">
+                                    <option value="Denpasar (Branch)">
+                                    <option value="Jambi (Branch)">
+                                    <option value="Kendari (Branch)">
+                                    <option value="Lampung (Branch)">
+                                    <option value="Makassar (Branch)">
+                                    <option value="Medan (Branch)">
+                                    <option value="Padang (Branch)">
+                                    <option value="Palembang (Branch)">
+                                    <option value="Pangkal Pinang (Branch)">
+                                    <option value="Pekanbaru (Branch)">
+                                    <option value="Pontianak (Branch)">
+                                    <option value="Samarinda (Branch)">
+                                    <option value="Sampit (Branch)">
+                                    <option value="Semarang (Branch)">
+                                    <option value="Sorong (Branch)">
+                                    <option value="Surabaya (Branch)">
+                                    <!-- Depo -->
+                                    <option value="Batu Kajang (Depo)">
+                                    <option value="Benete (Depo)">
+                                    <option value="Bengalon (Depo)">
+                                    <option value="Berau (Depo)">
+                                    <option value="Bontang (Depo)">
+                                    <option value="Cilacap (Depo)">
+                                    <option value="Melak (Depo)">
+                                    <option value="Sangatta (Depo)">
+                                    <option value="Satui (Depo)">
+                                    <option value="Taman Tekno (Depo)">
+                                    <option value="Tanjung Tabalong (Depo)">
+                                    <option value="Tanjung Pinang (Depo)">
+                                    <option value="Tembaga Pura (Depo)">
+                                    <option value="Manado (Depo)">
+                                    <option value="Cilegon (Depo)">
+                                    <option value="Waingapu (Depo)">
+                                    <option value="Muara Enim (Depo)">
+                                    <option value="Sintang (Depo)">
+                                    <!-- Mining Branch -->
+                                    <option value="Kariangau (Mining Branch)">
+                                    <!-- Outlet -->
+                                    <option value="Asam Reges (Outlet)">
+                                    <option value="Cikarang (Outlet)">
+                                    <!-- Representative Office -->
+                                    <option value="Aceh (Rep. Office)">
+                                    <option value="Ambon (Rep. Office)">
+                                    <option value="Bengkulu (Rep. Office)">
+                                    <option value="Kupang (Rep. Office)">
+                                    <option value="Palangkaraya (Rep. Office)">
+                                    <option value="Palu (Rep. Office)">
+                                    <option value="Tarakan (Rep. Office)">
+                                    <option value="Ketapang (Rep. Office)">
+                                    <option value="Morowali (Rep. Office)">
+                                    <!-- Training Center -->
+                                    <option value="Jakarta (Training Center)">
+                                    <option value="Balikpapan (Training Center)">
+                                </datalist>
+                            </div>
+                            <p id="errorPenempatan" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
+                        </div>
+
+                        <!-- 7. Token Akses Ujian (5 Karakter Sekali Pakai) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                <span>Token Akses Ujian (5 Karakter) <span class="text-red-500">*</span></span>
+                                <span class="text-[10px] text-amber-600 font-semibold lowercase">dari panitia hrd</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-[#003865]"><i
+                                        class="fa-solid fa-key"></i></span>
+                                <input type="text" id="inputToken" name="token" maxlength="5" required
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/15 transition text-sm font-mono tracking-widest uppercase font-bold"
+                                    placeholder="Contoh: gk7g8">
+                            </div>
+                            <p id="errorToken" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
+                            </p>
+                        </div>
+
                         <!-- Checkbox Persetujuan & Pakta Integritas (Wajib) -->
                         <div class="pt-2">
                             <div id="checkboxConsentContainer" class="flex items-start gap-2.5 p-3 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] transition">
                                 <input type="checkbox" id="checkboxConsent" required
                                     class="mt-1 h-4 w-4 rounded border-[#b9d0e7] text-[#003865] focus:ring-[#003865] cursor-pointer accent-[#003865]">
                                 <label for="checkboxConsent" class="text-xs text-slate-700 leading-relaxed cursor-pointer select-none">
-                                    Saya menyatakan bahwa data yang saya masukkan adalah benar dan menyetujui Pakta Integritas
+                                    Saya menyatakan data yang dimasukkan adalah benar, menyetujui <strong>Pakta Integritas</strong>, serta mengizinkan pengambilan foto wajah via webcam untuk verifikasi dan pengawasan tes.
                                 </label>
                             </div>
                             <p id="errorConsent" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
@@ -541,6 +670,11 @@
         <section id="view-papi" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc] corporate-modern-bg">
             <div id="papi-app-container" class="w-full max-w-4xl mx-auto"></div>
         </section>
+
+        <!-- FASE 9: MODUL DISC ASSESSMENT (SPA VIEW-DISC) -->
+        <section id="view-disc" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc] corporate-modern-bg">
+            <div id="disc-app-container" class="w-full max-w-4xl mx-auto"></div>
+        </section>
     </main>
 
     <!-- ========================================================================= -->
@@ -699,7 +833,7 @@
                         </div>
                         <div>
                             <span class="text-[10px] uppercase font-bold tracking-widest text-blue-200">Modul 3</span>
-                            <h3 class="text-xl sm:text-2xl font-black leading-tight">Tes 3: DISC Assessment</h3>
+                            <h3 class="text-xl sm:text-2xl font-black leading-tight">Tes 3: DISC</h3>
                         </div>
                     </div>
                     <button onclick="closeModal('modal-module-disc')" class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center transition">
@@ -745,9 +879,9 @@
                 </div>
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button onclick="completeModule(3)"
+                    <button onclick="startDiscTest()"
                         class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Konfirmasi Selesai &amp; Buka Tes Pauli</span>
+                        <span>Mulai Tes DISC</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-disc')"
@@ -960,6 +1094,10 @@
     <!-- MODUL PAPI KOSTICK -->
     <script src="js/data/papi-data.js"></script>
     <script src="js/papi.js"></script>
+
+    <!-- MODUL DISC ASSESSMENT -->
+    <script src="js/data/disc-data.js"></script>
+    <script src="js/disc.js"></script>
 </body>
 
 </html>

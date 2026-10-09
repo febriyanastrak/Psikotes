@@ -33,6 +33,7 @@ const istLogic = {
     // SANGAT PENTING: Berjalan diam-diam di background tanpa countdown di UI peserta
     timerUjianTimeoutId: null,
     timerUjianIntervalId: null,
+    timerPeringatan7MenitId: null,
     waktuTargetSelesai: null,
     isUjianTerkunci: false,
     waktuMulaiUjian: null,
@@ -249,6 +250,7 @@ const istLogic = {
      */
     mulaiFasePanduan() {
         this.fase = "PANDUAN";
+        this.isUjianTerkunci = false;
         if (this.timerContohId) {
             clearInterval(this.timerContohId);
             this.timerContohId = null;
@@ -269,12 +271,16 @@ const istLogic = {
      */
     mulaiFaseContoh() {
         this.fase = "CONTOH";
+        this.isUjianTerkunci = false;
         this.jawabanContoh = {};
 
-        // Pengawasan Kamera: Khusus Soal 09 (Mengingat Kata) aktifkan floating camera persis seperti di Pauli
+        // Pengawasan Kamera & Layar Penuh (Fullscreen): Khusus Soal 09 (Mengingat Kata)
         if (this.currentSubtestNo === 9) {
             if (typeof startProctoringCamera === 'function') {
                 startProctoringCamera();
+            }
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
             }
         } else {
             if (typeof stopProctoringCamera === 'function') {
@@ -423,8 +429,6 @@ const istLogic = {
 
         // 2. HIDDEN TIMER: Waktu ujian dinamis (Soal 02: 360.000 ms, Soal 03: 420.000 ms)
         // SANGAT PENTING: Jangan tampilkan angka hitung mundur atau keterangan waktu di UI peserta!
-        console.log(`[IST Logic] Hidden timer ujian ${subtestName} dimulai (${subtestData.waktuUjian} ms). Berjalan diam-diam di background.`);
-        
         if (this.timerUjianTimeoutId) {
             clearTimeout(this.timerUjianTimeoutId);
             this.timerUjianTimeoutId = null;
@@ -432,6 +436,10 @@ const istLogic = {
         if (this.timerUjianIntervalId) {
             clearInterval(this.timerUjianIntervalId);
             this.timerUjianIntervalId = null;
+        }
+        if (this.timerPeringatan7MenitId) {
+            clearTimeout(this.timerPeringatan7MenitId);
+            this.timerPeringatan7MenitId = null;
         }
 
         this.waktuTargetSelesai = Date.now() + subtestData.waktuUjian;
@@ -447,6 +455,22 @@ const istLogic = {
                 this.waktuUjianHabis();
             }
         }, 1000);
+
+        // Peringatan Awal di 7 Menit (420.000 ms) di background jika durasi subtes > 7 menit
+        if (subtestData.waktuUjian > 420000) {
+            this.timerPeringatan7MenitId = setTimeout(() => {
+                if (this.fase === 'UJIAN' && !this.isUjianTerkunci) {
+                    const sisaMenit = Math.ceil((subtestData.waktuUjian - 420000) / 60000);
+                    istUI.showModal({
+                        title: "Peringatan Waktu (7 Menit)",
+                        message: `Anda telah mengerjakan ${subtestName} selama 7 menit.\n\nSisa waktu pengerjaan Anda kurang lebih ${sisaMenit} menit lagi. Harap perhatikan alokasi waktu dan segera selesaikan nomor-nomor yang belum terjawab.`,
+                        type: "warning",
+                        iconHtml: '<i class="fa-solid fa-clock-rotate-left text-amber-500"></i>',
+                        okText: '<span>Lanjutkan Pengerjaan</span> <i class="fa-solid fa-arrow-right"></i>'
+                    });
+                }
+            }, 420000); // 7 Menit (420.000 ms)
+        }
 
         // 3. PENGAMBILAN FOTO OTOMATIS BACKGROUND (IST 3 FASE: AWAL, TENGAH, AKHIR)
         const emailKandidat = localStorage.getItem('email_peserta') || (typeof state !== 'undefined' && state.user && state.user.email) || 'kandidat';
@@ -498,6 +522,10 @@ const istLogic = {
             clearTimeout(this.timerFotoTengahTimeoutId);
             this.timerFotoTengahTimeoutId = null;
         }
+        if (this.timerPeringatan7MenitId) {
+            clearTimeout(this.timerPeringatan7MenitId);
+            this.timerPeringatan7MenitId = null;
+        }
         this.waktuTargetSelesai = null;
         this.isUjianTerkunci = true;
 
@@ -517,7 +545,6 @@ const istLogic = {
 
         // Simpan data jawaban secara diam-diam di background
         const hasilSkor = this.hitungSkorIST();
-        console.log(`[IST Logic] Data ${subtestName} tersimpan diam-diam (waktu habis):`, hasilSkor);
 
         // Tandai subtes selesai
         if (!this.completedSubtests.includes(subtestCode)) {
@@ -653,6 +680,10 @@ const istLogic = {
             clearTimeout(this.timerFotoTengahTimeoutId);
             this.timerFotoTengahTimeoutId = null;
         }
+        if (this.timerPeringatan7MenitId) {
+            clearTimeout(this.timerPeringatan7MenitId);
+            this.timerPeringatan7MenitId = null;
+        }
         this.waktuTargetSelesai = null;
         this.isUjianTerkunci = true;
 
@@ -672,7 +703,6 @@ const istLogic = {
 
         // Kirim jawaban mentah dan hitung skor via server Supabase RPC
         const hasilSkor = await this.hitungSkorIST();
-        console.log(`[IST Logic] Data ${subtestName} berhasil diproses:`, hasilSkor);
 
         // Tandai subtes selesai di riwayat progres
         if (!this.completedSubtests.includes(subtestCode)) {
@@ -725,7 +755,6 @@ const istLogic = {
                 if (error) {
                     console.warn(`[IST Logic] Gagal memanggil hitung_dan_simpan_ist untuk ${subtestName}:`, error);
                 } else {
-                    console.log(`[IST Logic] Sukses hitung dan simpan ${subtestName} via Supabase RPC:`, data);
                     hasilRpc = data;
                 }
             } else {
@@ -778,14 +807,45 @@ const istLogic = {
             }
         } catch (eFoto) {}
 
-        // Update hasil tes ke Supabase (dinonaktifkan agar tidak menimpa skor IST dari database)
+        // Update hasil tes ke Supabase dengan teknik Safe Merge agar tidak menimpa skor subtes dari SQL
         try {
-            // if (typeof updateHasilTes === 'function') {
-            //     await updateHasilTes('hasil_ist', dataIST);
-            // }
-            console.log('[IST Logic] Seluruh nilai IST telah tersimpan aman di database Supabase.');
+            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
+                ? supabaseClient
+                : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+
+            const idPesertaAktif = localStorage.getItem('id_peserta') || this.id_peserta;
+            if (sb && idPesertaAktif) {
+                // 1. Ambil data hasil_ist saat ini yang sudah berisi skor subtes dari fungsi SQL
+                const { data: rowKandidat } = await sb
+                    .from('kandidat_psikotes')
+                    .select('hasil_ist')
+                    .eq('id', idPesertaAktif)
+                    .single();
+
+                const existingIst = (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object')
+                    ? rowKandidat.hasil_ist
+                    : {};
+
+                // 2. Selipkan catatan pelanggaran & integritas dengan spread operator (skor SQL tetap 100% utuh)
+                const mergedIst = {
+                    ...existingIst,
+                    pelanggaran_tab_switch: violations,
+                    catatan_integritas: violations > 0
+                        ? `[⚠️ Terdeteksi ${violations}x perpindahan tab/jendela]`
+                        : 'Bersih (Tidak ada perpindahan tab)',
+                    foto_pengawasan: dataIST.foto_pengawasan || existingIst.foto_pengawasan || []
+                };
+
+                // 3. Simpan data gabungan kembali ke Supabase
+                await sb
+                    .from('kandidat_psikotes')
+                    .update({ hasil_ist: mergedIst })
+                    .eq('id', idPesertaAktif);
+
+                console.log('[IST Logic] Safe Merge berhasil: Catatan integritas tersimpan, seluruh skor subtes SQL tetap utuh.');
+            }
         } catch (err) {
-            console.warn('[IST Logic] Catatan Supabase:', err);
+            console.warn('[IST Logic] Catatan Safe Merge Supabase:', err);
         }
 
         // Tandai IST selesai di localStorage
@@ -897,23 +957,125 @@ if (typeof window !== 'undefined') {
         }
     });
 
-    // Cegah dan tangkal Screenshot (PrintScreen, Win+Shift+S, Ctrl+P) terutama di Subtes 09
-    window.addEventListener('keydown', (e) => {
-        const isSubtes09 = typeof istLogic !== 'undefined' && istLogic.currentSubtestNo === 9 &&
-                           (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN');
+    // Helper Sensor Layar Khusus Subtes 09 (Anti-Capture & Anti-Cheat Overlay)
+    function sensorLayarHafalan(isAktif) {
+        // Sensor HANYA berlaku saat fase hafalan Subtes 09 (fase CONTOH) aktif
+        const isHafalanAktif = typeof istLogic !== 'undefined' && 
+                               Number(istLogic.currentSubtestNo) === 9 && 
+                               istLogic.fase === 'CONTOH' && 
+                               !istLogic.isUjianTerkunci &&
+                               localStorage.getItem('ist_selesai') !== 'true';
 
-        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        if (isAktif && !isHafalanAktif) {
+            isAktif = false;
+        }
+
+        const cardHafalan = document.getElementById('card-hafalan-soal-09');
+        const istContainer = document.getElementById('ist-app-container');
+        let overlay = document.getElementById('ist-sensor-overlay-09');
+
+        if (isAktif) {
+            if (cardHafalan) {
+                cardHafalan.style.filter = 'blur(25px)';
+                cardHafalan.style.opacity = '0';
+                cardHafalan.style.userSelect = 'none';
+                cardHafalan.style.pointerEvents = 'none';
+            }
+            if (istContainer) {
+                istContainer.style.filter = 'blur(20px)';
+            }
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'ist-sensor-overlay-09';
+                // z-40 agar berada tepat di bawah modal-message (z-50) sehingga modal tetap terlihat jelas dan tombol dapat diklik
+                overlay.className = 'fixed inset-0 bg-slate-950/85 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 text-white text-center select-none pointer-events-none';
+                overlay.innerHTML = `
+                    <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl mb-4 border border-amber-500/30">
+                        <i class="fa-solid fa-eye-slash"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-white mb-2 uppercase tracking-wide">Materi Hafalan Disensor Sementara</h3>
+                    <p class="text-sm text-slate-300 max-w-md leading-relaxed">
+                        Layar hafalan otomatis disensor saat meninggalkan jendela atau berpindah tab demi menjaga integritas ujian seleksi PT Altrak 1978.
+                    </p>
+                `;
+                document.body.appendChild(overlay);
+            } else {
+                overlay.style.display = 'flex';
+            }
+        } else {
+            if (cardHafalan) {
+                cardHafalan.style.filter = 'none';
+                cardHafalan.style.opacity = '1';
+                cardHafalan.style.userSelect = 'none';
+                cardHafalan.style.pointerEvents = 'auto';
+            }
+            if (istContainer) {
+                istContainer.style.filter = 'none';
+            }
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+    }
+    window.sensorLayarHafalan = sensorLayarHafalan;
+
+    // Pastikan sensor kembali terbuka saat tombol "Saya Mengerti & Kembali ke Tes" pada modal diklik
+    document.addEventListener('click', (e) => {
+        if (e.target && (e.target.id === 'msgBtnOk' || e.target.closest('#msgBtnOk'))) {
+            const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9;
+            if (isSubtes09) {
+                // Pulihkan kembali ke layar penuh jika keluar saat sesi hafalan
+                if (istLogic.fase === 'CONTOH' && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+                setTimeout(() => {
+                    sensorLayarHafalan(false);
+                }, 50);
+            }
+        }
+    });
+
+    // Deteksi jika peserta keluar dari mode Layar Penuh (Fullscreen) selama sesi hafalan Subtes 09
+    document.addEventListener('fullscreenchange', () => {
+        const isSubtes09Hafalan = typeof istLogic !== 'undefined' && 
+                                  Number(istLogic.currentSubtestNo) === 9 && 
+                                  istLogic.fase === 'CONTOH';
+        if (isSubtes09Hafalan && !document.fullscreenElement) {
+            sensorLayarHafalan(true);
+            pemicuPeringatanIntegritas09('mode layar penuh (Fullscreen)');
+        }
+    });
+
+    // Deteksi kursor mouse keluar dari jendela browser (ke taskbar, aplikasi lain, atau monitor kedua)
+    document.addEventListener('mouseleave', () => {
+        const isSubtes09Hafalan = typeof istLogic !== 'undefined' && 
+                                  Number(istLogic.currentSubtestNo) === 9 && 
+                                  istLogic.fase === 'CONTOH';
+        if (isSubtes09Hafalan) {
+            sensorLayarHafalan(true);
+            pemicuPeringatanIntegritas09('kursor keluar dari jendela asesmen');
+        }
+    });
+
+    // Cegah dan tangkal Screenshot (PrintScreen, Win+Shift+S, Snipping Tool, Ctrl+P) terutama di sesi hafalan Subtes 09
+    window.addEventListener('keydown', (e) => {
+        const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 &&
+                           istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci &&
+                           localStorage.getItem('ist_selesai') !== 'true';
+
+        const isCaptureKey = (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) ||
+                             (e.shiftKey && (e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S' || e.code === 'KeyS')) ||
+                             ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P' || e.code === 'KeyP')) ||
+                             (e.altKey && (e.key === 'PrintScreen' || e.keyCode === 44));
+
+        if (isCaptureKey) {
             e.preventDefault();
             e.stopPropagation();
             clearUserClipboardFallback();
-            if (isSubtes09 && typeof istUI !== 'undefined' && istUI.showModal) {
-                istUI.showModal({
-                    title: "⚠️ Dilarang Mengambil Screenshot!",
-                    message: "Pengambilan tangkapan layar (screenshot) dilarang keras demi integritas ujian seleksi PT Altrak 1978. Seluruh aktivitas terekam dalam sistem pengawasan kamera.",
-                    type: "warning",
-                    iconHtml: '<i class="fa-solid fa-camera-slash text-red-500"></i>',
-                    okText: '<span>Saya Mengerti</span>'
-                });
+
+            if (isSubtes09) {
+                sensorLayarHafalan(true);
+                pemicuPeringatanIntegritas09('tangkapan layar (screenshot / capture)');
             }
             return false;
         }
@@ -925,7 +1087,7 @@ if (typeof window !== 'undefined') {
     }, true);
 
     window.addEventListener('keyup', (e) => {
-        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44 || e.key === 'Meta' || e.key === 'Control') {
             clearUserClipboardFallback();
         }
     });
@@ -954,86 +1116,96 @@ if (typeof window !== 'undefined') {
         });
     });
 
-    // Anti tab-switching fallback
-    let istLastViolation = 0;
-    if (typeof tabSwitchViolations === 'undefined') {
-        window.tabSwitchViolations = 0;
-    }
-
-    function istHandleViolation(reason) {
-        if ((istLogic.fase !== 'UJIAN' && !(istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) || istLogic.isUjianTerkunci) {
-            return;
-        }
+    // Debounce dan pemicu peringatan integritas khusus Subtes 09 (Hafalan & Ujian)
+    let istLastViolationTime = 0;
+    function pemicuPeringatanIntegritas09(reason) {
         const now = Date.now();
-        if (now - istLastViolation < 1500) return;
-        istLastViolation = now;
+        if (now - istLastViolationTime < 1500) return;
+        istLastViolationTime = now;
 
-        clearUserClipboardFallback();
-        tabSwitchViolations++;
+        if (typeof window.handleIntegrityViolation === 'function') {
+            window.handleIntegrityViolation(reason);
+        } else if (typeof istUI !== 'undefined' && istUI.showModal) {
+            if (typeof tabSwitchViolations === 'undefined') window.tabSwitchViolations = 0;
+            tabSwitchViolations++;
 
-        if (tabSwitchViolations <= 3) {
-            const sisa = 3 - tabSwitchViolations;
+            if (tabSwitchViolations > 3 && istLogic.fase === 'CONTOH') {
+                sensorLayarHafalan(false);
+                const cardHafalan = document.getElementById('card-hafalan-soal-09');
+                if (cardHafalan) cardHafalan.style.display = 'none';
+                if (istLogic.timerContohId) {
+                    clearInterval(istLogic.timerContohId);
+                    istLogic.timerContohId = null;
+                }
+                tabSwitchViolations = 0;
+                istUI.showModal({
+                    title: "🚨 Waktu Menghafal Dihentikan!",
+                    message: `Batas toleransi pelanggaran terlampaui saat sesi menghafal.\n\nSesuai pakta integritas ujian PT Altrak 1978, lembar hafalan kata langsung ditutup dan Anda langsung diarahkan untuk mengerjakan 20 soal ujian Subtes 09.`,
+                    type: "error",
+                    iconHtml: '<i class="fa-solid fa-ban text-red-500"></i>',
+                    okText: '<span>Mulai Ujian Soal 09</span>',
+                    onOk: () => {
+                        istLogic.mulaiFaseUjian();
+                    }
+                });
+                return;
+            }
+
+            const sisa = Math.max(0, 3 - tabSwitchViolations);
             const pesanSisa = sisa > 0
                 ? `Sisa toleransi pelanggaran: ${sisa} kali lagi.`
                 : `PERINGATAN TERAKHIR! Jika Anda berpindah tab atau aplikasi sekali lagi, tes Anda akan otomatis diakhiri dan dikumpulkan ke server!`;
-
             istUI.showModal({
                 title: "⚠️ Peringatan Integritas Ujian",
                 message: `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`,
                 type: "warning",
                 iconHtml: '<i class="fa-solid fa-triangle-exclamation text-amber-500"></i>',
-                okText: '<span>Saya Mengerti & Kembali ke Tes</span>'
-            });
-        } else {
-            istUI.showModal({
-                title: "🚨 Tes Dihentikan Otomatis",
-                message: `Batas toleransi pelanggaran terlampaui (lebih dari 3 kali berpindah tab/aplikasi).\n\nSesuai pakta integritas ujian PT Altrak 1978, rangkaian tes IST Anda dihentikan secara otomatis dan lembar jawaban langsung dikumpulkan ke sistem.`,
-                type: "error",
-                iconHtml: '<i class="fa-solid fa-ban text-red-500"></i>',
-                okText: '<span>Tutup & Kembali ke Menu</span>',
+                okText: '<span>Saya Mengerti & Kembali ke Tes</span>',
                 onOk: () => {
-                    istLogic.selesaikanSubtesAktif();
-                    istLogic.tampilkanMenu9Subtes();
+                    sensorLayarHafalan(false);
                 }
             });
-            setTimeout(() => {
-                if (!istLogic.isUjianTerkunci) {
-                    istLogic.selesaikanSubtesAktif();
-                    istLogic.tampilkanMenu9Subtes();
-                }
-            }, 1500);
         }
     }
 
+    // Event deteksi saat berpindah tab browser (visibilitychange)
     document.addEventListener('visibilitychange', () => {
+        const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 &&
+                           istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci &&
+                           localStorage.getItem('ist_selesai') !== 'true';
+
         if (document.hidden) {
-            istHandleViolation('tab atau jendela browser');
-        } else if (istLogic.waktuTargetSelesai && Date.now() >= istLogic.waktuTargetSelesai && !istLogic.isUjianTerkunci) {
-            // Jika peserta kembali ke tab dan waktu pengerjaan telah habis di dunia nyata
-            istLogic.waktuUjianHabis();
+            if (isSubtes09) {
+                sensorLayarHafalan(true);
+                clearUserClipboardFallback();
+                pemicuPeringatanIntegritas09('tab atau jendela browser');
+            }
+        } else {
+            // Saat peserta kembali ke tab asesmen:
+            // Sesuai Solusi 1, sensor TIDAK dimatikan otomatis oleh event tab/focus agar layar tidak berkedip atau terbuka sendiri.
+            // Sensor hanya bisa dibuka jika tombol pop-up [Saya Mengerti & Kembali ke Tes] diklik oleh peserta.
+            if (istLogic.waktuTargetSelesai && Date.now() >= istLogic.waktuTargetSelesai && !istLogic.isUjianTerkunci) {
+                istLogic.waktuUjianHabis();
+            }
         }
     });
 
+    // Event deteksi saat jendela kehilangan fokus / pindah aplikasi (blur)
     window.addEventListener('blur', () => {
-        const isSubtes09 = typeof istLogic !== 'undefined' && istLogic.currentSubtestNo === 9 &&
-                           (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN');
+        const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 &&
+                           istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci &&
+                           localStorage.getItem('ist_selesai') !== 'true';
         if (isSubtes09) {
-            // Samarkan / blur seketika lembar hafalan dan soal agar tidak tertangkap oleh Snipping Tool / aplikasi lain
-            const cardHafalan = document.getElementById('card-hafalan-soal-09');
-            if (cardHafalan) cardHafalan.style.filter = 'blur(25px)';
-            const istContainer = document.getElementById('ist-app-container');
-            if (istContainer) istContainer.style.filter = 'blur(25px)';
+            sensorLayarHafalan(true);
             clearUserClipboardFallback();
+            pemicuPeringatanIntegritas09('ke aplikasi lain');
         }
-        istHandleViolation('ke aplikasi lain');
     });
 
+    // Event saat jendela browser kembali aktif (focus)
     window.addEventListener('focus', () => {
-        const cardHafalan = document.getElementById('card-hafalan-soal-09');
-        if (cardHafalan) cardHafalan.style.filter = 'none';
-        const istContainer = document.getElementById('ist-app-container');
-        if (istContainer) istContainer.style.filter = 'none';
-
+        // Sesuai Solusi 1, event focus TIDAK mematikan sensor secara otomatis.
+        // Sensor hanya bisa dibuka jika tombol pop-up [Saya Mengerti & Kembali ke Tes] diklik oleh peserta.
         if (istLogic.waktuTargetSelesai && Date.now() >= istLogic.waktuTargetSelesai && !istLogic.isUjianTerkunci) {
             istLogic.waktuUjianHabis();
         }

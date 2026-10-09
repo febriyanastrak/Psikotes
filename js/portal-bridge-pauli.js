@@ -133,13 +133,16 @@
                     const rawName = state.user.name.trim();
 
                     // Bersihkan flag tes lama untuk sesi baru
-                    localStorage.removeItem('ist_selesai');
-                    localStorage.removeItem('papi_selesai');
-                    localStorage.removeItem('disc_selesai');
-                    localStorage.removeItem('pauli_selesai');
-                    localStorage.removeItem('ist_terkirim_supabase');
-                    localStorage.removeItem('altrak_ist_completed_subtests');
-                    localStorage.removeItem('papi_answers');
+                    [
+                        'ist_selesai', 'papi_selesai', 'disc_selesai', 'pauli_selesai',
+                        'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
+                        'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
+                        'hasil_papi', 'hasil_disc', 'hasil_pauli', 'hasil_ist'
+                    ].forEach(k => localStorage.removeItem(k));
+
+                    if (typeof resetDashboardState === 'function') {
+                        resetDashboardState();
+                    }
 
                     // Periksa apakah ID peserta sudah ada dari sesi sebelumnya di localStorage
                     let idPesertaBaru = localStorage.getItem('id_peserta') || null;
@@ -147,8 +150,8 @@
                     const cleanEmail = (state.user && state.user.email || '').toLowerCase().trim();
 
                     try {
-                        const sbUrl = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
-                        const sbKey = window.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2Zmxtem5iaWh1bmV6enFob2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODM4OTcsImV4cCI6MjEwNTU1OTg5N30.tHXAXhKRvChZOqKjRq9S8AvvSo59PiYizpgDI9FmHcE';
+                        const sbUrl = window.SUPABASE_URL || '';
+                        const sbKey = window.SUPABASE_KEY || '';
 
                         let supabase = null;
                         if (window.supabase && typeof window.supabase.from === 'function') {
@@ -272,18 +275,9 @@
                     localStorage.setItem('papi_selesai', 'true');
 
                 } else if (testNum === 3) {
-                    console.log('[Portal Bridge] Tes 3 (DISC) selesai, menyimpan ke Supabase...');
-                    const dataDisc = {
-                        id_peserta: idPeserta,
-                        nama_peserta: namaPeserta,
-                        status: 'selesai',
-                        modul: 'DISC Assessment',
-                        waktu_selesai: new Date().toISOString()
-                    };
-
-                    if (typeof updateHasilTes === 'function') {
-                        await updateHasilTes('hasil_disc', dataDisc);
-                    }
+                    // Hasil DISC sudah dihitung dan disimpan lengkap oleh disc.js via Supabase RPC
+                    // Jangan menimpa kolom hasil_disc dengan data dummy di sini
+                    console.log('[Portal Bridge] Tes 3 (DISC) selesai.');
                     localStorage.setItem('disc_selesai', 'true');
                 }
 
@@ -297,34 +291,11 @@
      * 4. PENYADAP PENYELESAIAN TES PAULI (MODUL 4)
      */
     function pasangPenyadapSelesaiPauli() {
-        if (typeof window.tampilkanHalamanSelesai === 'function') {
-            const origTampilkan = window.tampilkanHalamanSelesai;
-
-            window.tampilkanHalamanSelesai = async function () {
-                origTampilkan();
-
-                console.log('[Portal Bridge] Tes 4 (Pauli) selesai, menyimpan ke Supabase...');
-
-                const pauliState = (typeof state !== 'undefined' && state.pauli) ? state.pauli : {};
-                const userState = (typeof state !== 'undefined' && state.user) ? state.user : {};
-
-                const dataPauli = {
-                    id_peserta: localStorage.getItem('id_peserta') || 'kandidat',
-                    nama_peserta: localStorage.getItem('nama_peserta') || userState.name || 'Peserta',
-                    total_pauli: Number(pauliState.totalAnswered || 0),
-                    jawaban_benar: Number(pauliState.scoredCorrect || 0),
-                    jawaban_salah: Number(pauliState.scoredWrong || 0),
-                    garis_interval_3_menit: (pauliState.garisArray && pauliState.garisArray.length)
-                        ? pauliState.garisArray.join(', ')
-                        : '0',
-                    waktu_selesai: new Date().toISOString()
-                };
-
-                if (typeof updateHasilTes === 'function') {
-                    await updateHasilTes('hasil_pauli', dataPauli);
-                }
-                localStorage.setItem('pauli_selesai', 'true');
-            };
-        }
+        // DINONAKTIFKAN: Penyimpanan data Pauli ke Supabase sudah ditangani oleh
+        // sendToSupabase() di pauli.js secara lengkap (termasuk tabel legacy).
+        // Menjalankan dua jalur penyimpanan bersamaan menyebabkan race condition
+        // yang membuat data saling menimpa dan bisa hilang.
+        // Referensi: pauli.js → selesaikanTesPauli() → sendToSupabase()
+        console.log('[Portal Bridge] Penyadap Pauli dinonaktifkan — penyimpanan ditangani pauli.js sendToSupabase()');
     }
 })();

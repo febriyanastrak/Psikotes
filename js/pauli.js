@@ -830,6 +830,10 @@ function prosesSimpanPauli(isTimeUp = false) {
         showPage('page-selesai');
     }
 
+    if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+    }
+
     // 11. Kirim sinkronisasi ke server Supabase secara background (asinkron) tanpa memblokir UI
     sendToSupabase(payload);
 }
@@ -854,10 +858,11 @@ async function sendToSupabase(payload = null, callback = null) {
         });
         const navUserEl = document.getElementById('nav-user-name');
         const navUserName = navUserEl && navUserEl.innerText && navUserEl.innerText !== 'Peserta' ? navUserEl.innerText : '';
+        const violations = typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0;
         payload = {
             id: Date.now(),
             "Waktu Mulai": (state.user && state.user.startTime) ? state.user.startTime : waktuSelesaiRapi,
-            "Waktu Selesai": waktuSelesaiRapi,
+            "Waktu Selesai": finalWaktuSelesai || waktuSelesaiRapi,
             "Nama Lengkap": (state.user && state.user.name) ? state.user.name : (navUserName || 'Peserta Ujian'),
             "Alamat Email": (state.user && state.user.email) ? state.user.email : 'peserta@altrak1978.co.id',
             "No WhatsApp": (state.user && state.user.phone) ? state.user.phone : '-',
@@ -866,32 +871,46 @@ async function sendToSupabase(payload = null, callback = null) {
             "Jawaban Salah": Number(state.pauli.scoredWrong || 0),
             "Garis Interval (3 Menit)": (state.pauli.garisArray && state.pauli.garisArray.length)
                 ? state.pauli.garisArray.join(', ')
-                : '0'
+                : '0',
+            "Pelanggaran Tab": violations
         };
     }
 
     // Upayakan pengiriman ke database server Supabase
     try {
         const idPeserta = typeof localStorage !== 'undefined' ? localStorage.getItem('id_peserta') : null;
-        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient)
+            ? supabaseClient
+            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+        if (sbClient) {
             let updatedKandidat = false;
+            const violations = typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0;
 
             // 1. Perbarui data Pauli pada sesi kandidat terpadu (kandidat_psikotes)
             if (idPeserta) {
+                const waktuISO = new Date().toISOString();
                 const dataPauli = {
                     total_pengerjaan: Number(state.pauli.totalAnswered || 0),
                     jawaban_benar: Number(state.pauli.scoredCorrect || 0),
                     jawaban_salah: Number(state.pauli.scoredWrong || 0),
-                    garis_interval: state.pauli.garisArray || []
+                    garis_interval: state.pauli.garisArray || [],
+                    pelanggaran_tab: violations,
+                    catatan_integritas: violations > 0 ? `Pernah ${violations}x ganti tab` : 'Bersih (0 Pelanggaran)',
+                    waktu_selesai: waktuISO,
+                    waktu_selesai_teks: payload["Waktu Selesai"]
                 };
-                const { error: errUp } = await supabaseClient
+                const { error: errUp } = await sbClient
                     .from('kandidat_psikotes')
                     .update({
                         hasil_pauli: JSON.stringify(dataPauli),
-                        waktu_selesai: payload["Waktu Selesai"]
+                        waktu_selesai: waktuISO
                     })
                     .eq('id', idPeserta);
-                if (!errUp) updatedKandidat = true;
+                if (!errUp) {
+                    updatedKandidat = true;
+                } else {
+                    console.warn('[Supabase Pauli] Catatan simpan waktu_selesai:', errUp.message || errUp);
+                }
             }
 
             // 2. Sinkronkan ke tabel legacy (hasil_psikotes_kandidat) tanpa membuat baris dobel
@@ -901,7 +920,7 @@ async function sendToSupabase(payload = null, callback = null) {
                 let existingOldId = null;
 
                 if (emailClean && !emailClean.includes('altrak1978.co.id')) {
-                    const { data: oldByEmail } = await supabaseClient
+                    const { data: oldByEmail } = await sbClient
                         .from('hasil_psikotes_kandidat')
                         .select('id')
                         .eq('Alamat Email', payload["Alamat Email"])
@@ -909,7 +928,7 @@ async function sendToSupabase(payload = null, callback = null) {
                     if (oldByEmail && oldByEmail.length > 0) existingOldId = oldByEmail[0].id;
                 }
                 if (!existingOldId && phoneClean && phoneClean.length >= 6) {
-                    const { data: oldByPhone } = await supabaseClient
+                    const { data: oldByPhone } = await sbClient
                         .from('hasil_psikotes_kandidat')
                         .select('id')
                         .eq('No WhatsApp', payload["No WhatsApp"])
@@ -918,13 +937,13 @@ async function sendToSupabase(payload = null, callback = null) {
                 }
 
                 if (existingOldId) {
-                    await supabaseClient
+                    await sbClient
                         .from('hasil_psikotes_kandidat')
                         .update(payload)
                         .eq('id', existingOldId);
                 } else if (!updatedKandidat) {
                     // Hanya buat baris baru jika kandidat belum tercatat di kandidat_psikotes
-                    await supabaseClient
+                    await sbClient
                         .from('hasil_psikotes_kandidat')
                         .insert([payload]);
                 }
@@ -933,6 +952,8 @@ async function sendToSupabase(payload = null, callback = null) {
     } catch (err) {
         console.warn('Supabase Network Note (tersimpan aman di cadangan lokal):', err);
     } finally {
+        // Tandai Pauli selesai (flag ini dibutuhkan dashboard untuk unlock kartu berikutnya)
+        localStorage.setItem('pauli_selesai', 'true');
         if (callback) callback();
     }
 }

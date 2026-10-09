@@ -8,8 +8,16 @@
  */
 function tampilkanHalamanSelesai() {
     window._tesSelesai = true;
+    try {
+        localStorage.setItem('altrak_fase_aktif', 'view-selesai');
+        sessionStorage.setItem('altrak_fase_aktif', 'view-selesai');
+    } catch (e) {}
     if (typeof stopProctoringCamera === 'function') {
         stopProctoringCamera();
+    }
+    // Kembalikan layar ke mode normal (exitFullscreen) saat seluruh rangkaian tes selesai
+    if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
     }
     const namaEl = document.getElementById('selesai-nama');
     if (namaEl && state.user && state.user.name) {
@@ -20,10 +28,45 @@ function tampilkanHalamanSelesai() {
 }
 
 /**
+ * Memeriksa dan menampilkan modal gerbang Layar Penuh saat berada di Dashboard jika belum Fullscreen
+ */
+function checkDashboardFullscreen() {
+    const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
+    const dashView = document.getElementById('view-dashboard') || document.getElementById('page-dashboard');
+    const isDashVisible = dashView && !dashView.classList.contains('hide-section') && dashView.style.display !== 'none';
+
+    if (isCandidateLoggedIn && isDashVisible && !document.fullscreenElement) {
+        if (typeof customAlert === 'function') {
+            const namaPeserta = state.user.name ? state.user.name.split(' ')[0] : 'Peserta';
+            customAlert(
+                "Masuk ke Mode Layar Penuh",
+                `Selamat datang, ${namaPeserta}!\n\nDemi menjaga kenyamanan dan integritas pelaksanaan seleksi PT Altrak 1978, asesmen wajib dijalankan dalam mode Layar Penuh (Fullscreen).\n\nSilakan klik tombol di bawah untuk melanjutkan ke Dashboard.`,
+                "info",
+                false,
+                () => {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                }
+            );
+            const btnOk = document.getElementById('msgBtnOk');
+            if (btnOk) {
+                btnOk.innerText = "Masuk ke Layar Penuh";
+            }
+        }
+    }
+}
+window.checkDashboardFullscreen = checkDashboardFullscreen;
+
+/**
  * Menangani pembukaan modul tes dari dashboard
  * @param {number} testNum Nomor modul tes (1: IST, 2: PAPI, 3: DISC, 4: Pauli)
  */
 function handleStartModule(testNum) {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+
     if (testNum === 1) {
         const modal = document.getElementById('modal-module-ist');
         if (modal) {
@@ -52,6 +95,9 @@ function handleStartModule(testNum) {
  */
 function startISTTest() {
     closeModal('modal-module-ist');
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
     const viewIst = document.getElementById('view-ist') || document.getElementById('page-ist');
     if (viewIst) {
         if (typeof pindahFase === 'function') {
@@ -156,11 +202,14 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // 2. Blokir tombol PrintScreen (Anti-Screenshot) & langsung bersihkan clipboard
+    // 2. Blokir tombol PrintScreen (Anti-Screenshot) & langsung aktifkan sensor hitam di Subtes 09
     if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
-        e.stopPropagation();
         clearUserClipboard();
+        const isSubtes09Hafalan = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 && istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci && localStorage.getItem('ist_selesai') !== 'true';
+        if (isSubtes09Hafalan && typeof window.sensorLayarHafalan === 'function') {
+            window.sensorLayarHafalan(true);
+        }
         const testStatus = isTestActive();
         if (testStatus.active) {
             handleIntegrityViolation('percobaan tangkapan layar (screenshot)');
@@ -174,10 +223,38 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // 4. Blokir shortcut cetak, simpan dokumen, dan inspect (Ctrl+P, Ctrl+S, Ctrl+U, Ctrl+Shift+I/J/C)
+    // 4. Blokir shortcut screenshot & cetak: Ctrl+Shift+S (Edge Web Capture), Ctrl+P, Ctrl+S, Ctrl+U, dll
     if (e.ctrlKey || e.metaKey) {
         const k = (e.key || '').toLowerCase();
-        if (k === 'p' || k === 's' || k === 'u') {
+        // Tangkal Ctrl + Shift + S (Web Capture)
+        if (e.shiftKey && (k === 's' || e.code === 'KeyS')) {
+            e.preventDefault();
+            clearUserClipboard();
+            const isSubtes09Hafalan = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 && istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci && localStorage.getItem('ist_selesai') !== 'true';
+            if (isSubtes09Hafalan && typeof window.sensorLayarHafalan === 'function') {
+                window.sensorLayarHafalan(true);
+            }
+            const testStatus = isTestActive();
+            if (testStatus.active) {
+                handleIntegrityViolation('tangkapan layar (Web Capture / Ctrl+Shift+S)');
+            }
+            return false;
+        }
+        // Tangkal Ctrl + P (Cetak / Simpan PDF)
+        if (k === 'p' || e.code === 'KeyP') {
+            e.preventDefault();
+            clearUserClipboard();
+            const isSubtes09Hafalan = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 && istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci && localStorage.getItem('ist_selesai') !== 'true';
+            if (isSubtes09Hafalan && typeof window.sensorLayarHafalan === 'function') {
+                window.sensorLayarHafalan(true);
+            }
+            const testStatus = isTestActive();
+            if (testStatus.active) {
+                handleIntegrityViolation('percobaan cetak layar (Ctrl+P)');
+            }
+            return false;
+        }
+        if (k === 's' || k === 'u') {
             e.preventDefault();
             return;
         }
@@ -204,15 +281,23 @@ document.addEventListener('keydown', (e) => {
 // Tandai bahwa pengamanan global aktif
 window._appSecurityLoaded = true;
 
-// Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli atau IST)
+// Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli, IST, atau PAPI Kostick)
 function isTestActive() {
     const isPauli = typeof state !== 'undefined' && state.pauli && state.pauli.isActive && !isTrialMode && !window._tesSelesai;
     if (isPauli) return { active: true, testType: 'Pauli' };
 
     const isIst = typeof istLogic !== 'undefined' && 
-                  (istLogic.fase === 'UJIAN' || (istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) && 
+                  (istLogic.fase === 'UJIAN' || (istLogic.fase === 'CONTOH' && Number(istLogic.currentSubtestNo) === 9)) && 
                   !istLogic.isUjianTerkunci;
     if (isIst) return { active: true, testType: 'IST' };
+
+    const papiView = document.getElementById('view-papi');
+    const isPapi = papiView && !papiView.classList.contains('hide-section');
+    if (isPapi) return { active: true, testType: 'PAPI Kostick' };
+
+    const discView = document.getElementById('view-disc');
+    const isDisc = discView && !discView.classList.contains('hide-section');
+    if (isDisc) return { active: true, testType: 'DISC' };
 
     return { active: false, testType: null };
 }
@@ -224,12 +309,12 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-// Peringatan saat peserta tidak sengaja ingin refresh atau menutup tab saat tes aktif (Pauli & IST)
+// Peringatan saat peserta tidak sengaja ingin refresh atau menutup tab saat tes aktif (Pauli, IST, PAPI, DISC)
 window.addEventListener('beforeunload', (e) => {
     const testStatus = isTestActive();
     if (testStatus.active) {
         e.preventDefault();
-        const namaTes = testStatus.testType === 'Pauli' ? 'Tes Pauli' : 'Tes IST';
+        const namaTes = testStatus.testType ? `Tes ${testStatus.testType}` : 'Tes Asesmen';
         e.returnValue = `${namaTes} sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!`;
         return e.returnValue;
     }
@@ -284,7 +369,9 @@ function handleIntegrityViolation(reason) {
 
     tabSwitchViolations++;
     const isPauli = testStatus.testType === 'Pauli';
-    const namaTes = isPauli ? 'Pauli' : 'IST';
+    const isPapi = testStatus.testType === 'PAPI Kostick';
+    const isDisc = testStatus.testType === 'DISC';
+    const namaTes = isPauli ? 'Pauli' : (isPapi ? 'PAPI Kostick' : (isDisc ? 'DISC' : 'IST'));
 
     if (tabSwitchViolations <= 3) {
         const sisa = 3 - tabSwitchViolations;
@@ -292,9 +379,11 @@ function handleIntegrityViolation(reason) {
             ? `Sisa toleransi pelanggaran: ${sisa} kali lagi.`
             : `PERINGATAN TERAKHIR! Jika Anda berpindah tab atau aplikasi sekali lagi, tes Anda akan otomatis diakhiri dan dikumpulkan ke server!`;
 
-        const pesanModal = `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`;
+        const pesanModal = (isPapi || isDisc)
+            ? `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations}).\n\nSistem merekam seluruh aktivitas ini ke database HRD PT Altrak 1978.\n\nTes ${namaTes} WAJIB diselesaikan seluruhnya dan tidak dapat ditinggalkan.\n\nHarap tetap fokus pada halaman asesmen sampai seluruh nomor selesai.`
+            : `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`;
 
-        if (isPauli) {
+        if (isPauli || isPapi || isDisc) {
             customAlert("⚠️ Peringatan Integritas Ujian", pesanModal, "error");
         } else if (typeof istUI !== 'undefined' && istUI.showModal) {
             istUI.showModal({
@@ -308,7 +397,7 @@ function handleIntegrityViolation(reason) {
             customAlert("⚠️ Peringatan Integritas Ujian", pesanModal, "error");
         }
     } else {
-        // Melanggar lebih dari 3 kali: otomatis selesaikan dan kumpulkan tes
+        // Melanggar lebih dari 3 kali: otomatis selesaikan dan kumpulkan tes (khusus Pauli & IST)
         const pesanDihentikan = `Batas toleransi pelanggaran terlampaui (lebih dari 3 kali berpindah tab/aplikasi).\n\nSesuai pakta integritas ujian PT Altrak 1978, rangkaian tes ${namaTes} Anda dihentikan secara otomatis dan lembar jawaban langsung dikumpulkan ke sistem.`;
 
         if (isPauli) {
@@ -328,7 +417,54 @@ function handleIntegrityViolation(reason) {
                     prosesSimpanPauli(true);
                 }
             }, 1200);
+        } else if (isPapi || isDisc) {
+            // PAPI Kostick & DISC: TIDAK dihentikan otomatis, seluruh nomor WAJIB diselesaikan 100%
+            const pesanPapiLanjut = `Peringatan Keras Integritas (Pelanggaran ke-${tabSwitchViolations} kali)!\n\nTerdeteksi perpindahan ${reason}.\n\nCatatan pelanggaran ini telah terekam secara permanen di database laporan HRD PT Altrak 1978. Tes ${namaTes} TIDAK DAPAT dihentikan paksa dan Anda WAJIB menyelesaikan seluruh butir asesmen sampai selesai.\n\nHarap tetap fokus dan lanjutkan pengerjaan soal.`;
+
+            customAlert(
+                "⚠️ Pelanggaran Integritas Dicatat",
+                pesanPapiLanjut,
+                "error"
+            );
         } else {
+            // Khusus Fase Menghafal Subtes 09: Jika melanggar > 3 kali, tutup hafalan dan paksa langsung ke 20 soal ujian Subtes 09 (tidak ke PAPI)
+            const isFaseHafalan09 = typeof istLogic !== 'undefined' && 
+                                    Number(istLogic.currentSubtestNo) === 9 && 
+                                    istLogic.fase === 'CONTOH';
+
+            if (isFaseHafalan09) {
+                const lanjutKeUjian09 = () => {
+                    const cardHafalan = document.getElementById('card-hafalan-soal-09');
+                    if (cardHafalan) cardHafalan.style.display = 'none';
+                    if (istLogic.timerContohId) {
+                        clearInterval(istLogic.timerContohId);
+                        istLogic.timerContohId = null;
+                    }
+                    tabSwitchViolations = 0; // Reset toleransi untuk pengerjaan 20 soal
+                    istLogic.mulaiFaseUjian();
+                };
+
+                if (typeof istUI !== 'undefined' && istUI.showModal) {
+                    istUI.showModal({
+                        title: "🚨 Waktu Menghafal Dihentikan!",
+                        message: `Batas toleransi pelanggaran terlampaui saat sesi menghafal.\n\nSesuai pakta integritas ujian PT Altrak 1978, lembar hafalan kata langsung ditutup dan Anda langsung diarahkan untuk mengerjakan 20 soal ujian Subtes 09.`,
+                        type: "error",
+                        iconHtml: '<i class="fa-solid fa-ban text-red-500"></i>',
+                        okText: '<span>Mulai Ujian Soal 09</span>',
+                        onOk: lanjutKeUjian09
+                    });
+                } else {
+                    customAlert("🚨 Waktu Menghafal Dihentikan!", `Batas toleransi pelanggaran terlampaui saat sesi menghafal. Lembar hafalan ditutup dan Anda langsung diarahkan ke 20 soal ujian Subtes 09.`, "error", false, lanjutKeUjian09);
+                }
+
+                setTimeout(() => {
+                    if (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH') {
+                        lanjutKeUjian09();
+                    }
+                }, 2000);
+                return;
+            }
+
             // IST dihentikan otomatis dan disimpan ke sistem database
             if (typeof istUI !== 'undefined' && istUI.showModal) {
                 istUI.showModal({
@@ -366,9 +502,11 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+window.handleIntegrityViolation = handleIntegrityViolation;
+
 // 2. Deteksi saat berpindah ke aplikasi lain / jendela kehilangan fokus (blur)
 window.addEventListener('blur', () => {
-    const isSubtes09 = typeof istLogic !== 'undefined' && istLogic.currentSubtestNo === 9 &&
+    const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 &&
                        (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN');
     if (isSubtes09) {
         // Samarkan / blur seketika lembar hafalan dan soal agar tidak tertangkap oleh Snipping Tool / aplikasi lain
@@ -381,18 +519,73 @@ window.addEventListener('blur', () => {
     handleIntegrityViolation('ke aplikasi lain');
 });
 
-// Kembalikan tampilan normal saat jendela kembali aktif (focus)
+// Kembalikan tampilan normal saat jendela kembali aktif (focus) - Khusus Subtes 09 hanya boleh dibuka lewat tombol modal
 window.addEventListener('focus', () => {
-    const cardHafalan = document.getElementById('card-hafalan-soal-09');
-    if (cardHafalan) cardHafalan.style.filter = 'none';
-    const istContainer = document.getElementById('ist-app-container');
-    if (istContainer) istContainer.style.filter = 'none';
+    const isSubtes09 = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 &&
+                       (istLogic.fase === 'CONTOH' || istLogic.fase === 'UJIAN');
+    // Jika Subtes 09 aktif, jangan buka blur secara otomatis saat focus (wajib klik tombol Saya Mengerti)
+    if (!isSubtes09) {
+        const cardHafalan = document.getElementById('card-hafalan-soal-09');
+        if (cardHafalan) cardHafalan.style.filter = 'none';
+        const istContainer = document.getElementById('ist-app-container');
+        if (istContainer) istContainer.style.filter = 'none';
+    }
+});
+
+// 3. Deteksi global saat peserta keluar dari mode Layar Penuh (Fullscreen) sejak Dashboard hingga selesai
+document.addEventListener('fullscreenchange', () => {
+    const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
+    if (isCandidateLoggedIn && !document.fullscreenElement) {
+        const testStatus = isTestActive();
+        if (testStatus.active) {
+            const isSubtes09Hafalan = typeof istLogic !== 'undefined' && Number(istLogic.currentSubtestNo) === 9 && istLogic.fase === 'CONTOH' && !istLogic.isUjianTerkunci && localStorage.getItem('ist_selesai') !== 'true';
+            if (isSubtes09Hafalan && typeof window.sensorLayarHafalan === 'function') {
+                window.sensorLayarHafalan(true);
+            }
+            handleIntegrityViolation('mode layar penuh (Fullscreen)');
+        } else {
+            // Jika keluar dari Fullscreen saat di Dashboard atau membaca petunjuk modul
+            if (typeof customAlert === 'function') {
+                customAlert(
+                    "Wajib Layar Penuh (Fullscreen)",
+                    "Demi integritas dan kenyamanan asesmen seleksi PT Altrak 1978, Anda wajib berada dalam mode Layar Penuh selama seluruh sesi berlangsung.\n\nKlik tombol di bawah untuk kembali ke mode Layar Penuh.",
+                    "warning",
+                    false,
+                    () => {
+                        if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen().catch(() => {});
+                        }
+                    }
+                );
+            }
+        }
+    }
+});
+
+// Pastikan browser kembali masuk Fullscreen saat tombol modal pesan diklik
+document.addEventListener('click', (e) => {
+    if (e.target && (e.target.id === 'msgBtnOk' || e.target.closest('#msgBtnOk'))) {
+        const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
+        if (isCandidateLoggedIn && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+    }
 });
 
 // Inisialisasi awal saat aplikasi selesai dimuat
 window.addEventListener('DOMContentLoaded', () => {
-    // Pastikan halaman login yang pertama kali tampil
-    showPage('page-login');
+    // Hanya buka login jika tidak ada sesi ujian aktif yang sedang dipulihkan oleh router SPA
+    const savedId = localStorage.getItem('id_peserta');
+    const savedName = localStorage.getItem('nama_peserta');
+    let activeFase = null;
+    try {
+        activeFase = localStorage.getItem('altrak_fase_aktif') || sessionStorage.getItem('altrak_fase_aktif');
+    } catch (e) {}
+    const isPauliSelesai = localStorage.getItem('pauli_selesai') === 'true';
+
+    if (!(savedId && savedName && ((activeFase && activeFase !== 'view-login') || isPauliSelesai))) {
+        showPage('page-login');
+    }
 
     // Pasang listener pada tombol kumpulkan
     if (typeof _attachSubmitBtnHandler === 'function') {
