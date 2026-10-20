@@ -25,6 +25,24 @@ function formatWaktuDisplay(val) {
 }
 
 /**
+ * Sanitasi string ketat untuk mencegah serangan XSS pada rendering HTML
+ * @param {string} text Input teks
+ * @returns {string} String yang sudah diamankan
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+if (typeof window !== 'undefined') {
+    window.escapeHtml = escapeHtml;
+}
+
+/**
  * Menampilkan daftar baris kandidat ke dalam tabel HRD
  * Semua data yang dirender disanitasi ketat untuk mencegah Stored XSS
  * @param {Array<{row: Object, originalIndex: number}>} dataList Daftar data kandidat
@@ -245,6 +263,18 @@ async function loadHrdData() {
                             }
                         } catch (e) {}
                     }
+                    // Deteksi pelanggaran dari modul Asesmen Tahap 2 (MSDT, EPPS, CFIT, MBTI)
+                    ['hasil_msdt', 'hasil_epps', 'hasil_cfit', 'hasil_mbti', 'hasil_mcmi'].forEach(modKey => {
+                        if (row[modKey]) {
+                            try {
+                                const m = typeof row[modKey] === 'string' ? JSON.parse(row[modKey]) : row[modKey];
+                                if (m && m.pelanggaran_tab_switch !== undefined) {
+                                    tabViolations = Math.max(tabViolations, Number(m.pelanggaran_tab_switch) || 0);
+                                }
+                            } catch (eMod) {}
+                        }
+                    });
+
                     // Fallback deteksi jika terdapat string "Tab Switch: Nx" di waktu selesai
                     const mTab = String(rawWaktuSelesai || '').match(/Tab Switch:\s*(\d+)x/i);
                     if (mTab) tabViolations = Math.max(tabViolations, parseInt(mTab[1], 10));
@@ -373,89 +403,13 @@ async function loadHrdData() {
 }
 
 /**
- * Mengekspor seluruh data hasil tes kandidat ke file Excel (.csv) dengan sanitasi CSV Injection
+ * Mengekspor seluruh data hasil tes kandidat ke file Excel (.csv)
+ * Terpusat & modular di js/hrd-export.js
  */
 function exportHrdToExcel() {
-    if (!cachedHrdData || cachedHrdData.length === 0) {
-        customAlert("Data Kosong", "Tidak ada data kandidat untuk diekspor.", "error");
-        return;
+    if (window.HrdExport && typeof window.HrdExport.exportHrdToExcel === 'function') {
+        return window.HrdExport.exportHrdToExcel();
     }
-
-    let headers = [
-        "ID", "Waktu Mulai", "Waktu Selesai", "Nama Lengkap", "Alamat Email", "No WhatsApp", "Posisi Dilamar", "Penempatan", "Domisili", "Token Ujian", "Integritas Ujian",
-        "Total Pauli", "Jawaban Salah", "Rata-Rata", "% Salah", "% Penyimpangan", "Total Simpangan (Interval 3-18)", "Tinggi", "Tempat Puncak"
-    ];
-    for (let i = 1; i <= 20; i++) headers.push(`Interval ${i}`);
-    let csvLines = [headers.join(",")];
-
-    cachedHrdData.forEach(row => {
-        let intervals = (row["Garis Interval (3 Menit)"] || "").split(',').map(n => n.trim());
-        while (intervals.length < 20) intervals.push("0");
-        let parsedNums = intervals.map(n => parseInt(n) || 0);
-
-        let jumlah = Number(row["Total Pauli"] || 0);
-        let salah = Number(row["Jawaban Salah"] || 0);
-        let rRata = (jumlah / 20);
-
-        let pSalah = 0;
-        if (jumlah > 0) {
-            if (jumlah <= 1000) pSalah = (salah / jumlah) * 100;
-            else if (jumlah <= 4000) pSalah = (salah / 400) * 100;
-            else pSalah = (salah / 500) * 100;
-        }
-
-        let totDev = 0;
-        if (parsedNums.length >= 18 && parsedNums.some(v => v > 0)) {
-            for (let i = 2; i < 18; i++) totDev += Math.abs(parsedNums[i] - rRata);
-        }
-        let pDev = rRata > 0 ? ((totDev / 16) * (100 / rRata)) : 0;
-        let tTinggi = Math.max(...parsedNums);
-        let tPuncak = tTinggi > 0 ? (parsedNums.indexOf(tTinggi) + 1) : "-";
-
-        // Cegah formula injection pada CSV (Formula injection protection)
-        const sanitizeForCsv = (val) => {
-            if (val === null || val === undefined) return '""';
-            let str = String(val).replace(/"/g, '""');
-            if (/^[=+@-]/.test(str)) {
-                str = "'" + str; // Prefix tanda kutip tunggal jika diawali simbol formula
-            }
-            return `"${str}"`;
-        };
-
-        let rowData = [
-            row.id,
-            sanitizeForCsv(row["Waktu Mulai"]),
-            sanitizeForCsv(row["Waktu Selesai"]),
-            sanitizeForCsv(row["Nama Lengkap"]),
-            sanitizeForCsv(row["Alamat Email"]),
-            sanitizeForCsv(row["No WhatsApp"]),
-            sanitizeForCsv(row["Posisi"] || row.posisi || row.posisi_dilamar || '-'),
-            sanitizeForCsv(row["Penempatan"] || row.penempatan || '-'),
-            sanitizeForCsv(row["Domisili"] || row.domisili || '-'),
-            sanitizeForCsv(row["Token"] || row.token || '-'),
-            sanitizeForCsv(Number(row["Pelanggaran Tab"] || 0) === 0 ? "Bersih (0 Pelanggaran)" : `Pernah ${row["Pelanggaran Tab"]}x Ganti Tab`),
-            jumlah,
-            salah,
-            `"${rRata.toFixed(1)}"`,
-            `"${pSalah.toFixed(1)} %"`,
-            `"${pDev.toFixed(1)} %"`,
-            `"${totDev.toFixed(1)}"`,
-            tTinggi,
-            `"${tPuncak}"`,
-            ...intervals.slice(0, 20)
-        ];
-        csvLines.push(rowData.join(","));
-    });
-
-    const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Laporan_Psikotes_Altrak_1978_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
 }
 
 /**
@@ -472,10 +426,34 @@ function viewCandidateChart(index) {
 
     currentSelectedCandidate = row;
 
-    // Render data ke masing-masing tab asesmen (urutan: IST, PAPI, DISC, Pauli)
+    // Cek apakah kandidat mengikuti asesmen manajerial tahap 2
+    const hasDataTahap2 = !!(
+        row.hasil_msdt || row.hasil_epps || row.hasil_cfit || row.hasil_mbti || row.hasil_mcmi ||
+        row.token_tahap_2 || row.status_tahap_2
+    );
+
+    // Atur visibilitas tombol tab Tahap 2 secara dinamis
+    ['tabBtnMsdt', 'tabBtnEpps', 'tabBtnCfit', 'tabBtnMbti'].forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.style.display = hasDataTahap2 ? 'inline-flex' : 'none';
+        }
+    });
+    const dividerTahap2 = document.getElementById('dividerTahap2');
+    if (dividerTahap2) {
+        dividerTahap2.style.display = hasDataTahap2 ? 'block' : 'none';
+    }
+
+    // Render data ke masing-masing tab asesmen
     renderIstResults(row.hasil_ist);
     renderPapiResults(row.hasil_papi);
     renderDiscResults(row.hasil_disc);
+    if (hasDataTahap2) {
+        renderMsdtResults(row.hasil_msdt);
+        renderEppsResults(row.hasil_epps);
+        renderCfitResults(row.hasil_cfit);
+        renderMbtiResults(row.hasil_mbti || row.hasil_mcmi);
+    }
     switchHrdTab('ist');
 
     const rptName = document.getElementById('rptName');
@@ -491,11 +469,24 @@ function viewCandidateChart(index) {
         const c = row["Penempatan"] || row.penempatan || '';
         const d = row["Domisili"] || row.domisili || '';
         const t = row["Token"] || row.token || '';
-        let txt = p;
-        if (c && c !== '-') txt += ` (${c})`;
-        if (d && d !== '-') txt += ` | Dom: ${d}`;
-        if (t && t !== '-') txt += ` | Token: ${t.toUpperCase()}`;
-        rptPosisi.innerText = txt;
+        
+        let branchStr = c && c !== '-' ? ` (${c})` : '';
+        let txt = `<div class="font-bold text-sm text-[#003865] truncate leading-tight">${escapeHtml(p)}${escapeHtml(branchStr)}</div>`;
+        
+        let badges = [];
+        if (d && d !== '-') {
+            badges.push(`<span class="inline-flex items-center text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Dom: ${escapeHtml(d)}</span>`);
+        }
+        if (t && t !== '-') {
+            badges.push(`<span class="inline-flex items-center text-[10px] font-mono font-bold text-slate-700 bg-slate-200/80 px-1.5 py-0.5 rounded">Token: ${escapeHtml(t.toUpperCase())}</span>`);
+        }
+        if (hasDataTahap2) {
+            badges.push(`<span class="inline-flex items-center gap-1 bg-amber-500/15 text-amber-800 border border-amber-500/30 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-crown text-amber-500"></i> Manajerial (Tahap 2)</span>`);
+        }
+        if (badges.length > 0) {
+            txt += `<div class="flex flex-wrap items-center gap-1.5 mt-1">${badges.join('')}</div>`;
+        }
+        rptPosisi.innerHTML = txt;
     }
     
     let rawDate = (row["Waktu Selesai"] && row["Waktu Selesai"] !== '-') ? row["Waktu Selesai"] : (row["Waktu Mulai"] || '-');
@@ -990,19 +981,41 @@ async function hapusSemuaData() {
 let currentSelectedCandidate = null;
 
 /**
- * Berpindah antar tab hasil tes (Pauli, IST, PAPI, DISC, Foto)
- * @param {'pauli'|'ist'|'papi'|'disc'|'foto'} tabId 
+ * Berpindah antar tab hasil tes (Pauli, IST, PAPI, DISC, Foto, MSDT, EPPS, CFIT, MBTI)
+ * @param {'pauli'|'ist'|'papi'|'disc'|'foto'|'msdt'|'epps'|'cfit'|'mbti'} tabId 
  */
 function switchHrdTab(tabId) {
-    const tabs = ['pauli', 'ist', 'papi', 'disc', 'foto'];
+    if (tabId === 'mcmi') tabId = 'mbti';
+    const tabs = ['pauli', 'ist', 'papi', 'disc', 'msdt', 'epps', 'cfit', 'mbti', 'foto'];
+    const hasDataTahap2 = currentSelectedCandidate && !!(
+        currentSelectedCandidate.hasil_msdt || currentSelectedCandidate.hasil_epps ||
+        currentSelectedCandidate.hasil_cfit || currentSelectedCandidate.hasil_mbti ||
+        currentSelectedCandidate.hasil_mcmi ||
+        currentSelectedCandidate.token_tahap_2 || currentSelectedCandidate.status_tahap_2
+    );
+
+    const dividerTahap2 = document.getElementById('dividerTahap2');
+    if (dividerTahap2) {
+        dividerTahap2.style.display = hasDataTahap2 ? 'block' : 'none';
+    }
+
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         const panel = document.getElementById('panelTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const isTahap2Tab = ['msdt', 'epps', 'cfit', 'mbti'].includes(t);
+
         if (btn) {
-            if (t === tabId) {
-                btn.className = "hrd-tab-btn active px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#003865] text-white shadow-sm";
+            if (isTahap2Tab && !hasDataTahap2) {
+                btn.style.display = 'none';
             } else {
-                btn.className = "hrd-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200";
+                btn.style.display = 'inline-flex';
+                if (t === tabId) {
+                    btn.className = "hrd-tab-btn active px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 bg-[#003865] text-white shadow-sm shrink-0 whitespace-nowrap";
+                } else if (t === 'foto') {
+                    btn.className = "hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-800 border border-amber-500/30 hover:bg-amber-500/20 shrink-0 whitespace-nowrap";
+                } else {
+                    btn.className = "hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap";
+                }
             }
         }
         if (panel) {
@@ -1020,6 +1033,12 @@ function switchHrdTab(tabId) {
         }, 50);
     }
 
+    if (tabId === 'ist' && istProfileChartInstance) {
+        setTimeout(() => {
+            istProfileChartInstance.resize();
+        }, 50);
+    }
+
     if (tabId === 'foto' && currentSelectedCandidate) {
         renderCandidatePhotos(currentSelectedCandidate);
     }
@@ -1031,120 +1050,2434 @@ function switchHrdTab(tabId) {
     if (tabId === 'disc' && currentSelectedCandidate) {
         renderDiscResults(currentSelectedCandidate.hasil_disc);
     }
+
+    if (tabId === 'msdt' && currentSelectedCandidate) {
+        renderMsdtResults(currentSelectedCandidate.hasil_msdt);
+    }
+
+    if (tabId === 'epps' && currentSelectedCandidate) {
+        renderEppsResults(currentSelectedCandidate.hasil_epps);
+    }
+
+    if (tabId === 'cfit' && currentSelectedCandidate) {
+        renderCfitResults(currentSelectedCandidate.hasil_cfit);
+    }
+
+    if (tabId === 'mbti' && currentSelectedCandidate) {
+        renderMbtiResults(currentSelectedCandidate.hasil_mbti || currentSelectedCandidate.hasil_mcmi);
+    }
 }
 
 /**
- * Merender rincian nilai 9 Subtes IST, Skor IQ, dan Kategori Kecerdasan
- * @param {Object|string} hasilIst 
+ * Merender Hasil Tes MSDT (Gaya Kepemimpinan Reddin 3-D) di Modal HRD
+ * Menampilkan Evaluasi Waktu Nyata (30 Menit), Indeks TO/RO/E, 8 Gaya Kepemimpinan, & Lembar Jawaban 64 Soal
  */
-function renderIstResults(hasilIst) {
-    const iqEl = document.getElementById('istRptIq');
-    const katEl = document.getElementById('istRptKategori');
-    const benarEl = document.getElementById('istRptTotalBenar');
-    const subtesEl = document.getElementById('istRptSubtesSelesai');
-    const tbody = document.getElementById('istSubtesTableBody');
+function renderMsdtResults(rawData) {
+    const emptyNotice = document.getElementById('msdtEmptyNotice');
+    const namaEl = document.getElementById('msdtRptGayaNama');
+    const deskripsiEl = document.getElementById('msdtRptGayaDeskripsi');
+    const tipeEl = document.getElementById('msdtRptTipe');
+    const toEl = document.getElementById('msdtRptTO');
+    const roEl = document.getElementById('msdtRptRO');
+    const eEl = document.getElementById('msdtRptE');
+    const rawToEl = document.getElementById('msdtRptRawTO');
+    const rawRoEl = document.getElementById('msdtRptRawRO');
+    const rawEEl = document.getElementById('msdtRptRawE');
+    const durasiEl = document.getElementById('msdtRptDurasi');
+    const waktuMulaiSelesaiEl = document.getElementById('msdtRptWaktuMulaiSelesai');
+    const overtimeEl = document.getElementById('msdtRptOvertime');
+    const ketWaktuEl = document.getElementById('msdtRptKetWaktu');
+    const badgeWaktuEl = document.getElementById('msdtRptBadgeWaktu');
 
-    if (!hasilIst) {
-        if (iqEl) iqEl.innerText = "-";
-        if (katEl) katEl.innerText = "Belum Ada Nilai";
-        if (benarEl) benarEl.innerText = "0";
-        if (subtesEl) subtesEl.innerText = "0 / 9";
-        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-400">Data hasil tes IST belum tersedia untuk peserta ini.</td></tr>`;
+    if (!rawData) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (namaEl) namaEl.innerText = "-";
+        if (deskripsiEl) deskripsiEl.innerText = "Belum ada data pengerjaan MSDT.";
+        if (tipeEl) tipeEl.innerText = "-";
+        if (toEl) toEl.innerText = "-";
+        if (roEl) roEl.innerText = "-";
+        if (eEl) eEl.innerText = "-";
+        if (rawToEl) rawToEl.innerText = "Raw Score: -";
+        if (rawRoEl) rawRoEl.innerText = "Raw Score: -";
+        if (rawEEl) rawEEl.innerText = "Raw Score: -";
+        if (durasiEl) durasiEl.innerText = "-";
+        if (waktuMulaiSelesaiEl) waktuMulaiSelesaiEl.innerText = "-";
+        if (overtimeEl) overtimeEl.innerText = "-";
+        if (ketWaktuEl) ketWaktuEl.innerText = "-";
+        if (badgeWaktuEl) badgeWaktuEl.innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">Belum Ada Data</span>';
         return;
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+
+    let parsed = rawData;
+    if (typeof rawData === 'string') {
+        try { parsed = JSON.parse(rawData); } catch (e) {}
+    }
+
+    const a = parsed.analisis || parsed;
+    const jawaban = parsed.jawaban || {};
+    const evaluasiWaktu = a.evaluasi_waktu || {};
+
+    // 1. Hitung Rekapitulasi Matriks 8x8 dari Jawaban Mentah Peserta (Sesuai Rumus Resmi Reddin)
+    const countA = [0, 0, 0, 0, 0, 0, 0, 0];
+    const countB = [0, 0, 0, 0, 0, 0, 0, 0];
+
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const no = r * 8 + c + 1;
+            const ans = jawaban[no] !== undefined ? String(jawaban[no]).trim().toUpperCase() : (jawaban[String(no)] !== undefined ? String(jawaban[String(no)]).trim().toUpperCase() : '-');
+            if (ans === 'A') countA[r]++;
+            if (ans === 'B') countB[c]++;
+        }
+    }
+
+    const koreksi = [+1, +2, +1, 0, +3, -1, 0, -4];
+    const colJumlah = [];
+    for (let c = 0; c < 8; c++) {
+        colJumlah.push(countA[c] + countB[c] + koreksi[c]);
+    }
+
+    // Pemetaan 8 Gaya Kepemimpinan Reddin
+    const gayaMap = {
+        Ds: colJumlah[0],
+        Mi: colJumlah[1],
+        Au: colJumlah[2],
+        Co: colJumlah[3],
+        Bu: colJumlah[4],
+        Dv: colJumlah[5],
+        Ba: colJumlah[6],
+        E:  colJumlah[7]
+    };
+
+    const valDs = (a.skor_8_gaya && a.skor_8_gaya.Ds !== undefined) ? a.skor_8_gaya.Ds : gayaMap.Ds;
+    const valMi = (a.skor_8_gaya && a.skor_8_gaya.Mi !== undefined) ? a.skor_8_gaya.Mi : gayaMap.Mi;
+    const valAu = (a.skor_8_gaya && a.skor_8_gaya.Au !== undefined) ? a.skor_8_gaya.Au : gayaMap.Au;
+    const valCo = (a.skor_8_gaya && a.skor_8_gaya.Co !== undefined) ? a.skor_8_gaya.Co : gayaMap.Co;
+    const valBu = (a.skor_8_gaya && a.skor_8_gaya.Bu !== undefined) ? a.skor_8_gaya.Bu : gayaMap.Bu;
+    const valDv = (a.skor_8_gaya && a.skor_8_gaya.Dv !== undefined) ? a.skor_8_gaya.Dv : gayaMap.Dv;
+    const valBa = (a.skor_8_gaya && a.skor_8_gaya.Ba !== undefined) ? a.skor_8_gaya.Ba : gayaMap.Ba;
+    const valE  = (a.skor_8_gaya && a.skor_8_gaya.E  !== undefined) ? a.skor_8_gaya.E  : gayaMap.E;
+
+    // Perhitungan Skor Mentah Dimensi Utama Reddin
+    const calculatedRawTO = a.raw_to !== undefined ? a.raw_to : (valAu + valCo + valBa + valE);
+    const calculatedRawRO = a.raw_ro !== undefined ? a.raw_ro : (valMi + valCo + valDv + valE);
+    const calculatedRawE  = a.raw_e  !== undefined ? a.raw_e  : (valBu + valDv + valBa + valE);
+    const calculatedRawO  = a.raw_o  !== undefined ? a.raw_o  : valDs;
+
+    function konversiSkorMentahKeIndeks(raw) {
+        if (raw <= 29) return 0.0;
+        if (raw >= 30 && raw <= 31) return 0.6;
+        if (raw === 32) return 1.2;
+        if (raw === 33) return 1.8;
+        if (raw === 34) return 2.4;
+        if (raw === 35) return 3.0;
+        if (raw >= 36 && raw <= 37) return 3.6;
+        if (raw >= 38) return 4.0;
+        return 0.0;
+    }
+
+    const indTO = a.indeks_to !== undefined ? a.indeks_to : (a.skor_to !== undefined ? a.skor_to : konversiSkorMentahKeIndeks(calculatedRawTO));
+    const indRO = a.indeks_ro !== undefined ? a.indeks_ro : (a.skor_ro !== undefined ? a.skor_ro : konversiSkorMentahKeIndeks(calculatedRawRO));
+    const indE  = a.indeks_e  !== undefined ? a.indeks_e  : (a.skor_e  !== undefined ? a.skor_e  : konversiSkorMentahKeIndeks(calculatedRawE));
+
+    // Evaluasi Pohon Keputusan Reddin
+    let gayaKode = "EXECUTIVE";
+    if (indTO > 2.0) {
+        if (indRO > 2.0) {
+            gayaKode = (indE > 2.0) ? "EXECUTIVE" : "COMPROMISER";
+        } else {
+            gayaKode = (indE > 2.0) ? "BENEVOLENT_AUTOCRAT" : "AUTOCRAT";
+        }
+    } else {
+        if (indRO > 2.0) {
+            gayaKode = (indE > 2.0) ? "DEVELOPER" : "MISSIONARY";
+        } else {
+            gayaKode = (indE > 2.0) ? "BUREAUCRAT" : "DESERTER";
+        }
+    }
+
+    const gayaMetadata = {
+        EXECUTIVE: { nama: "Executive (Eksekutif)", tipe: "Efektif", deskripsi: "Mampu memotivasi tim kerja, menetapkan standar prestasi yang tinggi, memperlakukan bawahan secara adil, dan efektif mencapai target organisasi dengan menjaga hubungan tim yang harmonis." },
+        DEVELOPER: { nama: "Developer (Pembangun / Pembina)", tipe: "Efektif", deskripsi: "Menaruh kepercayaan penuh pada bawahan, fokus pada pengembangan potensi anggota tim, dan menciptakan iklim kerja kolaboratif yang sangat positif." },
+        BENEVOLENT_AUTOCRAT: { nama: "Benevolent Autocrat (Otokrat Bijak)", tipe: "Efektif", deskripsi: "Tegas, sangat berorientasi target dan hasil nyata tanpa memicu kebencian. Mampu mengambil keputusan cepat dan memastikan tugas selesai tepat waktu." },
+        BUREAUCRAT: { nama: "Bureaucrat (Birokrat / Tertib Aturan)", tipe: "Efektif", deskripsi: "Sangat taat pada SOP dan regulasi, teliti terhadap aturan dan prosedur, menjaga stabilitas sistem organisasi dan integritas proses kerja." },
+        COMPROMISER: { nama: "Compromiser (Kompromis)", tipe: "Kurang Efektif", deskripsi: "Terlalu mudah berkompromi di bawah tekanan, sering bimbang antara target kerja dan menyenangkan bawahan sehingga efektivitas kepemimpinan menurun." },
+        MISSIONARY: { nama: "Missionary (Misionaris / Penyenang)", tipe: "Kurang Efektif", deskripsi: "Terlalu mengutamakan keharmonisan hubungan pribadi sehingga enggan menegur bawahan dan sering mengorbankan pencapaian target organisasi." },
+        AUTOCRAT: { nama: "Autocrat (Otokrat)", tipe: "Kurang Efektif", deskripsi: "Terlalu mendominasi, menuntut kepatuhan mutlak, mengabaikan aspirasi bawahan, dan mengandalkan instruksi sepihak." },
+        DESERTER: { nama: "Deserter (Pelarian / Pasif)", tipe: "Kurang Efektif", deskripsi: "Cenderung lepas tangan dari tanggung jawab, pasif, enggan terlibat dalam dinamika tim, dan kurang peduli pada pencapaian target." }
+    };
+
+    const defaultInfo = gayaMetadata[gayaKode] || gayaMetadata.EXECUTIVE;
+    const finalNamaGaya = a.nama_gaya || a.gaya_utama || defaultInfo.nama;
+    const finalDeskripsi = a.deskripsi_gaya || defaultInfo.deskripsi;
+    const finalTipe = a.tipe_efektivitas || defaultInfo.tipe;
+
+    // 2. Data Gaya Kepemimpinan Dominan ke UI
+    if (namaEl) namaEl.innerText = finalNamaGaya;
+    if (deskripsiEl) deskripsiEl.innerText = finalDeskripsi;
+    if (tipeEl) tipeEl.innerText = finalTipe;
+
+    // 3. Metrik TO, RO, E (Indeks & Raw Score)
+    if (toEl) toEl.innerText = typeof indTO === 'number' ? indTO.toFixed(1) : indTO;
+    if (roEl) roEl.innerText = typeof indRO === 'number' ? indRO.toFixed(1) : indRO;
+    if (eEl) eEl.innerText = typeof indE === 'number' ? indE.toFixed(1) : indE;
+
+    if (rawToEl) rawToEl.innerText = `Raw Score: ${calculatedRawTO}`;
+    if (rawRoEl) rawRoEl.innerText = `Raw Score: ${calculatedRawRO}`;
+    if (rawEEl) rawEEl.innerText = `Raw Score: ${calculatedRawE}`;
+
+    // 4. Evaluasi Waktu Pengerjaan (Silent Timer 30 Menit)
+    const durasiDetik = parsed.durasi_detik || evaluasiWaktu.durasi_pengerjaan_detik || 0;
+    const durasiTeks = parsed.durasi_teks || evaluasiWaktu.durasi_teks || `${Math.round(durasiDetik / 60)} Menit`;
+    const isOvertime = parsed.is_overtime !== undefined ? parsed.is_overtime : (evaluasiWaktu.is_overtime || (durasiDetik > 1800));
+    const overtimeTeks = evaluasiWaktu.overtime_teks || (isOvertime ? `${Math.round((durasiDetik - 1800) / 60)} Menit` : '0 Menit');
+
+    if (durasiEl) durasiEl.innerText = durasiTeks;
+
+    const wMulai = parsed.waktu_mulai ? new Date(parsed.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+    const wSelesai = parsed.waktu_selesai ? new Date(parsed.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+    if (waktuMulaiSelesaiEl) waktuMulaiSelesaiEl.innerText = `Mulai: ${wMulai} &bull; Selesai: ${wSelesai}`;
+
+    if (overtimeEl) {
+        if (isOvertime) {
+            overtimeEl.innerText = `+${overtimeTeks}`;
+            overtimeEl.className = "text-xl font-black text-rose-600 mt-0.5";
+        } else {
+            overtimeEl.innerText = "0 Menit (Tepat)";
+            overtimeEl.className = "text-xl font-black text-emerald-600 mt-0.5";
+        }
+    }
+
+    if (ketWaktuEl) {
+        ketWaktuEl.innerText = isOvertime 
+            ? `Pengerjaan melebihi alokasi waktu 30 menit` 
+            : `Pengerjaan diselesaikan tepat dalam batas 30 menit`;
+    }
+
+    if (badgeWaktuEl) {
+        if (isOvertime) {
+            badgeWaktuEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-500/10 text-rose-700 border border-rose-500/30">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Lewat Waktu / Overtime (+${overtimeTeks})
+                </span>
+            `;
+        } else {
+            badgeWaktuEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i> ✓ Tepat Waktu (&lt; 30 Menit)
+                </span>
+            `;
+        }
+    }
+
+    // 5. Render Tabel Matriks 8x8 & Rincian Soal 1..64
+    const matrixTbody = document.getElementById('msdtMatrixTableBody');
+    const rowAEl = document.getElementById('msdtRowA');
+    const rowBEl = document.getElementById('msdtRowB');
+    const rowJumlahEl = document.getElementById('msdtRowJumlah');
+
+    if (matrixTbody) {
+        let rowsHtml = '';
+        for (let r = 0; r < 8; r++) {
+            rowsHtml += `<tr class="divide-x divide-slate-300 hover:bg-slate-50 transition-colors">`;
+            rowsHtml += `<td class="py-1 px-1.5 text-center font-mono text-[10px] text-slate-400 bg-slate-50 border-r-2 border-slate-700">R${r + 1}</td>`;
+            for (let c = 0; c < 8; c++) {
+                const no = r * 8 + c + 1;
+                const ans = jawaban[no] !== undefined ? String(jawaban[no]).trim().toUpperCase() : (jawaban[String(no)] !== undefined ? String(jawaban[String(no)]).trim().toUpperCase() : '-');
+                const badge = ans === 'A'
+                    ? '<span class="px-1.5 py-0.5 rounded text-[11px] font-black bg-blue-600 text-white shadow-2xs">A</span>'
+                    : (ans === 'B'
+                        ? '<span class="px-1.5 py-0.5 rounded text-[11px] font-black bg-amber-500 text-white shadow-2xs">B</span>'
+                        : '<span class="text-slate-300">-</span>');
+                rowsHtml += `
+                    <td class="py-1 px-1 text-center">
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-[10px] text-slate-400 font-mono">${no}</span>
+                            ${badge}
+                        </div>
+                    </td>
+                `;
+            }
+            rowsHtml += `</tr>`;
+        }
+        matrixTbody.innerHTML = rowsHtml;
+    }
+
+    // Update Baris A, B, dan Jumlah pada Tfoot
+    if (rowAEl) {
+        let h = '<td class="py-1 px-2 font-black text-center border-r-2 border-slate-700 bg-blue-100 text-blue-950">A</td>';
+        for (let c = 0; c < 8; c++) {
+            h += `<td class="py-1 px-1 font-bold text-center">${countA[c]}</td>`;
+        }
+        rowAEl.innerHTML = h;
+    }
+
+    if (rowBEl) {
+        let h = '<td class="py-1 px-2 font-black text-center border-r-2 border-slate-700 bg-amber-100 text-amber-950">B</td>';
+        for (let c = 0; c < 8; c++) {
+            h += `<td class="py-1 px-1 font-bold text-center">${countB[c]}</td>`;
+        }
+        rowBEl.innerHTML = h;
+    }
+
+    if (rowJumlahEl) {
+        let h = '<td class="py-1.5 px-2 font-black text-center border-r-2 border-slate-700 bg-emerald-100 text-emerald-950 text-[10px]">JUMLAH</td>';
+        for (let c = 0; c < 8; c++) {
+            h += `<td class="py-1.5 px-1 font-black text-emerald-700 text-center text-sm">${colJumlah[c]}</td>`;
+        }
+        rowJumlahEl.innerHTML = h;
+    }
+
+    // 6. Update Tabel Skoring 8 Gaya & Blok Cyan 4 Dimensi
+    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+    setTxt('msdtValGaya_Ds', `= ${valDs}`);
+    setTxt('msdtValGaya_Mi', `= ${valMi}`);
+    setTxt('msdtValGaya_Au', `= ${valAu}`);
+    setTxt('msdtValGaya_Co', `= ${valCo}`);
+    setTxt('msdtValGaya_Bu', `= ${valBu}`);
+    setTxt('msdtValGaya_Dv', `= ${valDv}`);
+    setTxt('msdtValGaya_Ba', `= ${valBa}`);
+    setTxt('msdtValGaya_E',  `= ${valE}`);
+
+    // Blok Kotak Biru Cyan di Kolom TO, RO, E, O
+    setTxt('msdtBlock_Ds_O',  valDs);
+    setTxt('msdtBlock_Mi_RO', valMi);
+    setTxt('msdtBlock_Au_TO', valAu);
+    setTxt('msdtBlock_Co_TO', valCo);
+    setTxt('msdtBlock_Co_RO', valCo);
+    setTxt('msdtBlock_Bu_E',  valBu);
+    setTxt('msdtBlock_Dv_RO', valDv);
+    setTxt('msdtBlock_Dv_E',  valDv);
+    setTxt('msdtBlock_Ba_TO', valBa);
+    setTxt('msdtBlock_Ba_E',  valBa);
+    setTxt('msdtBlock_E_TO',  valE);
+    setTxt('msdtBlock_E_RO',  valE);
+    setTxt('msdtBlock_E_E',   valE);
+
+    // 7. Hitung Total Kolom di Bawah (TO, RO, E, O)
+    setTxt('msdtSumCol_TO', calculatedRawTO);
+    setTxt('msdtSumCol_RO', calculatedRawRO);
+    setTxt('msdtSumCol_E',  calculatedRawE);
+    setTxt('msdtSumCol_O',  calculatedRawO);
+
+    setTxt('msdtBoxRawTO', calculatedRawTO);
+    setTxt('msdtBoxRawRO', calculatedRawRO);
+    setTxt('msdtBoxRawE',  calculatedRawE);
+    setTxt('msdtBoxRawO',  calculatedRawO);
+
+    // 8. Highlight Tabel Norma Skor Sesuai Nilai Raw Score (Foto 2)
+    function getNormaColIndex(raw) {
+        if (raw <= 29) return 0;
+        if (raw <= 31) return 1;
+        if (raw === 32) return 2;
+        if (raw === 33) return 3;
+        if (raw === 34) return 4;
+        if (raw === 35) return 5;
+        if (raw <= 37) return 6;
+        return 7;
+    }
+    const toColIdx = getNormaColIndex(calculatedRawTO);
+    const roColIdx = getNormaColIndex(calculatedRawRO);
+    const eColIdx  = getNormaColIndex(calculatedRawE);
+
+    for (let i = 0; i < 8; i++) {
+        const colEl = document.getElementById(`normaCol_${i}`);
+        const headEl = document.getElementById(`normaHead_${i}`);
+        if (colEl) colEl.className = "py-2.5 px-2 font-black text-slate-800 text-sm sm:text-base";
+        if (headEl) headEl.className = "py-2 px-2";
+
+        const tags = [];
+        if (i === toColIdx) tags.push("TO");
+        if (i === roColIdx) tags.push("RO");
+        if (i === eColIdx)  tags.push("E");
+
+        if (tags.length > 0 && colEl) {
+            colEl.className = "py-2.5 px-2 font-black text-white text-sm sm:text-base bg-[#003865] ring-2 ring-blue-400";
+            if (headEl) headEl.className = "py-2 px-2 bg-blue-100 text-blue-900 font-black";
+        }
+    }
+
+    // 9. Highlight Diagram Pohon Keputusan (Decision Tree SVG - Sesuai Foto 2)
+    updateMsdtDecisionTreeSvg(indTO, indRO, indE, finalNamaGaya);
+}
+
+/**
+ * Memperbarui Garis dan Node pada SVG Pohon Keputusan Reddin (Foto 2) Secara Berwarna
+ */
+function updateMsdtDecisionTreeSvg(toVal, roVal, eVal, gayaUtama) {
+    const isToHigh = Number(toVal) > 2.0;
+    const isRoHigh = Number(roVal) > 2.0;
+    const isEHigh  = Number(eVal) > 2.0;
+
+    const activeColor = "#0284c7"; // Biru cerah modern
+    const activeStrokeWidth = "3.5";
+    const normalColor = "#475569";
+    const normalStrokeWidth = "2";
+
+    const pathIds = [
+        "dt_line_to_high", "dt_split_to_high", "dt_line_th_rh", "dt_line_th_rh_split", "dt_split_th_rh",
+        "dt_line_th_rl", "dt_line_th_rl_split", "dt_split_th_rl",
+        "dt_line_to_low", "dt_split_to_low", "dt_line_tl_rh", "dt_line_tl_rh_split", "dt_split_tl_rh",
+        "dt_line_tl_rl", "dt_line_tl_rl_split", "dt_split_tl_rl",
+        "dt_line_exec_1", "dt_line_exec_2", "dt_line_comp_1", "dt_line_comp_2",
+        "dt_line_ba_1", "dt_line_ba_2", "dt_line_auto_1", "dt_line_auto_2",
+        "dt_line_dev_1", "dt_line_dev_2", "dt_line_miss_1", "dt_line_miss_2",
+        "dt_line_bur_1", "dt_line_bur_2", "dt_line_des_1", "dt_line_des_2"
+    ];
+
+    pathIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.setAttribute("stroke", normalColor);
+            el.setAttribute("stroke-width", normalStrokeWidth);
+            el.removeAttribute("filter");
+        }
+    });
+
+    const leafBgs = [
+        "dt_bg_executive", "dt_bg_compromiser", "dt_bg_benevolent_autocrat", "dt_bg_autocrat",
+        "dt_bg_developer", "dt_bg_missionary", "dt_bg_bureaucrat", "dt_bg_deserter"
+    ];
+    leafBgs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.setAttribute("fill", "#f8fafc");
+            el.setAttribute("stroke", "#cbd5e1");
+            el.setAttribute("stroke-width", "1");
+        }
+    });
+
+    function highlightPath(ids) {
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.setAttribute("stroke", activeColor);
+                el.setAttribute("stroke-width", activeStrokeWidth);
+                el.removeAttribute("filter");
+            }
+        });
+    }
+
+    let winningBgId = "";
+    if (isToHigh) {
+        highlightPath(["dt_line_to_high", "dt_split_to_high"]);
+        if (isRoHigh) {
+            highlightPath(["dt_line_th_rh", "dt_line_th_rh_split", "dt_split_th_rh"]);
+            if (isEHigh) {
+                highlightPath(["dt_line_exec_1", "dt_line_exec_2"]);
+                winningBgId = "dt_bg_executive";
+            } else {
+                highlightPath(["dt_line_comp_1", "dt_line_comp_2"]);
+                winningBgId = "dt_bg_compromiser";
+            }
+        } else {
+            highlightPath(["dt_line_th_rl", "dt_line_th_rl_split", "dt_split_th_rl"]);
+            if (isEHigh) {
+                highlightPath(["dt_line_ba_1", "dt_line_ba_2"]);
+                winningBgId = "dt_bg_benevolent_autocrat";
+            } else {
+                highlightPath(["dt_line_auto_1", "dt_line_auto_2"]);
+                winningBgId = "dt_bg_autocrat";
+            }
+        }
+    } else {
+        highlightPath(["dt_line_to_low", "dt_split_to_low"]);
+        if (isRoHigh) {
+            highlightPath(["dt_line_tl_rh", "dt_line_tl_rh_split", "dt_split_tl_rh"]);
+            if (isEHigh) {
+                highlightPath(["dt_line_dev_1", "dt_line_dev_2"]);
+                winningBgId = "dt_bg_developer";
+            } else {
+                highlightPath(["dt_line_miss_1", "dt_line_miss_2"]);
+                winningBgId = "dt_bg_missionary";
+            }
+        } else {
+            highlightPath(["dt_line_tl_rl", "dt_line_tl_rl_split", "dt_split_tl_rl"]);
+            if (isEHigh) {
+                highlightPath(["dt_line_bur_1", "dt_line_bur_2"]);
+                winningBgId = "dt_bg_bureaucrat";
+            } else {
+                highlightPath(["dt_line_des_1", "dt_line_des_2"]);
+                winningBgId = "dt_bg_deserter";
+            }
+        }
+    }
+
+    if (winningBgId) {
+        const bgEl = document.getElementById(winningBgId);
+        if (bgEl) {
+            bgEl.setAttribute("fill", "#003865");
+            bgEl.setAttribute("stroke", "#f59e0b");
+            bgEl.setAttribute("stroke-width", "2");
+        }
+        const txtId = winningBgId.replace("dt_bg_", "dt_txt_");
+        const txtEl = document.getElementById(txtId);
+        if (txtEl) {
+            txtEl.setAttribute("fill", "#fef08a");
+            txtEl.setAttribute("font-weight", "900");
+        }
+    }
+}
+
+/**
+ * Merender Hasil Tes EPPS (15 Skala Kebutuhan Motivasi Kerja Edwards) di Modal HRD
+ * Menghitung otomatis:
+ * 1. Skor Baris (r), Skor Kolom (c), dan Total Skor (s = r + c)
+ * 2. Skala Konsistensi (con / CONS) dari 15 Pasangan Soal Pembanding
+ * 3. Evaluasi Silent Timer 60 Menit & Deteksi Overtime
+ * 4. Konversi Persentil Standar Edwards & Simbol Norma (+, 0, -) terhadap Rata-rata 14.0
+ * 5. Grafik Profil Persentil, Profil Top 3 Motivasi, serta Narasi Psikologis Manajerial
+ */
+function renderEppsResults(rawData) {
+    const emptyNotice = document.getElementById('eppsEmptyNotice');
+    const durasiEl = document.getElementById('eppsRptDurasi');
+    const waktuMulaiSelesaiEl = document.getElementById('eppsRptWaktuMulaiSelesai');
+    const overtimeEl = document.getElementById('eppsRptOvertime');
+    const ketWaktuEl = document.getElementById('eppsRptKetWaktu');
+    const badgeWaktuEl = document.getElementById('eppsRptBadgeWaktu');
+    const conScoreEl = document.getElementById('eppsRptConScore');
+    const conStatusEl = document.getElementById('eppsRptConStatusBadge');
+    const sumTotalEl = document.getElementById('eppsRptSumTotal');
+    const sumBadgeEl = document.getElementById('eppsRptSumBadge');
+    const answeredCountEl = document.getElementById('eppsRptAnsweredCount');
+    const topNeedsEl = document.getElementById('eppsTopNeedsContainer');
+    const lowNeedsEl = document.getElementById('eppsLowNeedsContainer');
+    const tableBodyEl = document.getElementById('eppsTableBody');
+    const sumRowEl = document.getElementById('eppsSumRow');
+    const sumColEl = document.getElementById('eppsSumCol');
+    const sumTotalCellEl = document.getElementById('eppsSumTotalCell');
+    const visualChartEl = document.getElementById('eppsVisualChartContainer');
+    const narrativeEl = document.getElementById('eppsNarrativeContainer');
+    const auditGridEl = document.getElementById('eppsAuditGrid');
+    const legacyConEl = document.getElementById('eppsRptCon');
+    const legacyGridEl = document.getElementById('eppsGridContainer');
+
+    if (!rawData) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (durasiEl) durasiEl.innerText = "-";
+        if (waktuMulaiSelesaiEl) waktuMulaiSelesaiEl.innerText = "-";
+        if (overtimeEl) overtimeEl.innerText = "-";
+        if (ketWaktuEl) ketWaktuEl.innerText = "-";
+        if (badgeWaktuEl) badgeWaktuEl.innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">Belum Ada Data</span>';
+        if (conScoreEl) conScoreEl.innerText = "-";
+        if (conStatusEl) conStatusEl.innerHTML = '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Menunggu</span>';
+        if (sumTotalEl) sumTotalEl.innerText = "-";
+        if (answeredCountEl) answeredCountEl.innerText = "-";
+        if (topNeedsEl) topNeedsEl.innerHTML = '<p class="text-xs text-slate-300">Belum ada data pengerjaan.</p>';
+        if (lowNeedsEl) lowNeedsEl.innerHTML = '<p class="text-xs text-slate-400">Belum ada data pengerjaan.</p>';
+        if (tableBodyEl) tableBodyEl.innerHTML = '';
+        if (visualChartEl) visualChartEl.innerHTML = '';
+        if (narrativeEl) narrativeEl.innerHTML = '';
+        if (auditGridEl) auditGridEl.innerHTML = '';
+        if (legacyConEl) legacyConEl.innerText = "-";
+        if (legacyGridEl) legacyGridEl.innerHTML = '';
+        return;
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+
+    let parsed = rawData;
+    if (typeof rawData === 'string') {
+        try { parsed = JSON.parse(rawData); } catch (e) {}
+    }
+
+    // 1. EVALUASI WAKTU PENGERJAAN & OVERTIME (STANDAR 60 MENIT / 3.600 DETIK)
+    const durasiDetik = Number(parsed.durasi_detik) || 0;
+    const durasiTeks = parsed.durasi_teks || (durasiDetik > 0 ? `${Math.floor(durasiDetik / 60)} Menit ${durasiDetik % 60} Detik` : '-');
+    const isOvertime = parsed.is_overtime === true || durasiDetik > 3600;
+    const overtimeDetik = Number(parsed.overtime_detik) || (isOvertime ? durasiDetik - 3600 : 0);
+    const overtimeTeks = overtimeDetik > 0 ? `${Math.floor(overtimeDetik / 60)}m ${overtimeDetik % 60}s` : '0 Detik';
+
+    let waktuMulaiStr = '-';
+    let waktuSelesaiStr = '-';
+    if (parsed.waktu_mulai) {
+        try { waktuMulaiStr = new Date(parsed.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+    }
+    if (parsed.waktu_selesai) {
+        try { waktuSelesaiStr = new Date(parsed.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+    }
+
+    if (durasiEl) durasiEl.innerText = durasiTeks;
+    if (waktuMulaiSelesaiEl) waktuMulaiSelesaiEl.innerText = `Pukul ${waktuMulaiStr} - ${waktuSelesaiStr}`;
+    if (overtimeEl) {
+        overtimeEl.innerText = isOvertime ? `+${overtimeTeks}` : '0 Detik (Disiplin)';
+        overtimeEl.className = isOvertime ? "text-xl font-black text-rose-600 mt-0.5" : "text-xl font-black text-emerald-600 mt-0.5";
+    }
+    if (ketWaktuEl) {
+        ketWaktuEl.innerText = isOvertime ? 'Melebihi alokasi 60 menit' : 'Tepat waktu dalam batas 60 menit';
+        ketWaktuEl.className = isOvertime ? "text-[11px] text-rose-500 mt-0.5 font-semibold" : "text-[11px] text-emerald-600 mt-0.5 font-semibold";
+    }
+    if (badgeWaktuEl) {
+        if (isOvertime) {
+            badgeWaktuEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-rose-500/10 text-rose-700 border border-rose-500/30">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Lewat Waktu / Overtime (+${overtimeTeks})
+                </span>
+            `;
+        } else {
+            badgeWaktuEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i> ✓ Tepat Waktu (&le; 60 Menit)
+                </span>
+            `;
+        }
+    }
+
+    // 2. DEFINISI 15 SKALA EPPS & DATA REFERENSI
+    const EPPS_SCALES = [
+        { kode: 'ach', nama: 'Achievement', idNama: 'Dorongan Berprestasi', desc: 'Dorongan untuk sukses, menyelesaikan pekerjaan rumit & mencapai standar keunggulan tinggi.' },
+        { kode: 'def', nama: 'Deference', idNama: 'Ketaatan & Respek', desc: 'Kesediaan mentaati pimpinan, mematuhi regulasi perusahaan & menghargai otoritas.' },
+        { kode: 'ord', nama: 'Order', idNama: 'Keteraturan & Sistematis', desc: 'Kecenderungan bekerja rapi, terencana matang, terorganisir & sistematis.' },
+        { kode: 'exh', nama: 'Exhibition', idNama: 'Eksibisi & Tampil Menonjol', desc: 'Kebutuhan berbicara di depan umum, menarik perhatian & tampil percaya diri.' },
+        { kode: 'aut', nama: 'Autonomy', idNama: 'Kemandirian & Otonomi', desc: 'Kebutuhan mandiri, bebas mengambil inisiatif & tidak tergantung arahan orang lain.' },
+        { kode: 'aff', nama: 'Affiliation', idNama: 'Afiliasi & Relasi Sosial', desc: 'Kebutuhan bersahabat, membina hubungan hangat & loyalitas dalam kerja sama tim.' },
+        { kode: 'int', nama: 'Intraception', idNama: 'Intrasepsi & Analisis Motif', desc: 'Kemampuan menganalisis motif perilaku manusia, berempati & menyelami perasaan orang.' },
+        { kode: 'suc', nama: 'Succorance', idNama: 'Kebutuhan Dukungan / Simpati', desc: 'Kebutuhan menerima dukungan moril, empati, apresiasi & bantuan saat menghadapi kendala.' },
+        { kode: 'dom', nama: 'Dominance', idNama: 'Dominasi & Kepemimpinan', desc: 'Kebutuhan memimpin kelompok, mengarahkan orang lain, persuasif & mengambil kendali situasi.' },
+        { kode: 'aba', nama: 'Abasement', idNama: 'Rendah Hati & Introspeksi', desc: 'Kecenderungan mengakui kesalahan diri, introspeksi & menerima evaluasi terbuka.' },
+        { kode: 'nur', nama: 'Nurturance', idNama: 'Kedermawanan & Peduli Menolong', desc: 'Dorongan membantu rekan kerja yang membutuhkan bantuan, welas asih & murah hati.' },
+        { kode: 'chg', nama: 'Change', idNama: 'Variasi & Fleksibilitas Inovasi', desc: 'Kebutuhan menyukai perubahan, ide baru, adaptif terhadap inovasi & anti-rutinitas statis.' },
+        { kode: 'end', nama: 'Endurance', idNama: 'Daya Tahan & Ketekunan', desc: 'Kegigihan bekerja, konsistensi menyelesaikan target panjang tanpa mudah menyerah.' },
+        { kode: 'het', nama: 'Heterosexuality', idNama: 'Dinamika Sosial Interpersonal', desc: 'Keberanian sosial, pergaulan luas lintas kalangan & dinamika relasi interpersonal aktif.' },
+        { kode: 'agg', nama: 'Aggression', idNama: 'Agresi & Ketegasan Bersikap', desc: 'Keberanian berkonfrontasi positif, mempertahankan argumen kritis & kompetitif terbuka.' }
+    ];
+
+    // 15 Nomor Soal Garis Merah (Manual Edwards Hal 4) yang diabaikan dalam hitungan r & c
+    const RED_LINE_ITEMS = [1, 26, 51, 7, 32, 57, 13, 38, 63, 19, 44, 69, 25, 50, 75];
+
+    // 15 Pasangan Soal Penguji Konsistensi (Manual Edwards Hal 4)
+    const CONSISTENCY_PAIRS = [
+        [1, 151], [26, 101], [51, 201],
+        [7, 157], [32, 107], [57, 207],
+        [13, 163], [38, 113], [63, 213],
+        [19, 169], [44, 119], [69, 219],
+        [25, 175], [50, 125], [75, 225]
+    ];
+
+    // Bank Soal EPPS (Ambil dari global jika tersedia, atau generate matriks standar jika fallback)
+    let questions = (typeof window !== 'undefined' && window.EPPS_QUESTIONS && Array.isArray(window.EPPS_QUESTIONS) && window.EPPS_QUESTIONS.length === 225)
+        ? window.EPPS_QUESTIONS
+        : [];
+
+    // Fallback matriks skala jika epps-data belum termuat di window
+    if (!questions || questions.length !== 225) {
+        questions = [];
+        const scaleCodes = ['ach', 'def', 'ord', 'exh', 'aut', 'aff', 'int', 'suc', 'dom', 'aba', 'nur', 'chg', 'end', 'het', 'agg'];
+        const g1 = ['ach', 'def', 'ord', 'exh', 'aut'];
+        const g2 = ['aff', 'int', 'suc', 'dom', 'aba'];
+        const g3 = ['nur', 'chg', 'end', 'het', 'agg'];
+
+        // Blok 1: 1..25
+        const b1Pairs = [
+            [1, 'nur', 'ach'], [2, 'def', 'ach'], [3, 'ord', 'ach'], [4, 'exh', 'ach'], [5, 'aut', 'ach'],
+            [6, 'ach', 'def'], [7, 'chg', 'def'], [8, 'ord', 'def'], [9, 'exh', 'def'], [10, 'aut', 'def'],
+            [11, 'ach', 'ord'], [12, 'def', 'ord'], [13, 'end', 'ord'], [14, 'exh', 'ord'], [15, 'aut', 'ord'],
+            [16, 'ach', 'exh'], [17, 'def', 'exh'], [18, 'ord', 'exh'], [19, 'het', 'exh'], [20, 'aut', 'exh'],
+            [21, 'ach', 'aut'], [22, 'def', 'aut'], [23, 'ord', 'aut'], [24, 'exh', 'aut'], [25, 'agg', 'aut']
+        ];
+        b1Pairs.forEach(p => questions.push({ no: p[0], skalaA: p[1], skalaB: p[2] }));
+
+        // Blok 2: 26..50
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 26 + c * 5 + r, skalaA: g1[r], skalaB: g2[c] });
+            }
+        }
+        // Blok 3: 51..75
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 51 + c * 5 + r, skalaA: g1[r], skalaB: g3[c] });
+            }
+        }
+        // Blok 4: 76..100
+        const b4Pairs = [
+            [76, 'ach', 'aff'], [77, 'int', 'aff'], [78, 'suc', 'aff'], [79, 'dom', 'aff'], [80, 'aba', 'aff'],
+            [81, 'aff', 'int'], [82, 'def', 'int'], [83, 'suc', 'int'], [84, 'dom', 'int'], [85, 'aba', 'int'],
+            [86, 'aff', 'suc'], [87, 'int', 'suc'], [88, 'ord', 'suc'], [89, 'dom', 'suc'], [90, 'aba', 'suc'],
+            [91, 'aff', 'dom'], [92, 'int', 'dom'], [93, 'suc', 'dom'], [94, 'exh', 'dom'], [95, 'aba', 'dom'],
+            [96, 'aff', 'aba'], [97, 'int', 'aba'], [98, 'suc', 'aba'], [99, 'dom', 'aba'], [100, 'aut', 'aba']
+        ];
+        b4Pairs.forEach(p => questions.push({ no: p[0], skalaA: p[1], skalaB: p[2] }));
+
+        // Blok 5: 101..125
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 101 + c * 5 + r, skalaA: g1[r], skalaB: g2[c] });
+            }
+        }
+        // Blok 6: 126..150
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 126 + c * 5 + r, skalaA: g2[r], skalaB: g3[c] });
+            }
+        }
+        // Blok 7: 151..175
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 151 + c * 5 + r, skalaA: g3[r], skalaB: g1[c] });
+            }
+        }
+        // Blok 8: 176..200
+        const b8Pairs = [
+            [176, 'aff', 'nur'], [177, 'chg', 'nur'], [178, 'end', 'nur'], [179, 'het', 'nur'], [180, 'agg', 'nur'],
+            [181, 'nur', 'chg'], [182, 'int', 'chg'], [183, 'end', 'chg'], [184, 'het', 'chg'], [185, 'agg', 'chg'],
+            [186, 'nur', 'end'], [187, 'chg', 'end'], [188, 'suc', 'end'], [189, 'het', 'end'], [190, 'agg', 'end'],
+            [191, 'nur', 'het'], [192, 'chg', 'het'], [193, 'end', 'het'], [194, 'dom', 'het'], [195, 'agg', 'het'],
+            [196, 'nur', 'agg'], [197, 'chg', 'agg'], [198, 'end', 'agg'], [199, 'het', 'agg'], [200, 'aba', 'agg']
+        ];
+        b8Pairs.forEach(p => questions.push({ no: p[0], skalaA: p[1], skalaB: p[2] }));
+
+        // Blok 9: 201..225
+        for (let c = 0; c < 5; c++) {
+            for (let r = 0; r < 5; r++) {
+                questions.push({ no: 201 + c * 5 + r, skalaA: g1[r], skalaB: g3[c] });
+            }
+        }
+    }
+
+    // 3. HITUNG SKOR BARIS (r), SKOR KOLOM (c), DAN TOTAL (s = r + c)
+    const rowScores = {};
+    const colScores = {};
+    const totalScores = {};
+    EPPS_SCALES.forEach(s => {
+        rowScores[s.kode] = 0;
+        colScores[s.kode] = 0;
+        totalScores[s.kode] = 0;
+    });
+
+    const jawaban = parsed.jawaban || {};
+    let answeredCount = 0;
+
+    questions.forEach(q => {
+        const no = q.no;
+        const ans = (jawaban[no] !== undefined)
+            ? String(jawaban[no]).trim().toUpperCase()
+            : ((jawaban[String(no)] !== undefined) ? String(jawaban[String(no)]).trim().toUpperCase() : null);
+
+        if (ans === 'A' || ans === 'B') {
+            answeredCount++;
+        }
+
+        // Ketentuan Resmi Manual Edwards: 15 Nomor Garis Merah DIABAIKAN dari r dan c
+        if (!RED_LINE_ITEMS.includes(no)) {
+            if (ans === 'A' && q.skalaA) {
+                rowScores[q.skalaA] = (rowScores[q.skalaA] || 0) + 1;
+            } else if (ans === 'B' && q.skalaB) {
+                colScores[q.skalaB] = (colScores[q.skalaB] || 0) + 1;
+            }
+        }
+    });
+
+    // Jika kandidat sudah memiliki data `skor_skala` tersimpan di database, gunakan itu jika jawaban mentah kosong
+    if (answeredCount === 0 && parsed.skor_skala) {
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            if (parsed.skor_skala[k] !== undefined) {
+                totalScores[k] = Number(parsed.skor_skala[k]) || 0;
+            }
+        });
+    } else {
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            totalScores[k] = (rowScores[k] || 0) + (colScores[k] || 0);
+        });
+    }
+
+    let sumR = 0;
+    let sumC = 0;
+    let sumS = 0;
+    EPPS_SCALES.forEach(s => {
+        const k = s.kode;
+        sumR += rowScores[k] || 0;
+        sumC += colScores[k] || 0;
+        sumS += totalScores[k] || 0;
+    });
+
+    // 4. HITUNG SKOR KONSISTENSI (con / CONS) DARI 15 PASANGAN PEMBANDING
+    let conScore = 0;
+    CONSISTENCY_PAIRS.forEach(pair => {
+        const [q1, q2] = pair;
+        const ans1 = (jawaban[q1] !== undefined)
+            ? String(jawaban[q1]).trim().toUpperCase()
+            : ((jawaban[String(q1)] !== undefined) ? String(jawaban[String(q1)]).trim().toUpperCase() : null);
+        const ans2 = (jawaban[q2] !== undefined)
+            ? String(jawaban[q2]).trim().toUpperCase()
+            : ((jawaban[String(q2)] !== undefined) ? String(jawaban[String(q2)]).trim().toUpperCase() : null);
+
+        if (ans1 && ans2 && ans1 === ans2) {
+            conScore++;
+        }
+    });
+
+    // Fallback jika con tersimpan di skor_skala
+    if (answeredCount === 0 && parsed.skor_skala && parsed.skor_skala.con !== undefined) {
+        conScore = Number(parsed.skor_skala.con) || 0;
+    }
+
+    const isConsistent = conScore >= 10;
+    if (conScoreEl) conScoreEl.innerText = `${conScore} / 15`;
+    if (conStatusEl) {
+        if (isConsistent) {
+            conStatusEl.innerHTML = `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-300">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i> VALID (Konsisten &ge; 10)
+                </span>
+            `;
+        } else {
+            conStatusEl.innerHTML = `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-rose-50 text-rose-700 border border-rose-300">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> KURANG KONSISTEN (&lt; 10)
+                </span>
+            `;
+        }
+    }
+    if (legacyConEl) legacyConEl.innerText = `${conScore} / 15 (${isConsistent ? 'Valid' : 'Perlu Ditinjau'})`;
+
+    if (sumTotalEl) sumTotalEl.innerText = `${sumS} / 210`;
+    if (sumBadgeEl) {
+        if (sumS === 210) {
+            sumBadgeEl.innerHTML = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">100% Valid (&Sigma;=210)</span>`;
+        } else {
+            sumBadgeEl.innerHTML = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">&Sigma; = ${sumS}</span>`;
+        }
+    }
+    if (answeredCountEl) answeredCountEl.innerText = `${answeredCount} / 225 Soal`;
+
+    // 5. KONVERSI PERSENTIL EDWARDS STANDARD (MEAN 14.0, SD ~3.8)
+    const eppsPercentileLookup = {
+        0: 1, 1: 1, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 7, 8: 10,
+        9: 14, 10: 18, 11: 24, 12: 32, 13: 41, 14: 50, 15: 59,
+        16: 68, 17: 76, 18: 82, 19: 87, 20: 91, 21: 94, 22: 96,
+        23: 97, 24: 98, 25: 99, 26: 99, 27: 99, 28: 99
+    };
+
+    function getEppsPercentile(sVal) {
+        if (sVal in eppsPercentileLookup) return eppsPercentileLookup[sVal];
+        if (sVal < 0) return 1;
+        if (sVal > 28) return 99;
+        return Math.min(99, Math.max(1, Math.round(50 + (sVal - 14) * 5.2)));
+    }
+
+    // 6. RANKING SKALA: TOP 3 DOMINAN & 3 TERENDAH
+    const sortedScales = [...EPPS_SCALES].sort((a, b) => (totalScores[b.kode] || 0) - (totalScores[a.kode] || 0));
+    const top3 = sortedScales.slice(0, 3);
+    const bottom3 = sortedScales.slice(-3).reverse();
+
+    if (topNeedsEl) {
+        let topHtml = '';
+        top3.forEach((s, idx) => {
+            const rawVal = totalScores[s.kode] || 0;
+            const pct = getEppsPercentile(rawVal);
+            topHtml += `
+                <div class="bg-white/10 rounded-xl p-3 border border-white/20 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-[#003865] text-xs font-black flex items-center justify-center flex-shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <div>
+                            <p class="text-xs font-black text-white">${s.nama} (${s.kode.toUpperCase()})</p>
+                            <p class="text-[10px] text-slate-200 line-clamp-1">${s.idNama}</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="text-sm font-black text-amber-300">s: ${rawVal}</span>
+                        <span class="text-[10px] text-slate-300 block font-mono">${pct}%ile</span>
+                    </div>
+                </div>
+            `;
+        });
+        topNeedsEl.innerHTML = topHtml;
+    }
+
+    if (lowNeedsEl) {
+        let lowHtml = '';
+        bottom3.forEach((s, idx) => {
+            const rawVal = totalScores[s.kode] || 0;
+            const pct = getEppsPercentile(rawVal);
+            lowHtml += `
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs font-black flex items-center justify-center flex-shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <div>
+                            <p class="text-xs font-black text-slate-800">${s.nama} (${s.kode.toUpperCase()})</p>
+                            <p class="text-[10px] text-slate-500 line-clamp-1">${s.idNama}</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="text-sm font-black text-rose-600">s: ${rawVal}</span>
+                        <span class="text-[10px] text-slate-400 block font-mono">${pct}%ile</span>
+                    </div>
+                </div>
+            `;
+        });
+        lowNeedsEl.innerHTML = lowHtml;
+    }
+
+    // 7. RENDER TABEL RESMI SKORING 15 SKALA EPPS (r, c, s, %ile, Norma)
+    if (tableBodyEl) {
+        let tbodyHtml = '';
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            const rVal = rowScores[k] || 0;
+            const cVal = colScores[k] || 0;
+            const sVal = totalScores[k] || 0;
+            const pct = getEppsPercentile(sVal);
+
+            // Norma relatif terhadap mean 14.0
+            let normaSymbol = '0';
+            let normaBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">0</span>';
+            let kategoriText = 'Sedang / Rata-rata';
+            let kategoriBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Sedang</span>';
+            let barColor = 'bg-blue-600';
+
+            if (sVal > 14) {
+                normaSymbol = '+';
+                normaBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800">+</span>';
+                if (pct >= 85) {
+                    kategoriText = 'Sangat Tinggi';
+                    kategoriBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">Sangat Tinggi</span>';
+                    barColor = 'bg-emerald-600';
+                } else {
+                    kategoriText = 'Tinggi';
+                    kategoriBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Tinggi</span>';
+                    barColor = 'bg-emerald-500';
+                }
+            } else if (sVal < 14) {
+                normaSymbol = '-';
+                normaBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-800">-</span>';
+                if (pct <= 15) {
+                    kategoriText = 'Sangat Rendah';
+                    kategoriBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300">Sangat Rendah</span>';
+                    barColor = 'bg-rose-500';
+                } else {
+                    kategoriText = 'Rendah';
+                    kategoriBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Rendah</span>';
+                    barColor = 'bg-amber-500';
+                }
+            }
+
+            tbodyHtml += `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-500 uppercase">${k}</td>
+                    <td class="py-2.5 px-3">
+                        <span class="font-bold text-slate-800 block">${s.nama}</span>
+                        <span class="text-[10px] text-slate-500 block">${s.idNama}</span>
+                    </td>
+                    <td class="py-2.5 px-2 text-center font-mono font-semibold text-slate-600">${rVal}</td>
+                    <td class="py-2.5 px-2 text-center font-mono font-semibold text-slate-600">${cVal}</td>
+                    <td class="py-2.5 px-3 text-center bg-blue-50/70 font-black text-[#003865] text-sm font-mono">${sVal}</td>
+                    <td class="py-2.5 px-2 text-center font-mono font-bold text-slate-700">${pct}%</td>
+                    <td class="py-2.5 px-2 text-center">${normaBadge}</td>
+                    <td class="py-2.5 px-3">
+                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex relative">
+                            <div class="h-full ${barColor} rounded-full" style="width: ${Math.min(100, Math.max(5, pct))}%;"></div>
+                            <div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-slate-400 z-10" title="Garis Rata-rata 50%"></div>
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-3 text-center">${kategoriBadge}</td>
+                </tr>
+            `;
+        });
+        tableBodyEl.innerHTML = tbodyHtml;
+    }
+
+    if (sumRowEl) sumRowEl.innerText = sumR;
+    if (sumColEl) sumColEl.innerText = sumC;
+    if (sumTotalCellEl) sumTotalCellEl.innerText = sumS;
+
+    // 8. RENDER GRAFIK VISUAL PROFIL PERSENTIL EPPS (SESUAI HALAMAN 8 PDF)
+    if (visualChartEl) {
+        let chartHtml = `
+            <div class="flex items-center text-[10px] text-slate-400 pb-1 font-mono uppercase border-b border-slate-100">
+                <span class="w-28 sm:w-36 flex-shrink-0 font-bold">Skala / Variabel</span>
+                <span class="w-12 text-center flex-shrink-0 font-bold">Raw (s)</span>
+                <span class="w-12 text-center flex-shrink-0 font-bold">%ile</span>
+                <div class="flex-1 flex justify-between px-2 text-[9px]">
+                    <span>1%</span>
+                    <span>25%</span>
+                    <span class="font-black text-[#003865]">50% (Mean 14)</span>
+                    <span>75%</span>
+                    <span>99%</span>
+                </div>
+            </div>
+        `;
+
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            const sVal = totalScores[k] || 0;
+            const pct = getEppsPercentile(sVal);
+
+            let barBg = 'bg-[#003865]';
+            if (sVal > 14) barBg = 'bg-emerald-600';
+            else if (sVal < 14) barBg = 'bg-amber-500';
+
+            chartHtml += `
+                <div class="flex items-center gap-2 py-1 hover:bg-slate-50 rounded-lg px-1 transition-colors">
+                    <div class="w-28 sm:w-36 flex-shrink-0">
+                        <span class="text-xs font-bold text-slate-800 block truncate" title="${s.nama}">${s.nama} (${k.toUpperCase()})</span>
+                    </div>
+                    <div class="w-12 text-center flex-shrink-0 font-mono font-black text-xs text-[#003865]">${sVal}</div>
+                    <div class="w-12 text-center flex-shrink-0 font-mono text-xs font-semibold text-slate-600">${pct}%</div>
+                    <div class="flex-1 bg-slate-100 h-4 rounded-md relative overflow-hidden flex items-center border border-slate-200">
+                        <div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-slate-400 z-10 opacity-70"></div>
+                        <div class="h-full ${barBg} rounded-sm transition-all duration-500" style="width: ${Math.min(100, Math.max(3, pct))}%;"></div>
+                    </div>
+                </div>
+            `;
+        });
+        visualChartEl.innerHTML = chartHtml;
+    }
+
+    // 9. RENDER ANALISIS NARASI PSIKOLOGIS 15 KEBUTUHAN MURRAY (DINAMIKA MANAJERIAL)
+    if (narrativeEl) {
+        let narrHtml = '';
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            const sVal = totalScores[k] || 0;
+            const pct = getEppsPercentile(sVal);
+
+            let statusLabel = 'Tingkat Sedang (Seimbang)';
+            let statusClass = 'text-slate-700 bg-slate-100 border-slate-200';
+            let interpretasi = `Kandidat memiliki kebutuhan ${s.nama.toLowerCase()} dalam tingkat yang wajar dan fleksibel, dapat menyesuaikan diri sesuai situasi lingkungan kerja.`;
+
+            if (sVal > 14) {
+                if (pct >= 85) {
+                    statusLabel = 'Sangat Tinggi (Kebutuhan Dominan)';
+                    statusClass = 'text-emerald-800 bg-emerald-50 border-emerald-300';
+                    interpretasi = `Menjadi pendorong utama perilaku kerja. Kandidat memiliki dorongan ${s.nama.toLowerCase()} yang luar biasa tinggi dan konsisten mewarnai gaya kepemimpinannya.`;
+                } else {
+                    statusLabel = 'Tinggi (Kuat)';
+                    statusClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
+                    interpretasi = `Kandidat memperlihatkan kecenderungan positif dan aktif untuk menunjukkan ${s.nama.toLowerCase()} dalam aktivitas tugas sehari-hari.`;
+                }
+            } else if (sVal < 14) {
+                if (pct <= 15) {
+                    statusLabel = 'Sangat Rendah (Dikesampingkan)';
+                    statusClass = 'text-rose-800 bg-rose-50 border-rose-300';
+                    interpretasi = `Kandidat cenderung menghindari atau tidak memprioritaskan ${s.nama.toLowerCase()}. Dapat menjadi area blind spot jika diperlukan dalam tanggung jawab jabatan tertentu.`;
+                } else {
+                    statusLabel = 'Rendah';
+                    statusClass = 'text-amber-700 bg-amber-50 border-amber-200';
+                    interpretasi = `Kebutuhan ${s.nama.toLowerCase()} berada di bawah rata-rata normal; kandidat jarang terdorong oleh faktor ini dalam mengambil keputusan.`;
+                }
+            }
+
+            narrHtml += `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-black text-[#003865] uppercase">${s.kode} - ${s.nama}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusClass}">
+                            ${statusLabel}
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic">${s.desc}</p>
+                    <p class="text-xs text-slate-700 leading-relaxed font-medium pt-1 border-t border-slate-200/60">
+                        ${interpretasi}
+                    </p>
+                </div>
+            `;
+        });
+        narrativeEl.innerHTML = narrHtml;
+    }
+
+    // 10. RENDER LEMBAR AUDIT 225 SOAL
+    if (auditGridEl) {
+        let auditHtml = '';
+        for (let i = 1; i <= 225; i++) {
+            const ans = (jawaban[i] !== undefined)
+                ? String(jawaban[i]).trim().toUpperCase()
+                : ((jawaban[String(i)] !== undefined) ? String(jawaban[String(i)]).trim().toUpperCase() : '-');
+
+            const isRedLine = RED_LINE_ITEMS.includes(i);
+            const badgeClass = (ans === 'A')
+                ? 'bg-blue-600 text-white'
+                : ((ans === 'B') ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-400');
+
+            const redIndicator = isRedLine ? '<span class="text-[9px] text-rose-500 font-bold" title="Soal Pembanding Konsistensi">&bull;</span>' : '';
+
+            auditHtml += `
+                <div class="p-1 rounded bg-slate-50 border border-slate-200 text-center flex flex-col items-center justify-center">
+                    <span class="text-[9px] text-slate-400 font-mono flex items-center gap-0.5">${i}${redIndicator}</span>
+                    <span class="w-5 h-5 rounded text-[10px] font-black flex items-center justify-center ${badgeClass} mt-0.5">${ans}</span>
+                </div>
+            `;
+        }
+        auditGridEl.innerHTML = auditHtml;
+    }
+
+    // 11. DUKUNGAN ELEMEN LEGACY (BACKWARD COMPATIBILITY)
+    if (legacyGridEl) {
+        let legacyHtml = '';
+        EPPS_SCALES.forEach(s => {
+            const k = s.kode;
+            const val = totalScores[k] || 0;
+            legacyHtml += `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+                    <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider mb-0.5">${k.toUpperCase()}</p>
+                    <p class="text-lg font-black text-[#003865]">${val}</p>
+                    <span class="text-[10px] font-semibold text-slate-600 block truncate" title="${s.nama}">${s.nama}</span>
+                </div>
+            `;
+        });
+        legacyGridEl.innerHTML = legacyHtml;
+    }
+}
+
+/**
+ * Merender Hasil Tes CFIT (Culture Fair Intelligence Test) di Modal HRD
+ */
+function renderCfitResults(rawData) {
+    const emptyNotice = document.getElementById('cfitEmptyNotice');
+    const rawEl = document.getElementById('cfitRptRaw');
+    const iqEl = document.getElementById('cfitRptIq');
+    const katEl = document.getElementById('cfitRptKategori');
+    const usiaEl = document.getElementById('cfitRptUsia');
+    const tabEl = document.getElementById('cfitRptPelanggaranBadge');
+    const s1El = document.getElementById('cfitSub1');
+    const s2El = document.getElementById('cfitSub2');
+    const s3El = document.getElementById('cfitSub3');
+    const s4El = document.getElementById('cfitSub4');
+    const sheetContainer = document.getElementById('cfitCorrectionSheetsContainer');
+
+    if (!rawData) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (rawEl) rawEl.innerText = "-";
+        if (iqEl) iqEl.innerText = "-";
+        if (katEl) katEl.innerText = "-";
+        if (usiaEl) usiaEl.innerText = "-";
+        if (s1El) s1El.innerText = "-";
+        if (s2El) s2El.innerText = "-";
+        if (s3El) s3El.innerText = "-";
+        if (s4El) s4El.innerText = "-";
+        if (sheetContainer) sheetContainer.innerHTML = "";
+        return;
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+
+    let parsed = rawData;
+    if (typeof rawData === 'string') {
+        try { parsed = JSON.parse(rawData); } catch (e) {}
+    }
+
+    const a = parsed.analisis || parsed;
+    const totalBenar = a.total_benar !== undefined ? a.total_benar : (a.raw_score !== undefined ? a.raw_score : "-");
+    const skorIq = a.skor_iq !== undefined ? a.skor_iq : (a.iq_score !== undefined ? a.iq_score : "-");
+    let katIq = a.kategori_iq || a.kategori || "Average";
+    if (katIq === "Mentally Retardation") katIq = "Sangat Kurang (Very Low)";
+    if (katIq === "Borderline Defective") katIq = "Kurang (Borderline)";
+
+    if (rawEl) rawEl.innerText = `${totalBenar} / 50`;
+    if (iqEl) iqEl.innerText = skorIq;
+    if (katEl) {
+        katEl.innerText = katIq;
+        const numIq = Number(skorIq) || 0;
+        if (numIq >= 120) {
+            katEl.className = "text-lg font-black text-emerald-600 mt-2";
+        } else if (numIq >= 90) {
+            katEl.className = "text-lg font-black text-blue-600 mt-2";
+        } else if (numIq >= 80) {
+            katEl.className = "text-lg font-black text-amber-600 mt-2";
+        } else {
+            katEl.className = "text-lg font-black text-rose-600 mt-2";
+        }
+    }
+
+    // Usia Peserta
+    let usiaText = a.usia || "-";
+    if (usiaText === "-" && currentSelectedCandidate) {
+        const tglLahir = currentSelectedCandidate.tanggal_lahir || currentSelectedCandidate.tgl_lahir || "";
+        const tglTes = currentSelectedCandidate.tanggal_tes || currentSelectedCandidate.created_at || "";
+        if (window.hitungUsiaLengkap) {
+            usiaText = window.hitungUsiaLengkap(tglLahir, tglTes);
+        }
+    }
+    if (usiaEl) usiaEl.innerText = usiaText;
+
+    // Pelanggaran Tab Switch
+    const tabViolations = a.pelanggaran_tab_switch || 0;
+    if (tabEl) {
+        tabEl.innerText = `Tab Switch: ${tabViolations}x`;
+        if (tabViolations > 0) {
+            tabEl.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-300 animate-pulse";
+        } else {
+            tabEl.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200";
+        }
+    }
+
+    // Subtotal 4 Subtes
+    const r = a.rincian_subtes || {};
+    if (s1El) s1El.innerText = `${r.s1 !== undefined ? r.s1 : "-"} / 13`;
+    if (s2El) s2El.innerText = `${r.s2 !== undefined ? r.s2 : "-"} / 14`;
+    if (s3El) s3El.innerText = `${r.s3 !== undefined ? r.s3 : "-"} / 13`;
+    if (s4El) s4El.innerText = `${r.s4 !== undefined ? r.s4 : "-"} / 10`;
+
+    // Render Lembar Koreksi Rinci 50 Soal (Grid 4 Tabel Subtes)
+    if (sheetContainer) {
+        let rincian = a.rincian_jawaban || [];
+        const masterKeys = {
+            1: ["B", "C", "B", "D", "E", "B", "D", "B", "F", "C", "B", "B", "E"],
+            2: ["BE", "AE", "AD", "CE", "BE", "AD", "BE", "BE", "AD", "BD", "AE", "CD", "BC", "AB"],
+            3: ["E", "E", "E", "B", "C", "D", "E", "E", "A", "A", "F", "C", "C"],
+            4: ["B", "A", "D", "D", "A", "B", "C", "D", "A", "D"]
+        };
+
+        const subtesMeta = [
+            { no: 1, nama: "Subtes 1 (Seriation)", count: 13 },
+            { no: 2, nama: "Subtes 2 (Klasifikasi)", count: 14 },
+            { no: 3, nama: "Subtes 3 (Matriks)", count: 13 },
+            { no: 4, nama: "Subtes 4 (Topologi)", count: 10 }
+        ];
+
+        // Fallback: Jika rincian_jawaban belum dihitung dari server namun raw answers tersimpan
+        const ansObj = parsed.answers || a.answers;
+        if ((!rincian || rincian.length === 0) && ansObj) {
+            rincian = [];
+            subtesMeta.forEach(meta => {
+                const subKey = `subtes_${meta.no}`;
+                const subAns = ansObj[subKey] || {};
+                for (let q = 1; q <= meta.count; q++) {
+                    let userVal = subAns[q] || subAns[String(q)] || "-";
+                    if (Array.isArray(userVal)) {
+                        userVal = userVal.slice().sort().join('');
+                    } else if (typeof userVal === 'string') {
+                        userVal = userVal.trim().toUpperCase();
+                    }
+                    const correctKey = masterKeys[meta.no][q - 1];
+                    const isCorrect = (userVal === correctKey);
+                    rincian.push({
+                        subtes: meta.no,
+                        no: q,
+                        jawaban: userVal,
+                        nilai: isCorrect ? 1 : 0
+                    });
+                }
+            });
+
+            if (totalBenar === "-" && rincian.length > 0) {
+                const calculatedTotal = rincian.reduce((acc, curr) => acc + (curr.nilai || 0), 0);
+                if (rawEl) rawEl.innerText = `${calculatedTotal} / 50`;
+                const s1Count = rincian.filter(x => x.subtes === 1 && x.nilai === 1).length;
+                const s2Count = rincian.filter(x => x.subtes === 2 && x.nilai === 1).length;
+                const s3Count = rincian.filter(x => x.subtes === 3 && x.nilai === 1).length;
+                const s4Count = rincian.filter(x => x.subtes === 4 && x.nilai === 1).length;
+                if (s1El) s1El.innerText = `${s1Count} / 13`;
+                if (s2El) s2El.innerText = `${s2Count} / 14`;
+                if (s3El) s3El.innerText = `${s3Count} / 13`;
+                if (s4El) s4El.innerText = `${s4Count} / 10`;
+
+                const CFIT_IQ_MAP = {
+                    0: 62, 1: 64, 2: 66, 3: 68, 4: 70, 5: 72, 6: 74, 7: 76, 8: 78, 9: 80,
+                    10: 82, 11: 84, 12: 86, 13: 88, 14: 90, 15: 92, 16: 94, 17: 96, 18: 98, 19: 100,
+                    20: 102, 21: 104, 22: 106, 23: 108, 24: 110, 25: 112, 26: 114, 27: 116, 28: 118, 29: 120,
+                    30: 122, 31: 124, 32: 126, 33: 128, 34: 130, 35: 132, 36: 134, 37: 136, 38: 138, 39: 140,
+                    40: 142, 41: 144, 42: 146, 43: 148, 44: 150, 45: 152, 46: 154, 47: 156, 48: 158, 49: 160, 50: 162
+                };
+                const calcIq = CFIT_IQ_MAP[calculatedTotal] || 62;
+                if (iqEl) iqEl.innerText = calcIq;
+                if (katEl) {
+                    let cat = "Average";
+                    if (calcIq >= 130) cat = "Very Superior";
+                    else if (calcIq >= 120) cat = "Superior";
+                    else if (calcIq >= 110) cat = "High Average";
+                    else if (calcIq >= 90) cat = "Average";
+                    else if (calcIq >= 80) cat = "Low Average";
+                    else cat = "Kurang (Borderline)";
+                    katEl.innerText = cat;
+                    if (calcIq >= 120) katEl.className = "text-lg font-black text-emerald-600 mt-2";
+                    else if (calcIq >= 90) katEl.className = "text-lg font-black text-blue-600 mt-2";
+                    else if (calcIq >= 80) katEl.className = "text-lg font-black text-amber-600 mt-2";
+                    else katEl.className = "text-lg font-black text-rose-600 mt-2";
+                }
+            }
+        }
+
+        let sheetsHtml = '';
+
+        subtesMeta.forEach(meta => {
+            const items = rincian.filter(x => Number(x.subtes) === meta.no);
+            let rowsHtml = '';
+            let subBenar = 0;
+
+            for (let i = 1; i <= meta.count; i++) {
+                const item = items.find(x => Number(x.no) === i);
+                const kunci = masterKeys[meta.no][i - 1];
+                let jwb = item ? item.jawaban : "-";
+                let nilai = item ? item.nilai : 0;
+
+                if (nilai === 1) subBenar++;
+
+                const isBenar = nilai === 1;
+                const rowBg = isBenar ? "bg-emerald-50/80 text-emerald-950 border-b border-emerald-100" : "bg-red-50/80 text-red-950 border-b border-red-100";
+                const badgeNilai = isBenar
+                    ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-[10px]">1</span>'
+                    : '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-400 text-white font-black text-[10px]">0</span>';
+
+                rowsHtml += `
+                    <tr class="${rowBg} hover:opacity-90 transition">
+                        <td class="p-1.5 text-center font-bold text-slate-500">${String(i).padStart(2, '0')}</td>
+                        <td class="p-1.5 text-center font-black ${isBenar ? 'text-[#003865]' : 'text-red-700'}">${jwb}</td>
+                        <td class="p-1.5 text-center font-bold text-slate-600">${kunci}</td>
+                        <td class="p-1.5 text-center">${badgeNilai}</td>
+                    </tr>
+                `;
+            }
+
+            sheetsHtml += `
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex justify-between items-center">
+                            <span class="text-xs font-black text-slate-800">${meta.nama}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-[#003865] text-white">${subBenar} / ${meta.count}</span>
+                        </div>
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-1.5 text-center w-8">No</th>
+                                    <th class="p-1.5 text-center">Jwb</th>
+                                    <th class="p-1.5 text-center">Kunci</th>
+                                    <th class="p-1.5 text-center w-10">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-2 bg-slate-50 border-t border-slate-200 text-center text-xs font-bold text-slate-700">
+                        Subtotal: <span class="text-emerald-700 font-black">${subBenar}</span> dari ${meta.count} Soal
+                    </div>
+                </div>
+            `;
+        });
+
+        sheetContainer.innerHTML = sheetsHtml;
+    }
+}
+
+/**
+ * Merender Hasil Tes MBTI (Myers-Briggs Type Indicator - 16 Tipe Kepribadian Manajerial) di Modal HRD
+ */
+function renderMbtiResults(rawData) {
+    const emptyNotice = document.getElementById('mbtiEmptyNotice');
+    const tipeEl = document.getElementById('mbtiRptTipe');
+    const namaEl = document.getElementById('mbtiRptNama');
+    const durasiEl = document.getElementById('mbtiRptDurasi');
+
+    const pctE = document.getElementById('mbtiPctE');
+    const pctI = document.getElementById('mbtiPctI');
+    const barE = document.getElementById('mbtiBarE');
+    const barI = document.getElementById('mbtiBarI');
+
+    const pctS = document.getElementById('mbtiPctS');
+    const pctN = document.getElementById('mbtiPctN');
+    const barS = document.getElementById('mbtiBarS');
+    const barN = document.getElementById('mbtiBarN');
+
+    const pctT = document.getElementById('mbtiPctT');
+    const pctF = document.getElementById('mbtiPctF');
+    const barT = document.getElementById('mbtiBarT');
+    const barF = document.getElementById('mbtiBarF');
+
+    const pctJ = document.getElementById('mbtiPctJ');
+    const pctP = document.getElementById('mbtiPctP');
+    const barJ = document.getElementById('mbtiBarJ');
+    const barP = document.getElementById('mbtiBarP');
+
+    const gayaEl = document.getElementById('mbtiRptGayaKerja');
+    const kekuatanEl = document.getElementById('mbtiRptKekuatan');
+
+    if (!rawData) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (tipeEl) tipeEl.innerText = "-";
+        if (namaEl) namaEl.innerText = "Belum ada data pengerjaan MBTI";
+        if (durasiEl) durasiEl.innerText = "-";
+        if (pctE) pctE.innerText = "50%";
+        if (pctI) pctI.innerText = "50%";
+        if (barE) barE.style.width = "50%";
+        if (barI) barI.style.width = "50%";
+        if (pctS) pctS.innerText = "50%";
+        if (pctN) pctN.innerText = "50%";
+        if (barS) barS.style.width = "50%";
+        if (barN) barN.style.width = "50%";
+        if (pctT) pctT.innerText = "50%";
+        if (pctF) pctF.innerText = "50%";
+        if (barT) barT.style.width = "50%";
+        if (barF) barF.style.width = "50%";
+        if (pctJ) pctJ.innerText = "50%";
+        if (pctP) pctP.innerText = "50%";
+        if (barJ) barJ.style.width = "50%";
+        if (barP) barP.style.width = "50%";
+        if (gayaEl) gayaEl.innerText = "-";
+        if (kekuatanEl) kekuatanEl.innerText = "-";
+        return;
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+
+    let parsed = rawData;
+    if (typeof rawData === 'string') {
+        try { parsed = JSON.parse(rawData); } catch (e) {}
+    }
+
+    const a = parsed.analisis || parsed;
+    const tipe = parsed.tipe_mbti || a.tipe || "-";
+    const namaProfil = parsed.nama_profil || a.nama_profil || "-";
+    const durasi = parsed.durasi_teks || (parsed.durasi_detik ? `${Math.floor(parsed.durasi_detik / 60)}m ${parsed.durasi_detik % 60}s` : "-");
+
+    if (tipeEl) tipeEl.innerText = tipe;
+    if (namaEl) namaEl.innerText = namaProfil;
+    if (durasiEl) durasiEl.innerText = durasi;
+
+    const dim = a.dimensi || {};
+    const ei = dim.EI || {};
+    const sn = dim.SN || {};
+    const tf = dim.TF || {};
+    const jp = dim.JP || {};
+
+    // 1. Ekstrovert (E) vs Introvert (I)
+    let eVal = ei.pctE !== undefined ? Number(ei.pctE) : (ei.E && ei.E.pct !== undefined ? Number(ei.E.pct) : undefined);
+    let iVal = ei.pctI !== undefined ? Number(ei.pctI) : (ei.I && ei.I.pct !== undefined ? Number(ei.I.pct) : undefined);
+    const skorE = ei.skorE !== undefined ? ei.skorE : (ei.E && ei.E.skor !== undefined ? ei.E.skor : null);
+    const skorI = ei.skorI !== undefined ? ei.skorI : (ei.I && ei.I.skor !== undefined ? ei.I.skor : null);
+
+    if (skorE !== null && skorI !== null && (Number(skorE) + Number(skorI) === 0)) {
+        eVal = 50;
+        iVal = 50;
+    } else if (eVal === undefined && skorE !== null && skorI !== null && (skorE + skorI > 0)) {
+        eVal = Math.round((skorE / (skorE + skorI)) * 100);
+        iVal = 100 - eVal;
+    }
+    if (eVal === undefined) eVal = 50;
+    if (iVal === undefined) iVal = 100 - eVal;
+
+    if (pctE) pctE.innerHTML = skorE !== null ? `${eVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorE} poin)</span>` : `${eVal}%`;
+    if (pctI) pctI.innerHTML = skorI !== null ? `${iVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorI} poin)</span>` : `${iVal}%`;
+    if (barE) {
+        barE.style.width = `${eVal}%`;
+        barE.style.opacity = (eVal === 50 && iVal === 50) ? '0.7' : (eVal >= iVal ? '1' : '0.45');
+    }
+    if (barI) {
+        barI.style.width = `${iVal}%`;
+        barI.style.opacity = (eVal === 50 && iVal === 50) ? '0.7' : (iVal >= eVal ? '1' : '0.45');
+    }
+
+    // 2. Sensing (S) vs Intuition (N)
+    let sVal = sn.pctS !== undefined ? Number(sn.pctS) : (sn.S && sn.S.pct !== undefined ? Number(sn.S.pct) : undefined);
+    let nVal = sn.pctN !== undefined ? Number(sn.pctN) : (sn.N && sn.N.pct !== undefined ? Number(sn.N.pct) : undefined);
+    const skorS = sn.skorS !== undefined ? sn.skorS : (sn.S && sn.S.skor !== undefined ? sn.S.skor : null);
+    const skorN = sn.skorN !== undefined ? sn.skorN : (sn.N && sn.N.skor !== undefined ? sn.N.skor : null);
+
+    if (skorS !== null && skorN !== null && (Number(skorS) + Number(skorN) === 0)) {
+        sVal = 50;
+        nVal = 50;
+    } else if (sVal === undefined && skorS !== null && skorN !== null && (skorS + skorN > 0)) {
+        sVal = Math.round((skorS / (skorS + skorN)) * 100);
+        nVal = 100 - sVal;
+    }
+    if (sVal === undefined) sVal = 50;
+    if (nVal === undefined) nVal = 100 - sVal;
+
+    if (pctS) pctS.innerHTML = skorS !== null ? `${sVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorS} poin)</span>` : `${sVal}%`;
+    if (pctN) pctN.innerHTML = skorN !== null ? `${nVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorN} poin)</span>` : `${nVal}%`;
+    if (barS) {
+        barS.style.width = `${sVal}%`;
+        barS.style.opacity = (sVal === 50 && nVal === 50) ? '0.7' : (sVal >= nVal ? '1' : '0.45');
+    }
+    if (barN) {
+        barN.style.width = `${nVal}%`;
+        barN.style.opacity = (sVal === 50 && nVal === 50) ? '0.7' : (nVal >= sVal ? '1' : '0.45');
+    }
+
+    // 3. Thinking (T) vs Feeling (F)
+    let tVal = tf.pctT !== undefined ? Number(tf.pctT) : (tf.T && tf.T.pct !== undefined ? Number(tf.T.pct) : undefined);
+    let fVal = tf.pctF !== undefined ? Number(tf.pctF) : (tf.F && tf.F.pct !== undefined ? Number(tf.F.pct) : undefined);
+    const skorT = tf.skorT !== undefined ? tf.skorT : (tf.T && tf.T.skor !== undefined ? tf.T.skor : null);
+    const skorF = tf.skorF !== undefined ? tf.skorF : (tf.F && tf.F.skor !== undefined ? tf.F.skor : null);
+
+    if (skorT !== null && skorF !== null && (Number(skorT) + Number(skorF) === 0)) {
+        tVal = 50;
+        fVal = 50;
+    } else if (tVal === undefined && skorT !== null && skorF !== null && (skorT + skorF > 0)) {
+        tVal = Math.round((skorT / (skorT + skorF)) * 100);
+        fVal = 100 - tVal;
+    }
+    if (tVal === undefined) tVal = 50;
+    if (fVal === undefined) fVal = 100 - tVal;
+
+    if (pctT) pctT.innerHTML = skorT !== null ? `${tVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorT} poin)</span>` : `${tVal}%`;
+    if (pctF) pctF.innerHTML = skorF !== null ? `${fVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorF} poin)</span>` : `${fVal}%`;
+    if (barT) {
+        barT.style.width = `${tVal}%`;
+        barT.style.opacity = (tVal === 50 && fVal === 50) ? '0.7' : (tVal >= fVal ? '1' : '0.45');
+    }
+    if (barF) {
+        barF.style.width = `${fVal}%`;
+        barF.style.opacity = (tVal === 50 && fVal === 50) ? '0.7' : (fVal >= tVal ? '1' : '0.45');
+    }
+
+    // 4. Judging (J) vs Perceiving (P)
+    let jVal = jp.pctJ !== undefined ? Number(jp.pctJ) : (jp.J && jp.J.pct !== undefined ? Number(jp.J.pct) : undefined);
+    let pVal = jp.pctP !== undefined ? Number(jp.pctP) : (jp.P && jp.P.pct !== undefined ? Number(jp.P.pct) : undefined);
+    const skorJ = jp.skorJ !== undefined ? jp.skorJ : (jp.J && jp.J.skor !== undefined ? jp.J.skor : null);
+    const skorP = jp.skorP !== undefined ? jp.skorP : (jp.P && jp.P.skor !== undefined ? jp.P.skor : null);
+
+    if (skorJ !== null && skorP !== null && (Number(skorJ) + Number(skorP) === 0)) {
+        jVal = 50;
+        pVal = 50;
+    } else if (jVal === undefined && skorJ !== null && skorP !== null && (skorJ + skorP > 0)) {
+        jVal = Math.round((skorJ / (skorJ + skorP)) * 100);
+        pVal = 100 - jVal;
+    }
+    if (jVal === undefined) jVal = 50;
+    if (pVal === undefined) pVal = 100 - jVal;
+
+    if (pctJ) pctJ.innerHTML = skorJ !== null ? `${jVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorJ} poin)</span>` : `${jVal}%`;
+    if (pctP) pctP.innerHTML = skorP !== null ? `${pVal}% <span class="text-[10px] opacity-70 font-semibold">(${skorP} poin)</span>` : `${pVal}%`;
+    if (barJ) {
+        barJ.style.width = `${jVal}%`;
+        barJ.style.opacity = (jVal === 50 && pVal === 50) ? '0.7' : (jVal >= pVal ? '1' : '0.45');
+    }
+    if (barP) {
+        barP.style.width = `${pVal}%`;
+        barP.style.opacity = (jVal === 50 && pVal === 50) ? '0.7' : (pVal >= jVal ? '1' : '0.45');
+    }
+
+    if (gayaEl) gayaEl.innerText = a.gaya_kerja || a.karakteristik || "-";
+    if (kekuatanEl) kekuatanEl.innerText = a.kekuatan_utama || a.rekomendasi_peran || "-";
+
+    // =====================================================================
+    // RENDER DATA LENGKAP PROFIL MBTI DARI MBTI_CONFIG (mbti-data.js)
+    // =====================================================================
+    const enrichSections = [
+        'mbtiMetaBadges', 'mbtiGambaranSection', 'mbtiDefinisiSection',
+        'mbtiDimensiSection', 'mbtiCiriSection', 'mbtiKarirSection',
+        'mbtiPartnerSection', 'mbtiSaranSection', 'mbtiExtrasSection', 'mbtiSkalaDetails'
+    ];
+
+    // Ambil profil lengkap dari MBTI_CONFIG
+    const cfg = (typeof MBTI_CONFIG !== 'undefined') ? MBTI_CONFIG : null;
+    const profil = (cfg && cfg.profilTipe && tipe && tipe !== '-') ? cfg.profilTipe[tipe.toUpperCase()] : null;
+
+    if (!profil) {
+        // Sembunyikan semua section enrichment jika profil tidak ditemukan
+        enrichSections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        return;
+    }
+
+    // --- Badge Temperamen, Alias, Populasi ---
+    const metaBadges = document.getElementById('mbtiMetaBadges');
+    if (metaBadges) {
+        metaBadges.style.display = '';
+        const temperamenEl = document.getElementById('mbtiRptTemperamen');
+        const aliasEl = document.getElementById('mbtiRptAlias');
+        const populasiEl = document.getElementById('mbtiRptPopulasi');
+
+        // Ambil info temperamen lengkap
+        const tempInfo = (cfg.temperamenInfo && profil.temperamen) ? cfg.temperamenInfo[profil.temperamen] : null;
+        if (temperamenEl) temperamenEl.textContent = tempInfo ? `🧭 ${tempInfo.nama}` : (profil.temperamen || '-');
+        if (aliasEl) aliasEl.textContent = profil.alias ? `"${profil.alias}"` : '';
+        if (populasiEl) populasiEl.textContent = profil.populasi ? `📊 ${profil.populasi}` : '';
+    }
+
+    // --- Gambaran Singkat ---
+    const gambaranSec = document.getElementById('mbtiGambaranSection');
+    const gambaranEl = document.getElementById('mbtiRptGambaran');
+    if (profil.gambaranSingkat && gambaranSec && gambaranEl) {
+        gambaranSec.style.display = '';
+        gambaranEl.textContent = profil.gambaranSingkat;
+    } else if (gambaranSec) {
+        gambaranSec.style.display = 'none';
+    }
+
+    // --- Definisi MBTI ---
+    const defSec = document.getElementById('mbtiDefinisiSection');
+    const defEl = document.getElementById('mbtiRptDefinisi');
+    if (profil.definisi && defSec && defEl) {
+        defSec.style.display = '';
+        defEl.textContent = profil.definisi;
+    } else if (defSec) {
+        defSec.style.display = 'none';
+    }
+
+    // --- Breakdown 4 Dimensi MBTI ---
+    const dimSec = document.getElementById('mbtiDimensiSection');
+    const dimGrid = document.getElementById('mbtiDimensiGrid');
+    if (profil.dimensiMBTI && dimSec && dimGrid) {
+        dimSec.style.display = '';
+        dimGrid.innerHTML = '';
+        const dimColors = {
+            E: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', label: 'Extrovert (E)' },
+            I: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-800', label: 'Introvert (I)' },
+            S: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', label: 'Sensing (S)' },
+            N: { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-800', label: 'Intuition (N)' },
+            T: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', label: 'Thinking (T)' },
+            F: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-800', label: 'Feeling (F)' },
+            J: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', label: 'Judging (J)' },
+            P: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', label: 'Perceiving (P)' }
+        };
+        Object.entries(profil.dimensiMBTI).forEach(([key, desc]) => {
+            const c = dimColors[key] || { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-800', label: key };
+            const card = document.createElement('div');
+            card.className = `${c.bg} ${c.border} border rounded-xl p-3 space-y-1`;
+            card.innerHTML = `<span class="text-[11px] font-black uppercase ${c.text}">${escapeHtml(c.label)}</span>
+                <p class="text-[11px] text-slate-600 leading-relaxed font-medium">${escapeHtml(desc)}</p>`;
+            dimGrid.appendChild(card);
+        });
+    } else if (dimSec) {
+        dimSec.style.display = 'none';
+    }
+
+    // --- Ciri-ciri Umum ---
+    const ciriSec = document.getElementById('mbtiCiriSection');
+    const ciriList = document.getElementById('mbtiCiriList');
+    if (profil.ciriUmum && Array.isArray(profil.ciriUmum) && ciriSec && ciriList) {
+        ciriSec.style.display = '';
+        ciriList.innerHTML = profil.ciriUmum.map(c =>
+            `<li class="flex items-start gap-2 text-[11px] text-slate-700 font-medium leading-relaxed">
+                <i class="fa-solid fa-check-circle text-emerald-500 mt-0.5 shrink-0 text-[10px]"></i>
+                <span>${escapeHtml(c)}</span>
+            </li>`
+        ).join('');
+    } else if (ciriSec) {
+        ciriSec.style.display = 'none';
+    }
+
+    // --- Saran Karir ---
+    const karirSec = document.getElementById('mbtiKarirSection');
+    const karirCat = document.getElementById('mbtiKarirCatatan');
+    const karirTags = document.getElementById('mbtiKarirTags');
+    if (profil.saranKarir && Array.isArray(profil.saranKarir) && karirSec && karirTags) {
+        karirSec.style.display = '';
+        if (karirCat) karirCat.textContent = profil.karirCatatan || '';
+        karirTags.innerHTML = profil.saranKarir.map(k =>
+            `<span class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <i class="fa-solid fa-briefcase text-[9px] mr-1 opacity-60"></i>${escapeHtml(k)}
+            </span>`
+        ).join('');
+    } else if (karirSec) {
+        karirSec.style.display = 'none';
+    }
+
+    // --- Partner Alami ---
+    const partSec = document.getElementById('mbtiPartnerSection');
+    const mitraEl = document.getElementById('mbtiRptMitra');
+    const mitraDescEl = document.getElementById('mbtiRptMitraDesc');
+    if (profil.partnerAlami && partSec) {
+        partSec.style.display = '';
+        if (mitraEl) mitraEl.textContent = profil.partnerAlami.mitra || '-';
+        if (mitraDescEl) mitraDescEl.textContent = profil.partnerAlami.deskripsi || '-';
+    } else if (partSec) {
+        partSec.style.display = 'none';
+    }
+
+    // --- Saran Pengembangan ---
+    const saranSec = document.getElementById('mbtiSaranSection');
+    const saranList = document.getElementById('mbtiSaranList');
+    if (profil.saranPengembangan && Array.isArray(profil.saranPengembangan) && saranSec && saranList) {
+        saranSec.style.display = '';
+        saranList.innerHTML = profil.saranPengembangan.map((s, i) =>
+            `<li class="flex items-start gap-2 text-[11px] text-slate-700 font-medium leading-relaxed">
+                <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">${i + 1}</span>
+                <span>${escapeHtml(s)}</span>
+            </li>`
+        ).join('');
+    } else if (saranSec) {
+        saranSec.style.display = 'none';
+    }
+
+    // --- Kata Kunci & Tokoh Terkenal ---
+    const extrasSec = document.getElementById('mbtiExtrasSection');
+    const kkTags = document.getElementById('mbtiKataKunciTags');
+    const tokohEl = document.getElementById('mbtiTokohList');
+    if (extrasSec && (profil.kataKunci || profil.tokohTerkenal)) {
+        extrasSec.style.display = '';
+        if (kkTags && profil.kataKunci) {
+            kkTags.innerHTML = profil.kataKunci.map(k =>
+                `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">${escapeHtml(k)}</span>`
+            ).join('');
+        }
+        if (tokohEl && profil.tokohTerkenal) {
+            tokohEl.textContent = profil.tokohTerkenal.join(', ');
+        }
+    } else if (extrasSec) {
+        extrasSec.style.display = 'none';
+    }
+
+    // --- Teori 4 Skala Kecenderungan MBTI ---
+    const skalaDetails = document.getElementById('mbtiSkalaDetails');
+    const skalaContent = document.getElementById('mbtiSkalaContent');
+    if (cfg && cfg.empatSkala && skalaDetails && skalaContent) {
+        skalaDetails.style.display = '';
+        skalaContent.innerHTML = '';
+        const skalaEntries = Object.entries(cfg.empatSkala);
+        skalaEntries.forEach(([key, skala]) => {
+            const block = document.createElement('div');
+            block.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2';
+            const pairs = key === 'EI' ? ['ekstrovert', 'introvert']
+                        : key === 'SN' ? ['sensing', 'intuition']
+                        : key === 'TF' ? ['thinking', 'feeling']
+                        : ['judging', 'perceiving'];
+            block.innerHTML = `
+                <h5 class="text-[11px] font-black text-[#003865]">${escapeHtml(skala.judul)}</h5>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">${escapeHtml(skala.dimensi)}</p>
+                <p class="text-[11px] text-slate-600 font-medium">${escapeHtml(skala.deskripsi)}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+                    <div class="bg-white border border-slate-100 rounded-lg p-2.5">
+                        <p class="text-[10px] font-black text-emerald-700 mb-0.5">${escapeHtml(pairs[0].charAt(0).toUpperCase() + pairs[0].slice(1))}</p>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">${escapeHtml(skala[pairs[0]] || '')}</p>
+                    </div>
+                    <div class="bg-white border border-slate-100 rounded-lg p-2.5">
+                        <p class="text-[10px] font-black text-indigo-700 mb-0.5">${escapeHtml(pairs[1].charAt(0).toUpperCase() + pairs[1].slice(1))}</p>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">${escapeHtml(skala[pairs[1]] || '')}</p>
+                    </div>
+                </div>`;
+            skalaContent.appendChild(block);
+        });
+    } else if (skalaDetails) {
+        skalaDetails.style.display = 'none';
+    }
+}
+
+// Fallback alias jika modul lain memanggil renderMcmiResults
+function renderMcmiResults(rawData) {
+    renderMbtiResults(rawData);
+}
+
+// =========================================================================
+// MODUL KOREKSI MANUAL & GRAFIK REAKTIF IST (PORTAL HRD PT ALTRAK 1978)
+// =========================================================================
+
+// Spesifikasi Resmi 9 Subtes IST Sesuai Lembar Koreksi Psikodiagnostik
+const IST_SUBTEST_SPECS = [
+    { code: 'SE', no: '01', name: 'SE', title: 'Satzergaenzung', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'WA', no: '02', name: 'WA', title: 'Wortauswahl', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'AN', no: '03', name: 'AN', title: 'Analogien', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'GE', no: '04', name: 'GE', title: 'Gemeinsamkeiten', totalSoal: 16, isEssay: true, maxScore: 2 },
+    { code: 'RA', no: '05', name: 'RA', title: 'Rechenaufgaben', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'ZR', no: '06', name: 'ZR', title: 'Zahlenreihen', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'FA', no: '07', name: 'FA', title: 'Figurenauswahl', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'WU', no: '08', name: 'WU', title: 'Wuerfelaufgaben', totalSoal: 20, isEssay: false, maxScore: 1 },
+    { code: 'ME', no: '09', name: 'ME', title: 'Merkaufgaben', totalSoal: 20, isEssay: false, maxScore: 1 }
+];
+
+// Offset nomor global soal IST (1 - 176)
+const IST_SUBTEST_OFFSETS = {
+    'SE': 0, 'WA': 20, 'AN': 40, 'GE': 60, 'RA': 76,
+    'ZR': 96, 'FA': 116, 'WU': 136, 'ME': 156
+};
+
+// Penampung Kunci Jawaban Resmi IST (Ditarik dinamis dari Server Database: public.ist_kunci())
+// Berkas frontend 100% BERSIH tanpa hardcode kunci jawaban agar aman dari inspect element
+let IST_OFFICIAL_ANSWER_KEYS = null;
+
+/**
+ * Mengambil Kunci Jawaban Resmi IST langsung dari Supabase Database (public.ist_kunci())
+ */
+async function fetchIstKeysFromDatabase() {
+    if (IST_OFFICIAL_ANSWER_KEYS) return IST_OFFICIAL_ANSWER_KEYS;
+    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    if (sb && typeof sb.rpc === 'function') {
+        try {
+            const { data, error } = await sb.rpc('ist_kunci');
+            if (!error && data) {
+                IST_OFFICIAL_ANSWER_KEYS = (typeof data === 'string') ? JSON.parse(data) : data;
+                return IST_OFFICIAL_ANSWER_KEYS;
+            }
+        } catch (e) {
+            console.warn('[HRD IST] Kunci server database:', e);
+        }
+    }
+    return null;
+}
+
+// TABEL NORMA RESMI IST PT ALTRAK 1978: Konversi RS (Skor Mentah) ke SW (Standardwert)
+const IST_NORM_RS_TO_SW = {
+    'SE': [71, 75, 78, 82, 86, 90, 93, 97, 101, 105, 108, 112, 116, 120, 123, 127, 131, 135, 138, 142, 146],
+    'WA': [67, 71, 74, 78, 81, 84, 88, 92, 95, 98, 102, 105, 109, 112, 116, 119, 123, 126, 130, 133, 137],
+    'AN': [79, 83, 86, 89, 92, 96, 99, 102, 106, 109, 112, 115, 119, 122, 125, 129, 132, 135, 138, 142, 145],
+    'GE': [70, 72, 75, 77, 79, 81, 84, 86, 88, 90, 93, 95, 97, 99, 101, 104, 106, 108, 110, 113, 115, 117, 119, 122, 124, 126, 129, 131, 133],
+    'RA': [79, 82, 84, 87, 89, 92, 95, 97, 100, 102, 105, 107, 110, 112, 115, 118, 120, 123, 125, 128, 130],
+    'ZR': [85, 87, 89, 91, 93, 95, 96, 98, 100, 102, 104, 106, 108, 109, 111, 113, 115, 117, 119, 121, 122],
+    'FA': [69, 73, 76, 79, 82, 85, 88, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 124, 127, 130],
+    'WU': [75, 78, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108, 111, 114, 117, 120, 123, 126, 129, 131, 134],
+    'ME': [74, 76, 78, 80, 82, 85, 87, 89, 91, 93, 95, 97, 100, 102, 104, 106, 108, 110, 112, 115, 117]
+};
+
+// TABEL NORMA RESMI IST PT ALTRAK 1978: Konversi RS ke Grade Angka Romawi (I s/d V)
+const IST_NORM_RS_TO_GRADE = {
+    'SE': ['V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'III-', 'III-', 'III', 'III', 'III+', 'II', 'II', 'II', 'I', 'I', 'I', 'I', 'I'],
+    'WA': ['V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III+', 'II', 'II', 'I', 'I', 'I', 'I', 'I'],
+    'AN': ['V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III+', 'II', 'II', 'II', 'I', 'I', 'I', 'I', 'I', 'I'],
+    'GE': ['V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'IV', 'III-', 'III-', 'III-', 'III', 'III', 'III', 'III', 'III+', 'III+', 'II', 'II', 'II', 'II', 'I', 'I', 'I'],
+    'RA': ['V', 'V', 'IV', 'IV', 'IV', 'III-', 'III-', 'III', 'III', 'III', 'III', 'III+', 'III+', 'II', 'II', 'II', 'II', 'I', 'I', 'I', 'I'],
+    'ZR': ['V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'IV', 'IV', 'III-', 'III-', 'III', 'III', 'III', 'III', 'III+', 'III+', 'II', 'II', 'II', 'I'],
+    'FA': ['V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III+', 'II', 'II', 'I', 'I', 'I', 'I', 'I'],
+    'WU': ['V', 'V', 'V', 'V', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III', 'III+', 'III+', 'II', 'II', 'II', 'II', 'II', 'II', 'I', 'I'],
+    'ME': ['V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III', 'III+']
+};
+
+/**
+ * Menghitung Kategori Kecerdasan berdasarkan Rumus Resmi Excel:
+ * <=69 (Mental Retarded), <=79 (Borderline), <=89 (Dull Normal), <=99 (Low Average),
+ * <=105 (Average), <=109 (High Average), <=119 (Bright Normal), <=129 (Superior),
+ * <=150 (Very Superior), >150 (Genius)
+ */
+function getIstCategory(score) {
+    const val = Number(score) || 0;
+    if (val <= 69) return { label: "Mental Retarded", abbr: "MR" };
+    if (val <= 79) return { label: "Borderline", abbr: "BL" };
+    if (val <= 89) return { label: "Dull Normal", abbr: "DN" };
+    if (val <= 99) return { label: "Low Average", abbr: "LA" };
+    if (val <= 105) return { label: "Average", abbr: "A" };
+    if (val <= 109) return { label: "High Average", abbr: "HA" };
+    if (val <= 119) return { label: "Bright Normal", abbr: "BN" };
+    if (val <= 129) return { label: "Superior", abbr: "S" };
+    if (val <= 150) return { label: "Very Superior", abbr: "VS" };
+    return { label: "Genius", abbr: "G" };
+}
+
+// Instance Chart.js Profil IST
+let istProfileChartInstance = null;
+
+// Objek State untuk menampung koreksi kandidat aktif
+let activeIstCorrection = {
+    candidateId: null,
+    answers: {},     // { SE: { 1: "C", 2: "B" }, ... }
+    scores: {},      // { SE: { 1: 1, 2: 0 }, ... }
+    rw: {},          // { SE: 17, WA: 15, ... }
+    sw: {},          // { SE: 71, WA: 67, ... }
+    skorIq: 0
+};
+
+/**
+ * Merender seluruh data tab IST saat kandidat dipilih
+ * @param {Object|string} rawHasilIst Data hasil IST dari database kandidat
+ */
+async function renderIstResults(rawHasilIst) {
+    if (!currentSelectedCandidate) return;
+
+    // Ambil kunci server secara dinamis dari database Supabase jika belum ada di memori
+    if (!IST_OFFICIAL_ANSWER_KEYS) {
+        await fetchIstKeysFromDatabase();
     }
 
     let parsed = null;
     try {
-        parsed = typeof hasilIst === 'string' ? JSON.parse(hasilIst) : hasilIst;
+        parsed = typeof rawHasilIst === 'string' ? JSON.parse(rawHasilIst) : (rawHasilIst || {});
     } catch (e) {
-        console.warn("Format data hasil IST tidak valid:", e);
+        parsed = {};
     }
 
-    if (!parsed) {
-        if (iqEl) iqEl.innerText = "-";
-        if (katEl) katEl.innerText = "Format Data Rusak";
-        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-400">Format data hasil tes IST tidak valid.</td></tr>`;
-        return;
-    }
+    activeIstCorrection.candidateId = currentSelectedCandidate.id;
+    activeIstCorrection.answers = {};
+    activeIstCorrection.scores = {};
+    activeIstCorrection.rw = {};
+    activeIstCorrection.sw = {};
 
-    const subtestsMeta = [
-        { code: '01', name: 'SE (Satzergaenzung)', aspect: 'Melengkapi Kalimat (Berpikir Konkrit)', total: 20 },
-        { code: '02', name: 'WA (Wortauswahl)', aspect: 'Mencari Hubungan Kata (Fleksibilitas)', total: 20 },
-        { code: '03', name: 'AN (Analogien)', aspect: 'Analogi Verbal (Daya Nalar)', total: 20 },
-        { code: '04', name: 'GE (Gemeinsamkeiten)', aspect: 'Persamaan Kata (Abstraksi Konseptual)', total: 16 },
-        { code: '05', name: 'RA (Rechenaufgaben)', aspect: 'Hitungan Praktis (Daya Hitung)', total: 20 },
-        { code: '06', name: 'ZR (Zahlenreihen)', aspect: 'Deret Angka (Logika Numerik)', total: 20 },
-        { code: '07', name: 'FA (Figurenauswahl)', aspect: 'Memilih Bentuk (Imajinasi Spasial 2D)', total: 20 },
-        { code: '08', name: 'WU (Wuerfelaufgaben)', aspect: 'Analisis Balok/Kubus (Spasial 3D)', total: 20 },
-        { code: '09', name: 'ME (Merkaufgaben)', aspect: 'Daya Ingat & Hafalan Kata', total: 20 }
-    ];
+    const rawAnswers = (parsed && (parsed.jawaban_peserta || parsed.jawaban)) || {};
+    const previousManual = (parsed && parsed.koreksi_manual_hrd) || {};
 
-    let totalBenarAkumulasi = 0;
-    let subtesSelesaiCount = 0;
-    let rowsHtml = '';
+    let initialGrandRw = 0;
 
-    subtestsMeta.forEach(meta => {
-        let subtesData = null;
-        if (parsed.subtes_detail && parsed.subtes_detail[meta.code]) {
-            subtesData = parsed.subtes_detail[meta.code];
-        } else if (parsed[`subtes_${meta.code}`] || parsed[`soal_${meta.code}`]) {
-            subtesData = parsed[`subtes_${meta.code}`] || parsed[`soal_${meta.code}`];
-        } else if (Array.isArray(parsed)) {
-            subtesData = parsed.find(s => s.subtes_id === `subtes_${meta.code}` || s.subtes_id === `soal_${meta.code}`);
-        }
+    // 1. Ekstrak jawaban dan skor awal per soal
+    IST_SUBTEST_SPECS.forEach(sub => {
+        activeIstCorrection.answers[sub.code] = {};
+        activeIstCorrection.scores[sub.code] = {};
 
-        let benar = 0;
-        let salah = 0;
-        let kosong = meta.total;
-        let rw = 0;
+        // Ambil objek subtes spesifik dari database (misal: parsed.subtes_01, parsed.subtes_02, dst.)
+        const subtesObj = (parsed && (
+            parsed['subtes_' + sub.no] ||
+            parsed['subtes_' + sub.code.toLowerCase()] ||
+            parsed[sub.code] ||
+            parsed['soal_' + sub.no] ||
+            (parsed.subtes_detail && (parsed.subtes_detail[sub.no] || parsed.subtes_detail[sub.code]))
+        )) || {};
 
-        if (subtesData) {
-            subtesSelesaiCount++;
-            if (subtesData.ringkasan_skor) {
-                benar = subtesData.ringkasan_skor.total_benar || 0;
-                salah = subtesData.ringkasan_skor.total_salah || 0;
-                kosong = subtesData.ringkasan_skor.kosong !== undefined ? subtesData.ringkasan_skor.kosong : (meta.total - benar - salah);
-            } else if (subtesData.skor_rw !== undefined) {
-                benar = subtesData.skor_rw;
-                salah = meta.total - benar;
-                kosong = 0;
+        // Ambil kamus jawaban peserta dari dalam objek subtes
+        const subAnswers = subtesObj.jawaban_peserta || subtesObj.jawaban || subtesObj.rincian_jawaban || {};
+
+        const offset = IST_SUBTEST_OFFSETS[sub.code];
+        let subRwCalculated = 0;
+
+        for (let i = 1; i <= sub.totalSoal; i++) {
+            const noGlobal = offset + i;
+            let ans = '-';
+
+            // 1. Prioritas utama: Ambil dari subtesObj.jawaban_peserta (format Supabase aktual)
+            if (subAnswers[i] !== undefined && subAnswers[i] !== null) {
+                ans = subAnswers[i];
+            } else if (subAnswers[String(i)] !== undefined && subAnswers[String(i)] !== null) {
+                ans = subAnswers[String(i)];
+            } else if (subAnswers[noGlobal] !== undefined && subAnswers[noGlobal] !== null) {
+                ans = subAnswers[noGlobal];
             }
-            rw = benar;
-            totalBenarAkumulasi += benar;
+            // 2. Fallback: Ambil dari format jawaban lain jika ada
+            else if (rawAnswers[sub.code] && rawAnswers[sub.code][i] !== undefined) {
+                ans = rawAnswers[sub.code][i];
+            } else if (rawAnswers[sub.no] && rawAnswers[sub.no][i] !== undefined) {
+                ans = rawAnswers[sub.no][i];
+            } else if (rawAnswers['subtes_' + sub.no] && rawAnswers['subtes_' + sub.no][i] !== undefined) {
+                ans = rawAnswers['subtes_' + sub.no][i];
+            } else if (rawAnswers['soal_' + sub.no] && rawAnswers['soal_' + sub.no][i] !== undefined) {
+                ans = rawAnswers['soal_' + sub.no][i];
+            } else if (rawAnswers[noGlobal] !== undefined) {
+                ans = rawAnswers[noGlobal];
+            } else if (sub.code === 'SE' && rawAnswers[i] !== undefined) {
+                ans = rawAnswers[i];
+            }
+
+            activeIstCorrection.answers[sub.code][i] = (ans !== null && ans !== undefined && ans !== '') ? String(ans) : '-';
+
+            // Ambil skor tersimpan dari koreksi HRD sebelumnya atau evaluasi otomatis dari Kunci Jawaban Resmi Server
+            let sc = 0;
+            if (previousManual.skor_butir && previousManual.skor_butir[sub.code] && previousManual.skor_butir[sub.code][i] !== undefined) {
+                sc = Number(previousManual.skor_butir[sub.code][i]) || 0;
+            } else if (subtesObj.rincian_skor && subtesObj.rincian_skor[i] !== undefined) {
+                sc = Number(subtesObj.rincian_skor[i]) || 0;
+            } else if (subtesObj.skor_per_soal && subtesObj.skor_per_soal[i] !== undefined) {
+                sc = Number(subtesObj.skor_per_soal[i]) || 0;
+            } else if (IST_OFFICIAL_ANSWER_KEYS) {
+                // Auto-Evaluasi dinamis dari Server Database (public.ist_kunci())
+                const keyMap = IST_OFFICIAL_ANSWER_KEYS[sub.no] || IST_OFFICIAL_ANSWER_KEYS[sub.code];
+                if (keyMap && keyMap[String(i)] !== undefined && ans !== '-' && ans !== '') {
+                    const expectedKey = String(keyMap[String(i)]).trim().toLowerCase();
+                    const candidateAns = String(ans).trim().toLowerCase();
+                    if (sub.isEssay) {
+                        // Subtes 04 (GE): Pencocokan kata esai
+                        if (candidateAns === expectedKey || candidateAns.includes(expectedKey) || expectedKey.includes(candidateAns)) {
+                            sc = 1;
+                        }
+                    } else {
+                        // Subtes PG / Angka (SE, WA, AN, RA, ZR, FA, WU, ME)
+                        if (candidateAns === expectedKey) {
+                            sc = 1;
+                        }
+                    }
+                }
+            }
+            activeIstCorrection.scores[sub.code][i] = Math.max(0, Math.min(sc, sub.maxScore));
+            subRwCalculated += activeIstCorrection.scores[sub.code][i];
         }
 
-        const pct = Math.round((benar / meta.total) * 100);
+        // Tentukan nilai RW subtes (Sinkron dengan hasil kalkulasi kunci jawaban)
+        if (previousManual.rw && previousManual.rw[sub.code] !== undefined) {
+            activeIstCorrection.rw[sub.code] = Number(previousManual.rw[sub.code]);
+        } else if (subRwCalculated > 0) {
+            activeIstCorrection.rw[sub.code] = subRwCalculated;
+        } else if (subtesObj.skor_rw !== undefined) {
+            activeIstCorrection.rw[sub.code] = Number(subtesObj.skor_rw);
+        } else {
+            activeIstCorrection.rw[sub.code] = subRwCalculated;
+        }
+
+        initialGrandRw += activeIstCorrection.rw[sub.code];
+
+        // Tentukan nilai SW otomatis dari Tabel Norma IST (Auto-Sync On-Load Mengikuti Angka RW)
+        const currentRw = activeIstCorrection.rw[sub.code] || 0;
+        if (previousManual.sw && previousManual.sw[sub.code] !== undefined) {
+            activeIstCorrection.sw[sub.code] = Number(previousManual.sw[sub.code]);
+        } else {
+            const autoSw = (IST_NORM_RS_TO_SW[sub.code] && IST_NORM_RS_TO_SW[sub.code][currentRw] !== undefined)
+                ? IST_NORM_RS_TO_SW[sub.code][currentRw]
+                : 70;
+            activeIstCorrection.sw[sub.code] = autoSw;
+        }
+    });
+
+    // 2. Tentukan Nilai IQ awal langsung dari Total/Rata-rata SW
+    let initialTotalSw = 0;
+    IST_SUBTEST_SPECS.forEach(sub => {
+        initialTotalSw += (activeIstCorrection.sw[sub.code] || 0);
+    });
+    const initialAvgSw = Math.round(initialTotalSw / 9);
+    activeIstCorrection.skorIq = initialAvgSw;
+
+    // 3. Render Lembar Koreksi 9 Subtes & Tabel Profil
+    renderCorrectionSheets();
+    renderAspekTable();
+    initOrUpdateIstProfileChart();
+
+    // 4. Update Nilai Metrik Atas & Kategori IQ
+    const inputIq = document.getElementById('inputIstSkorIq');
+    if (inputIq) {
+        inputIq.value = initialAvgSw;
+        handleIstIqInputChange(initialAvgSw);
+    }
+    recalculateAllIstScores();
+}
+
+/**
+ * Merender 9 tabel lembar koreksi (SE s/d ME) ke DOM
+ */
+function renderCorrectionSheets() {
+    const container = document.getElementById('istCorrectionSheetsContainer');
+    if (!container) return;
+
+    let html = '';
+    IST_SUBTEST_SPECS.forEach(sub => {
+        let rowsHtml = '';
+        let totalSubScore = 0;
+
+        for (let i = 1; i <= sub.totalSoal; i++) {
+            const ans = activeIstCorrection.answers[sub.code][i] || '-';
+            const score = activeIstCorrection.scores[sub.code][i] || 0;
+            totalSubScore += score;
+
+            const keyMap = (typeof IST_OFFICIAL_ANSWER_KEYS !== 'undefined' && IST_OFFICIAL_ANSWER_KEYS) ? (IST_OFFICIAL_ANSWER_KEYS[sub.no] || IST_OFFICIAL_ANSWER_KEYS[sub.code]) : null;
+            const expectedKey = (keyMap && keyMap[String(i)]) ? keyMap[String(i)] : '';
+
+            // Input number / stepper yang fleksibel (0/1 untuk PG, 0/1/2 untuk GE)
+            let scoreInputHtml = '';
+            if (sub.isEssay) {
+                const isSelectedGreen = score > 0 ? 'bg-emerald-100 border-emerald-400 text-emerald-800 font-black' : 'bg-amber-50 border-amber-300 text-slate-800 font-bold';
+                scoreInputHtml = `
+                    <select onchange="handleScoreChange('${sub.code}', ${i}, this.value)"
+                        class="w-11 py-0.5 px-0.5 ${isSelectedGreen} hover:bg-emerald-200/70 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                        <option value="0" ${score === 0 ? 'selected' : ''}>0</option>
+                        <option value="1" ${score === 1 ? 'selected' : ''}>1</option>
+                        <option value="2" ${score === 2 ? 'selected' : ''}>2</option>
+                    </select>
+                `;
+            } else {
+                const isSelectedGreen = score > 0 ? 'bg-emerald-100 border-emerald-400 text-emerald-800 font-black' : 'bg-slate-50 border-slate-300 text-slate-800 font-bold';
+                scoreInputHtml = `
+                    <select onchange="handleScoreChange('${sub.code}', ${i}, this.value)"
+                        class="w-11 py-0.5 px-0.5 ${isSelectedGreen} hover:bg-emerald-200/70 rounded text-center text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                        <option value="0" ${score === 0 ? 'selected' : ''}>0</option>
+                        <option value="1" ${score === 1 ? 'selected' : ''}>1</option>
+                    </select>
+                `;
+            }
+
+            const rowBg = score > 0 ? 'bg-emerald-50/50 hover:bg-emerald-100/40' : 'hover:bg-slate-50';
+            const tooltipText = expectedKey ? `Jawaban Peserta: ${escapeHtml(ans)} | Kunci Resmi: ${escapeHtml(expectedKey)}` : `Jawaban Peserta: ${escapeHtml(ans)}`;
+
+            rowsHtml += `
+                <tr class="${rowBg} border-b border-slate-200 transition-colors">
+                    <td class="py-1 px-1 border-r border-slate-200 text-slate-500 font-mono text-[11px]">${i}</td>
+                    <td class="py-1 px-1 border-r border-slate-200 font-bold ${score > 0 ? 'text-emerald-700' : 'text-slate-800'} truncate max-w-[85px]" title="${tooltipText}">${escapeHtml(ans)}</td>
+                    <td class="py-1 px-1">${scoreInputHtml}</td>
+                </tr>
+            `;
+        }
+
+        if (totalSubScore > 0 || activeIstCorrection.rw[sub.code] === undefined) {
+            activeIstCorrection.rw[sub.code] = totalSubScore;
+        }
+        const currentSubRw = activeIstCorrection.rw[sub.code] || 0;
+
+        html += `
+            <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs flex flex-col">
+                <div class="bg-[#003865] text-white py-1.5 px-2 text-center font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
+                    <span>${sub.name}</span>
+                    <span class="text-[10px] text-amber-300 font-normal">(${sub.totalSoal})</span>
+                </div>
+                <div class="overflow-y-auto max-h-[380px] custom-scrollbar flex-grow">
+                    <table class="w-full text-center text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-600 sticky top-0 text-[10px] font-bold border-b border-slate-300 z-10">
+                            <tr>
+                                <th class="py-1 px-1 border-r border-slate-200 w-8">No</th>
+                                <th class="py-1 px-1 border-r border-slate-200">Jawab</th>
+                                <th class="py-1 px-1 w-14">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-slate-100 border-t border-slate-300 py-1.5 px-3 flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-600 uppercase text-[10px] tracking-wider">RS / RW:</span>
+                    <span id="rsDisplay_${sub.code}" class="text-emerald-700 font-black text-sm">${currentSubRw}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+/**
+ * Merender baris tabel Aspek (RW Editable, SW Editable, dan Kategori Romawi Otomatis)
+ */
+function renderAspekTable() {
+    const tbody = document.getElementById('istAspekTableBody');
+    if (!tbody) return;
+
+    let rowsHtml = '';
+    IST_SUBTEST_SPECS.forEach(sub => {
+        const rw = activeIstCorrection.rw[sub.code] !== undefined ? activeIstCorrection.rw[sub.code] : 0;
+        const normSw = (IST_NORM_RS_TO_SW[sub.code] && IST_NORM_RS_TO_SW[sub.code][rw] !== undefined) ? IST_NORM_RS_TO_SW[sub.code][rw] : 70;
+        const sw = (activeIstCorrection.sw && activeIstCorrection.sw[sub.code] !== undefined) ? activeIstCorrection.sw[sub.code] : normSw;
+        activeIstCorrection.sw[sub.code] = sw;
+        const grade = (IST_NORM_RS_TO_GRADE[sub.code] && IST_NORM_RS_TO_GRADE[sub.code][rw]) || 'V';
+        const maxRw = sub.isEssay ? sub.totalSoal * 2 : sub.totalSoal;
 
         rowsHtml += `
-            <tr class="hover:bg-slate-50/60 transition">
-                <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(meta.name)}</td>
-                <td class="py-3 px-4 text-xs text-slate-500">${escapeHtml(meta.aspect)}</td>
-                <td class="py-3 px-4 text-center font-bold text-emerald-600">${benar}</td>
-                <td class="py-3 px-4 text-center font-bold text-red-500">${salah}</td>
-                <td class="py-3 px-4 text-center text-slate-400">${kosong}</td>
-                <td class="py-3 px-4 text-center font-black text-[#003865]">${rw}</td>
-                <td class="py-3 px-4 text-center font-bold text-blue-600">${pct}%</td>
+            <tr class="hover:bg-slate-50">
+                <td class="p-2 border-r border-slate-300 font-bold bg-slate-100/70 text-slate-800">${sub.name}</td>
+                <td class="p-1.5 border-r border-slate-300">
+                    <input type="number" min="0" max="${maxRw}" value="${rw}" id="rwInput_${sub.code}"
+                        oninput="handleRwDirectChange('${sub.code}', this.value)"
+                        class="w-16 py-1 px-1 bg-emerald-50 hover:bg-emerald-100/60 border border-emerald-300 rounded text-center text-xs font-black text-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-xs cursor-pointer" />
+                </td>
+                <td class="p-1.5 border-r border-slate-300">
+                    <input type="number" min="40" max="150" value="${sw}" id="swInput_${sub.code}"
+                        oninput="handleSwChange('${sub.code}', this.value)"
+                        class="w-16 py-1 px-1 bg-white border border-slate-300 rounded text-center text-xs font-black text-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs cursor-pointer" />
+                </td>
+                <td class="p-2 font-bold text-slate-700 font-mono text-sm" id="gradeTable_${sub.code}">${grade}</td>
             </tr>
         `;
     });
 
-    if (tbody) tbody.innerHTML = rowsHtml;
-    if (benarEl) benarEl.innerText = totalBenarAkumulasi;
-    if (subtesEl) subtesEl.innerText = `${subtesSelesaiCount} / 9`;
+    tbody.innerHTML = rowsHtml;
+}
 
-    let calculatedIq = parsed.skor_iq || (90 + Math.round((totalBenarAkumulasi / 176) * 40));
-    if (totalBenarAkumulasi === 0) calculatedIq = 0;
+/**
+ * Listener saat HRD mengubah angka RW secara langsung pada tabel aspek:
+ * Mengupdate SW secara otomatis sesuai Tabel Norma IST, Grade Romawi, IQ, dan Kurva Grafik secara real-time
+ */
+function handleRwDirectChange(subCode, newVal) {
+    let val = parseInt(newVal, 10);
+    if (isNaN(val) || val < 0) val = 0;
 
-    let kategoriIq = "Belum Ada Nilai";
-    if (calculatedIq >= 130) kategoriIq = "Sangat Cerdas (Very Superior)";
-    else if (calculatedIq >= 120) kategoriIq = "Cerdas (Superior)";
-    else if (calculatedIq >= 110) kategoriIq = "Di Atas Rata-rata (High Average)";
-    else if (calculatedIq >= 90) kategoriIq = "Rata-rata (Average)";
-    else if (calculatedIq >= 80) kategoriIq = "Di Bawah Rata-rata (Low Average)";
-    else if (calculatedIq > 0) kategoriIq = "Batas Keterbatasan (Borderline)";
+    const subSpec = IST_SUBTEST_SPECS.find(s => s.code === subCode);
+    const maxVal = subSpec ? (subSpec.isEssay ? subSpec.totalSoal * 2 : subSpec.totalSoal) : 40;
+    if (val > maxVal) val = maxVal;
 
-    if (iqEl) iqEl.innerText = calculatedIq > 0 ? calculatedIq : "-";
-    if (katEl) katEl.innerText = kategoriIq;
+    activeIstCorrection.rw[subCode] = val;
+
+    // 1. Perbarui nilai di tampilan bawah lembar koreksi subtes
+    const rsEl = document.getElementById(`rsDisplay_${subCode}`);
+    if (rsEl) rsEl.innerText = val;
+
+    // 2. AUTO-LOOKUP: Konversi RS ke SW dari Tabel Norma IST secara real-time
+    const autoSw = (IST_NORM_RS_TO_SW[subCode] && IST_NORM_RS_TO_SW[subCode][val] !== undefined)
+        ? IST_NORM_RS_TO_SW[subCode][val]
+        : 70;
+    activeIstCorrection.sw[subCode] = autoSw;
+    const swInput = document.getElementById(`swInput_${subCode}`);
+    if (swInput) swInput.value = autoSw;
+
+    // 3. AUTO-LOOKUP: Konversi RS ke Grade Romawi (I s/d V)
+    const autoGrade = (IST_NORM_RS_TO_GRADE[subCode] && IST_NORM_RS_TO_GRADE[subCode][val]) || 'V';
+    const gradeEl = document.getElementById(`gradeTable_${subCode}`);
+    if (gradeEl) gradeEl.innerText = autoGrade;
+
+    // 4. Hitung ulang akumulasi total jawaban benar, IQ, dan perbarui kurva grafik seketika
+    recalculateAllIstScores();
+}
+
+/**
+ * Listener saat skor per soal diubah oleh HRD:
+ * Mengupdate RS/RW, Auto-Lookup Nilai SW & Grade Romawi, serta Auto-Recalculate IQ & Kategori
+ */
+function handleScoreChange(subCode, itemNo, newVal) {
+    const val = Number(newVal) || 0;
+    if (!activeIstCorrection.scores[subCode]) activeIstCorrection.scores[subCode] = {};
+    activeIstCorrection.scores[subCode][itemNo] = val;
+
+    // 1. Hitung ulang total RW subtes tersebut
+    let subTotal = 0;
+    const subSpec = IST_SUBTEST_SPECS.find(s => s.code === subCode);
+    if (subSpec) {
+        for (let i = 1; i <= subSpec.totalSoal; i++) {
+            subTotal += (activeIstCorrection.scores[subCode][i] || 0);
+        }
+    }
+    activeIstCorrection.rw[subCode] = subTotal;
+
+    // 2. Perbarui tampilan RS/RW di bawah lembar subtes
+    const rsEl = document.getElementById(`rsDisplay_${subCode}`);
+    if (rsEl) rsEl.innerText = subTotal;
+
+    // 3. Perbarui input RW pada tabel aspek
+    const rwInput = document.getElementById(`rwInput_${subCode}`) || document.getElementById(`rwTable_${subCode}`);
+    if (rwInput) {
+        if ('value' in rwInput) rwInput.value = subTotal;
+        else rwInput.innerText = subTotal;
+    }
+
+    // 4. AUTO-LOOKUP: Konversi RS ke SW dari Tabel Norma IST
+    const autoSw = (IST_NORM_RS_TO_SW[subCode] && IST_NORM_RS_TO_SW[subCode][subTotal] !== undefined)
+        ? IST_NORM_RS_TO_SW[subCode][subTotal]
+        : (activeIstCorrection.sw[subCode] || 70);
+    activeIstCorrection.sw[subCode] = autoSw;
+    const swInput = document.getElementById(`swInput_${subCode}`);
+    if (swInput) swInput.value = autoSw;
+
+    // 5. AUTO-LOOKUP: Konversi RS ke Grade Romawi (I s/d V)
+    const autoGrade = (IST_NORM_RS_TO_GRADE[subCode] && IST_NORM_RS_TO_GRADE[subCode][subTotal]) || 'V';
+    const gradeEl = document.getElementById(`gradeTable_${subCode}`);
+    if (gradeEl) gradeEl.innerText = autoGrade;
+
+    // 6. Hitung ulang akumulasi keseluruhan (Total Jawaban Benar, Total IQ, dan Kategori)
+    recalculateAllIstScores();
+}
+
+/**
+ * Menghitung ulang akumulasi seluruh jawaban benar, rata-rata SW, skor IQ, dan kategori
+ */
+function recalculateAllIstScores() {
+    let grandTotalRw = 0;
+    IST_SUBTEST_SPECS.forEach(sub => {
+        grandTotalRw += (activeIstCorrection.rw[sub.code] || 0);
+    });
+
+    // Update kartu "TOTAL JAWABAN BENAR" secara instan tanpa reload
+    const benarEl = document.getElementById('istRptTotalBenar');
+    if (benarEl) benarEl.innerText = grandTotalRw;
+
+    // Update total baris Σ pada tabel aspek
+    const sumRwEl = document.getElementById('istAspekTotalRw');
+    if (sumRwEl) sumRwEl.innerText = grandTotalRw;
+
+    // Hitung rata-rata SW
+    let totalSw = 0;
+    IST_SUBTEST_SPECS.forEach(sub => {
+        totalSw += (activeIstCorrection.sw[sub.code] || 0);
+    });
+    const avgSw = Math.round(totalSw / 9);
+    const avgSwEl = document.getElementById('istAspekRataSw');
+    if (avgSwEl) avgSwEl.innerText = avgSw;
+
+    // AUTO-KATEGORI: Tentukan kategori rata-rata SW (MR, BL, DN, LA, A, HA, BN, S, VS, G)
+    const avgCatInfo = getIstCategory(avgSw);
+    const avgCatEl = document.getElementById('istAspekKategoriRata');
+    if (avgCatEl) {
+        avgCatEl.innerText = avgCatInfo.abbr;
+        avgCatEl.title = avgCatInfo.label;
+    }
+
+    // AUTO-IQ: Skor IQ langsung mengambil dari Total/Rata-rata SW (misalkan: 86)
+    const autoIq = avgSw;
+    activeIstCorrection.skorIq = autoIq;
+    const inputIq = document.getElementById('inputIstSkorIq');
+    if (inputIq) {
+        inputIq.value = autoIq;
+    }
+    const iqCatInfo = getIstCategory(autoIq);
+    const katEl = document.getElementById('istRptKategori');
+    if (katEl) {
+        katEl.innerText = `${iqCatInfo.label} (${iqCatInfo.abbr})`;
+    }
+
+    // AUTO-UPDATE CHART: Perbarui titik kurva grafik Chart.js seketika
+    if (istProfileChartInstance) {
+        const swValues = IST_SUBTEST_SPECS.map(sub => activeIstCorrection.sw[sub.code] || 0);
+        istProfileChartInstance.data.datasets[0].data = swValues;
+        istProfileChartInstance.update('none'); // Reaktif instan
+    }
+}
+
+/**
+ * Listener saat HRD mengubah nilai SW secara manual pada tabel:
+ * Mengupdate total SW, IQ, kategori IQ, dan grafik secara real-time
+ */
+function handleSwChange(subCode, newVal) {
+    const val = Number(newVal) || 0;
+    activeIstCorrection.sw[subCode] = val;
+    recalculateAllIstScores();
+}
+
+/**
+ * Listener saat HRD mengetik langsung pada input Total Skor IQ
+ */
+function handleIstIqInputChange(val) {
+    const iq = Number(val) || 0;
+    activeIstCorrection.skorIq = iq;
+
+    const katEl = document.getElementById('istRptKategori');
+    if (!katEl) return;
+
+    const iqCat = getIstCategory(iq);
+    katEl.innerText = `${iqCat.label} (${iqCat.abbr})`;
+}
+
+/**
+ * Inisialisasi atau pembaruan grafik kurva profil kecerdasan IST (Chart.js)
+ * Sesuai Standar IST: Titik kurva merah dengan marker diamond (rhombus)
+ */
+function initOrUpdateIstProfileChart() {
+    const canvas = document.getElementById('istProfileChart');
+    if (!canvas) return;
+
+    const labels = IST_SUBTEST_SPECS.map(s => s.code);
+    const dataValues = IST_SUBTEST_SPECS.map(s => activeIstCorrection.sw[s.code] || 70);
+
+    if (istProfileChartInstance) {
+        istProfileChartInstance.destroy();
+        istProfileChartInstance = null;
+    }
+
+    const ctx = canvas.getContext('2d');
+    istProfileChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Profil Kecerdasan IST (SW)',
+                data: dataValues,
+                borderColor: '#dc2626',            // Garis merah tebal sesuai lembar IST
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#dc2626',
+                pointBorderColor: '#991b1b',
+                pointBorderWidth: 1.5,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointStyle: 'rectRot',             // Bentuk penanda berlian (diamond / rhombus)
+                tension: 0                         // Garis lurus patah-patah antar titik aspek
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: { color: '#e2e8f0' },
+                    ticks: {
+                        color: '#0f172a',
+                        font: { size: 12, weight: 'bold' }
+                    }
+                },
+                y: {
+                    min: 60,
+                    max: 130,
+                    stepSize: 10,
+                    grid: { color: '#cbd5e1' },
+                    ticks: {
+                        color: '#475569',
+                        font: { size: 11, weight: '600' }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#003865',
+                    titleFont: { size: 12, weight: 'bold' },
+                    bodyFont: { size: 13, weight: 'bold' },
+                    callbacks: {
+                        label: function (ctx) {
+                            return `Standardwert (SW): ${ctx.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Menyimpan data koreksi manual HRD ke Supabase (tabel: kandidat_psikotes, kolom: hasil_ist)
+ */
+async function simpanKoreksiIstKeSupabase() {
+    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
+        ? supabaseClient
+        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+
+    if (!sb || !activeIstCorrection.candidateId) {
+        if (typeof showHrdToast === 'function') {
+            showHrdToast("Koneksi database tidak tersedia atau kandidat belum dipilih.", "error");
+        } else {
+            alert("Koneksi database tidak tersedia atau kandidat belum dipilih.");
+        }
+        return;
+    }
+
+    const btn = document.getElementById('btnSimpanKoreksiIst');
+    const statusText = document.getElementById('istSaveStatusText');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+    }
+    if (statusText) {
+        statusText.classList.remove('hidden');
+        statusText.innerText = "Mengunggah hasil koreksi ke server Supabase...";
+    }
+
+    try {
+        // 1. Ambil data hasil_ist terkini dari Supabase agar tidak menimpa data modul lain
+        const { data: rowKandidat, error: fetchErr } = await sb
+            .from('kandidat_psikotes')
+            .select('hasil_ist')
+            .eq('id', activeIstCorrection.candidateId)
+            .single();
+
+        if (fetchErr) throw fetchErr;
+
+        let existingIst = (rowKandidat && rowKandidat.hasil_ist) ? rowKandidat.hasil_ist : {};
+        if (typeof existingIst === 'string') {
+            try { existingIst = JSON.parse(existingIst); } catch (e) { existingIst = {}; }
+        }
+
+        // 2. Susun payload koreksi manual
+        const manualPayload = {
+            skor_butir: activeIstCorrection.scores,
+            rw: activeIstCorrection.rw,
+            sw: activeIstCorrection.sw,
+            skor_iq: activeIstCorrection.skorIq,
+            waktu_koreksi: new Date().toISOString(),
+            status_koreksi: 'Telah Dikoreksi HRD'
+        };
+
+        const updatedIst = {
+            ...existingIst,
+            skor_iq: activeIstCorrection.skorIq,
+            sw_aspek: activeIstCorrection.sw,
+            koreksi_manual_hrd: manualPayload
+        };
+
+        // 3. Simpan perubahan ke tabel kandidat_psikotes
+        const { error: updateErr } = await sb
+            .from('kandidat_psikotes')
+            .update({ hasil_ist: updatedIst })
+            .eq('id', activeIstCorrection.candidateId);
+
+        if (updateErr) throw updateErr;
+
+        // 4. Update data pada cache lokal HRD (cachedHrdData)
+        if (typeof cachedHrdData !== 'undefined' && Array.isArray(cachedHrdData)) {
+            const found = cachedHrdData.find(c => c.id === activeIstCorrection.candidateId);
+            if (found) {
+                found.hasil_ist = updatedIst;
+            }
+        }
+        if (currentSelectedCandidate) {
+            currentSelectedCandidate.hasil_ist = updatedIst;
+        }
+
+        if (typeof showHrdToast === 'function') {
+            showHrdToast("Koreksi manual & nilai SW/IQ berhasil disimpan permanen!", "success");
+        } else {
+            alert("Koreksi manual & nilai SW/IQ berhasil disimpan permanen ke database!");
+        }
+
+        if (statusText) statusText.innerText = "✓ Tersimpan pada " + new Date().toLocaleTimeString('id-ID');
+
+    } catch (err) {
+        console.error("Gagal menyimpan koreksi IST:", err);
+        if (typeof showHrdToast === 'function') {
+            showHrdToast("Gagal menyimpan: " + (err.message || err), "error");
+        } else {
+            alert("Gagal menyimpan koreksi ke database: " + (err.message || err));
+        }
+        if (statusText) statusText.innerText = "⚠️ Gagal menyimpan!";
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk text-amber-400"></i> <span>Simpan Koreksi HRD</span>`;
+        }
+    }
 }
 
 // =========================================================================
@@ -1279,104 +3612,11 @@ const PAPI_NARRATIVES = {
 };
 
 /**
- * Kunci pemetaan standar 90 butir soal PAPI Kostick untuk adapter jawaban
+ * Kunci pemetaan standar 90 soal PAPI Kostick & 7 Bidang Roda Interpretasi
+ * Mengacu pada modul terpusat di js/hrd-charts.js
  */
-const PAPI_ANSWER_KEY = [
-    { no: 1, a: 'G', b: 'E' }, { no: 2, a: 'A', b: 'N' }, { no: 3, a: 'P', b: 'A' }, { no: 4, a: 'X', b: 'P' }, { no: 5, a: 'B', b: 'X' },
-    { no: 6, a: 'O', b: 'B' }, { no: 7, a: 'Z', b: 'O' }, { no: 8, a: 'K', b: 'Z' }, { no: 9, a: 'F', b: 'K' }, { no: 10, a: 'W', b: 'F' },
-    { no: 11, a: 'G', b: 'C' }, { no: 12, a: 'L', b: 'E' }, { no: 13, a: 'P', b: 'N' }, { no: 14, a: 'X', b: 'A' }, { no: 15, a: 'B', b: 'P' },
-    { no: 16, a: 'O', b: 'X' }, { no: 17, a: 'Z', b: 'B' }, { no: 18, a: 'K', b: 'O' }, { no: 19, a: 'F', b: 'Z' }, { no: 20, a: 'W', b: 'K' },
-    { no: 21, a: 'G', b: 'D' }, { no: 22, a: 'L', b: 'C' }, { no: 23, a: 'E', b: 'I' }, { no: 24, a: 'T', b: 'S' }, { no: 25, a: 'S', b: 'A' },
-    { no: 26, a: 'O', b: 'P' }, { no: 27, a: 'Z', b: 'X' }, { no: 28, a: 'K', b: 'B' }, { no: 29, a: 'F', b: 'O' }, { no: 30, a: 'W', b: 'Z' },
-    { no: 31, a: 'G', b: 'R' }, { no: 32, a: 'L', b: 'D' }, { no: 33, a: 'I', b: 'C' }, { no: 34, a: 'T', b: 'E' }, { no: 35, a: 'B', b: 'N' },
-    { no: 36, a: 'O', b: 'A' }, { no: 37, a: 'Z', b: 'P' }, { no: 38, a: 'K', b: 'X' }, { no: 39, a: 'F', b: 'B' }, { no: 40, a: 'W', b: 'O' },
-    { no: 41, a: 'G', b: 'S' }, { no: 42, a: 'L', b: 'R' }, { no: 43, a: 'I', b: 'D' }, { no: 44, a: 'T', b: 'C' }, { no: 45, a: 'V', b: 'E' },
-    { no: 46, a: 'O', b: 'N' }, { no: 47, a: 'Z', b: 'A' }, { no: 48, a: 'K', b: 'P' }, { no: 49, a: 'F', b: 'X' }, { no: 50, a: 'W', b: 'B' },
-    { no: 51, a: 'G', b: 'V' }, { no: 52, a: 'L', b: 'S' }, { no: 53, a: 'I', b: 'R' }, { no: 54, a: 'T', b: 'D' }, { no: 55, a: 'V', b: 'C' },
-    { no: 56, a: 'S', b: 'E' }, { no: 57, a: 'Z', b: 'N' }, { no: 58, a: 'K', b: 'A' }, { no: 59, a: 'F', b: 'P' }, { no: 60, a: 'W', b: 'X' },
-    { no: 61, a: 'G', b: 'T' }, { no: 62, a: 'L', b: 'V' }, { no: 63, a: 'S', b: 'I' }, { no: 64, a: 'T', b: 'R' }, { no: 65, a: 'V', b: 'D' },
-    { no: 66, a: 'S', b: 'C' }, { no: 67, a: 'R', b: 'E' }, { no: 68, a: 'K', b: 'N' }, { no: 69, a: 'F', b: 'A' }, { no: 70, a: 'W', b: 'P' },
-    { no: 71, a: 'G', b: 'I' }, { no: 72, a: 'L', b: 'T' }, { no: 73, a: 'V', b: 'I' }, { no: 74, a: 'T', b: 'S' }, { no: 75, a: 'V', b: 'R' },
-    { no: 76, a: 'S', b: 'D' }, { no: 77, a: 'R', b: 'C' }, { no: 78, a: 'D', b: 'E' }, { no: 79, a: 'F', b: 'N' }, { no: 80, a: 'W', b: 'A' },
-    { no: 81, a: 'G', b: 'L' }, { no: 82, a: 'L', b: 'I' }, { no: 83, a: 'I', b: 'T' }, { no: 84, a: 'T', b: 'V' }, { no: 85, a: 'S', b: 'V' },
-    { no: 86, a: 'S', b: 'R' }, { no: 87, a: 'R', b: 'D' }, { no: 88, a: 'D', b: 'C' }, { no: 89, a: 'C', b: 'E' }, { no: 90, a: 'W', b: 'N' }
-];
-
-/**
- * Konfigurasi 7 Bidang PAPI Kostick (Busur Lingkaran & Warna)
- */
-const PAPI_DOMAINS = [
-    {
-        id: 'work_direction',
-        name: 'WORK DIRECTION',
-        namaId: 'Arah Kerja',
-        color: '#2b5c92',
-        startDeg: -117,
-        endDeg: -63,
-        isBottom: false,
-        aspects: ['N', 'G', 'A']
-    },
-    {
-        id: 'leadership',
-        name: 'LEADERSHIP',
-        namaId: 'Kepemimpinan',
-        color: '#3b82f6',
-        startDeg: -63,
-        endDeg: -9,
-        isBottom: false,
-        aspects: ['L', 'P', 'I']
-    },
-    {
-        id: 'activity',
-        name: 'ACTIVITY',
-        namaId: 'Aktivitas',
-        color: '#10b981',
-        startDeg: -9,
-        endDeg: 27,
-        isBottom: false,
-        aspects: ['T', 'V']
-    },
-    {
-        id: 'social_nature',
-        name: 'SOCIAL NATURE',
-        namaId: 'Pergaulan',
-        color: '#48bb78',
-        startDeg: 27,
-        endDeg: 99,
-        isBottom: true,
-        aspects: ['X', 'S', 'B', 'O']
-    },
-    {
-        id: 'work_style',
-        name: 'WORK STYLE',
-        namaId: 'Gaya Kerja',
-        color: '#c53030',
-        startDeg: 99,
-        endDeg: 153,
-        isBottom: true,
-        aspects: ['R', 'D', 'C']
-    },
-    {
-        id: 'temperament',
-        name: 'TEMPERAMENT',
-        namaId: 'Sifat',
-        color: '#dd6b20',
-        startDeg: 153,
-        endDeg: 207,
-        isBottom: false,
-        aspects: ['Z', 'E', 'K']
-    },
-    {
-        id: 'followership',
-        name: 'FOLLOWERSHIP',
-        namaId: 'Ketaatan',
-        color: '#434190',
-        startDeg: 207,
-        endDeg: 243,
-        isBottom: false,
-        aspects: ['F', 'W']
-    }
-];
+const PAPI_ANSWER_KEY = (typeof window !== 'undefined' && window.PAPI_ANSWER_KEY) ? window.PAPI_ANSWER_KEY : [];
+const PAPI_DOMAINS = (typeof window !== 'undefined' && window.PAPI_DOMAINS) ? window.PAPI_DOMAINS : [];
 
 /**
  * Daftar 20 Aspek berurutan searah jarum jam (idx 0 s/d 19)
@@ -1407,291 +3647,26 @@ const PAPI_ASPECT_LIST = [
 
 /**
  * Menggambar teks melengkung per huruf pada busur kanvas
+ * Terpusat & modular di js/hrd-charts.js
  */
 function drawCurvedDomainText(ctx, text, cx, cy, r, startDeg, endDeg, isBottom) {
-    ctx.save();
-    ctx.font = 'bold 13px Arial, sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'center';
-
-    const midDeg = (startDeg + endDeg) / 2;
-    const midRad = (midDeg * Math.PI) / 180;
-
-    let totalWidth = 0;
-    const charWidths = [];
-    for (let i = 0; i < text.length; i++) {
-        const w = ctx.measureText(text[i]).width + 1.2;
-        charWidths.push(w);
-        totalWidth += w;
+    if (window.HrdCharts && typeof window.HrdCharts.drawCurvedDomainText === 'function') {
+        return window.HrdCharts.drawCurvedDomainText(ctx, text, cx, cy, r, startDeg, endDeg, isBottom);
     }
-
-    const totalAngle = totalWidth / r;
-
-    if (!isBottom) {
-        let currentAngle = midRad - totalAngle / 2;
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const w = charWidths[i];
-            const charAngle = currentAngle + (w / 2) / r;
-            currentAngle += w / r;
-
-            const x = cx + r * Math.cos(charAngle);
-            const y = cy + r * Math.sin(charAngle);
-
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(charAngle + Math.PI / 2);
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-        }
-    } else {
-        // Balik arah penulisan untuk teks di setengah bawah (SOCIAL NATURE, WORK STYLE)
-        let currentAngle = midRad + totalAngle / 2;
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const w = charWidths[i];
-            const charAngle = currentAngle - (w / 2) / r;
-            currentAngle -= w / r;
-
-            const x = cx + r * Math.cos(charAngle);
-            const y = cy + r * Math.sin(charAngle);
-
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(charAngle - Math.PI / 2);
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-        }
-    }
-    ctx.restore();
 }
 
 /**
  * Menggambar roda interpretasi PAPI Kostick 20 aspek dengan Canvas 2D murni
- * @param {string} canvasId ID elemen canvas (1300x1300)
- * @param {Object} scores Objek skor { N, G, A, L, P, I, T, V, X, S, B, O, R, D, C, Z, E, K, F, W }
+ * Terpusat & modular di js/hrd-charts.js
  */
 function drawPapiWheel(canvasId, scores) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Reset transformasi dan bersihkan kanvas
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Skala logis 650x650 (2x scaling dari kanvas fisik 1300x1300 agar sangat tajam)
-    ctx.scale(2, 2);
-    const cx = 325;
-    const cy = 325;
-
-    const r0 = 50;
-    const r9 = 165;
-    const rAspectInner = 180;
-    const rAspectOuter = 212;
-    const rDescInner = 212;
-    const rDescOuter = 250;
-    const rDomainInner = 250;
-    const rDomainOuter = 285;
-
-    // 1. LAPISAN 5: Busur Nama Bidang (r ≈ 250 - 285)
-    PAPI_DOMAINS.forEach(dom => {
-        const aStart = ((dom.startDeg + 0.5) * Math.PI) / 180;
-        const aEnd = ((dom.endDeg - 0.5) * Math.PI) / 180;
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, rDomainOuter, aStart, aEnd, false);
-        ctx.arc(cx, cy, rDomainInner, aEnd, aStart, true);
-        ctx.closePath();
-        ctx.fillStyle = dom.color;
-        ctx.fill();
-
-        // Teks nama bidang melengkung
-        drawCurvedDomainText(ctx, dom.name, cx, cy, (rDomainInner + rDomainOuter) / 2, dom.startDeg, dom.endDeg, dom.isBottom);
-    });
-
-    // 2. LAPISAN 4: Kotak Deskripsi (r ≈ 212 - 250) & LAPISAN 3: Kotak Huruf Aspek (r ≈ 180 - 212)
-    PAPI_ASPECT_LIST.forEach((asp, idx) => {
-        const deg = -90 + (idx - 1) * 18;
-        const dom = PAPI_DOMAINS.find(d => d.id === asp.domainId) || PAPI_DOMAINS[0];
-        const aStart = ((deg - 9 + 0.4) * Math.PI) / 180;
-        const aEnd = ((deg + 9 - 0.4) * Math.PI) / 180;
-        const ang = (deg * Math.PI) / 180;
-
-        // Kotak Deskripsi (r ≈ 212 - 250)
-        ctx.beginPath();
-        ctx.arc(cx, cy, rDescOuter, aStart, aEnd, false);
-        ctx.arc(cx, cy, rDescInner, aEnd, aStart, true);
-        ctx.closePath();
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.strokeStyle = dom.color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Teks deskripsi di dalam kotak
-        const rDescMid = (rDescInner + rDescOuter) / 2;
-        const xDesc = cx + rDescMid * Math.cos(ang);
-        const yDesc = cy + rDescMid * Math.sin(ang);
-
-        ctx.save();
-        ctx.translate(xDesc, yDesc);
-        if (Math.sin(ang) <= 0) {
-            ctx.rotate(ang + Math.PI / 2);
-        } else {
-            ctx.rotate(ang - Math.PI / 2);
-        }
-        ctx.font = 'bold 7px Arial, sans-serif';
-        ctx.fillStyle = '#1e293b';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        if (asp.descLines.length === 2) {
-            ctx.fillText(asp.descLines[0], 0, -5);
-            ctx.fillText(asp.descLines[1], 0, 5);
-        } else {
-            ctx.fillText(asp.descLines[0], 0, 0);
-        }
-        ctx.restore();
-
-        // Kotak Huruf Aspek (r ≈ 180 - 212)
-        ctx.beginPath();
-        ctx.arc(cx, cy, rAspectOuter, aStart, aEnd, false);
-        ctx.arc(cx, cy, rAspectInner, aEnd, aStart, true);
-        ctx.closePath();
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.strokeStyle = dom.color;
-        ctx.lineWidth = 1.3;
-        ctx.stroke();
-
-        // Huruf Aspek
-        const rLetterMid = (rAspectInner + rAspectOuter) / 2;
-        const xLetter = cx + rLetterMid * Math.cos(ang);
-        const yLetter = cy + rLetterMid * Math.sin(ang);
-
-        ctx.save();
-        ctx.translate(xLetter, yLetter);
-        if (Math.sin(ang) <= 0) {
-            ctx.rotate(ang + Math.PI / 2);
-        } else {
-            ctx.rotate(ang - Math.PI / 2);
-        }
-        ctx.font = 'bold 18px "Times New Roman", Georgia, serif';
-        ctx.fillStyle = dom.color;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(asp.code, 0, 1);
-        ctx.restore();
-    });
-
-    // 3. LAPISAN 2: Area Skala (r0 = 50 s/d r9 = 165)
-    const rStep = (r9 - r0) / 9;
-    // Lingkaran konsentris tipis untuk skor 0 sampai 9
-    for (let s = 0; s <= 9; s++) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r0 + s * rStep, 0, Math.PI * 2);
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 0.6;
-        ctx.stroke();
+    if (window.HrdCharts && typeof window.HrdCharts.drawPapiWheel === 'function') {
+        return window.HrdCharts.drawPapiWheel(canvasId, scores);
     }
-
-    // Jari-jari putus-putus warna bidang dan angka 0-9
-    PAPI_ASPECT_LIST.forEach((asp, idx) => {
-        const deg = -90 + (idx - 1) * 18;
-        const dom = PAPI_DOMAINS.find(d => d.id === asp.domainId) || PAPI_DOMAINS[0];
-        const ang = (deg * Math.PI) / 180;
-
-        // Garis putus-putus
-        ctx.save();
-        ctx.beginPath();
-        ctx.setLineDash([2, 3]);
-        ctx.moveTo(cx + r0 * Math.cos(ang), cy + r0 * Math.sin(ang));
-        ctx.lineTo(cx + r9 * Math.cos(ang), cy + r9 * Math.sin(ang));
-        ctx.strokeStyle = dom.color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.restore();
-
-        // Angka 0 - 9 di sepanjang jari-jari
-        for (let s = 0; s <= 9; s++) {
-            const rNum = r0 + s * rStep;
-            const xNum = cx + rNum * Math.cos(ang);
-            const yNum = cy + rNum * Math.sin(ang);
-
-            ctx.save();
-            ctx.translate(xNum, yNum);
-            if (Math.sin(ang) <= 0) {
-                ctx.rotate(ang + Math.PI / 2);
-            } else {
-                ctx.rotate(ang - Math.PI / 2);
-            }
-            // Bulatan kecil putih agar angka terbaca jelas
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.font = 'bold 8px Arial, sans-serif';
-            ctx.fillStyle = dom.color;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(String(s), 0, 0);
-            ctx.restore();
-        }
-    });
-
-    // 4. LAPISAN 1: Lubang Tengah Putih (r ≈ 0-45)
-    ctx.beginPath();
-    ctx.arc(cx, cy, 45, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // 5. POLIGON HASIL: Garis Hitam Tebal 2.5px & Bulatan Putih Berborder Hitam
-    const points = [];
-    PAPI_ASPECT_LIST.forEach((asp, idx) => {
-        const deg = -90 + (idx - 1) * 18;
-        const ang = (deg * Math.PI) / 180;
-        const rawScore = scores[asp.code];
-        const score = Math.max(0, Math.min(9, Math.round(Number(rawScore) || 0)));
-        const rPt = r0 + (score / 9) * (r9 - r0);
-        points.push({
-            x: cx + rPt * Math.cos(ang),
-            y: cy + rPt * Math.sin(ang)
-        });
-    });
-
-    // Garis penghubung 20 titik berurutan
-    ctx.beginPath();
-    points.forEach((pt, i) => {
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-    });
-    ctx.closePath();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#111827';
-    ctx.stroke();
-
-    // Titik lingkaran putih berborder hitam tebal (r ≈ 5.5 - 6)
-    points.forEach(pt => {
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#111827';
-        ctx.stroke();
-    });
-
-    ctx.restore();
 }
 
 /**
- * Membangun tabel matriks lembar jawaban mentah 90 butir soal PAPI Kostick
+ * Membangun tabel matriks lembar jawaban mentah 90 soal PAPI Kostick
  * Format 10 baris x 9 kolom (81-90, 71-80, ..., 1-10) sesuai lembar pemeriksaan resmi
  * @param {Object} answersObj Objek pasangan nomor dan jawaban { "1": "A", "2": "B", ... }
  */
@@ -1735,7 +3710,7 @@ function buildPapiAnswerMatrixHtml(answersObj) {
                     <h3 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-table-cells text-rose-600"></i> Tabel Pemeriksaan Lembar Jawaban Klien (1 - 90)
                     </h3>
-                    <p class="text-xs text-slate-500">Rekaman pilihan butir pernyataan A / B peserta</p>
+                    <p class="text-xs text-slate-500">Rekaman pilihan pernyataan A / B peserta</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5 text-xs">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200">
@@ -1753,7 +3728,7 @@ function buildPapiAnswerMatrixHtml(answersObj) {
             ${!hasData ? `
                 <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-800 mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-amber-600"></i>
-                    <span>Catatan: Rekaman butir mentah 1–90 tidak tersimpan pada sesi ini (skor langsung dihitung dari hasil penilaian).</span>
+                    <span>Catatan: Rekaman jawaban mentah 1–90 tidak tersimpan pada sesi ini (skor langsung dihitung dari hasil penilaian).</span>
                 </div>
             ` : ''}
 
@@ -2176,84 +4151,12 @@ function renderDiscResults(hasilDisc) {
 
 /**
  * Helper konfigurasi Line Chart Chart.js untuk tes DISC (-8.0 sampai +8.0, garis netral di 0)
+ * Terpusat & modular di js/hrd-charts.js
  */
 function createDiscLineChart(canvasId, label, points, color) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas || typeof Chart === 'undefined') return null;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    return new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['D', 'I', 'S', 'C'],
-            datasets: [{
-                label: label,
-                data: points,
-                borderColor: color,
-                backgroundColor: color,
-                borderWidth: 3,
-                tension: 0.1,
-                fill: false,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBackgroundColor: color,
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    min: -8,
-                    max: 8,
-                    ticks: {
-                        stepSize: 2,
-                        font: { size: 10, weight: 'bold' }
-                    },
-                    grid: {
-                        color: (context) => {
-                            if (context.tick && context.tick.value === 0) {
-                                return 'rgba(239, 68, 68, 0.85)'; // Garis netral 0 berwarna merah tegas
-                            }
-                            return 'rgba(226, 232, 240, 0.8)';
-                        },
-                        lineWidth: (context) => {
-                            if (context.tick && context.tick.value === 0) {
-                                return 2;
-                            }
-                            return 1;
-                        }
-                    }
-                },
-                x: {
-                    ticks: {
-                        font: { size: 12, weight: 'bold' },
-                        color: '#003865'
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(241, 245, 249, 1)'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
+    if (window.HrdCharts && typeof window.HrdCharts.createDiscLineChart === 'function') {
+        return window.HrdCharts.createDiscLineChart(canvasId, label, points, color);
+    }
 }
 
 /**
@@ -2281,8 +4184,15 @@ async function renderCandidatePhotos(candidate) {
     try {
         const sbUrl = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
         let allPhotos = [];
+        const rawPhotoEntries = [];
+        const seenFileNames = new Set();
+        const seenTimestamps = new Set();
+        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
 
-        // Identifikasi kontak & email kandidat yang sedang dibuka untuk memfilter foto miliknya
+        // Identifikasi kandidat: ID unik database (UUID/integer), kontak & email
+        const candId = (candidate && (candidate.id || candidate.id_peserta || candidate.id_kandidat))
+            ? String(candidate.id || candidate.id_peserta || candidate.id_kandidat).trim()
+            : '';
         const candPhoneRaw = (candidate ? (candidate["No WhatsApp"] || candidate.no_wa || '') : '').toString().trim();
         const candPhone = candPhoneRaw.replace(/[^0-9]/g, '');
         const candEmailRaw = (candidate ? (candidate["Alamat Email"] || candidate.email || '') : '').toString().trim();
@@ -2292,24 +4202,102 @@ async function renderCandidatePhotos(candidate) {
             if (!candidate) return true;
             if (!nameOrPath) return false;
             const str = String(nameOrPath).toLowerCase();
-            // Cek kecocokan nomor telepon/WhatsApp kandidat (minimal 4 digit)
+            if (candId && candId.length >= 4 && str.includes(candId.toLowerCase())) {
+                return true;
+            }
             if (candPhone && candPhone.length >= 4 && str.includes(candPhone)) {
                 return true;
             }
-            // Cek kecocokan email kandidat
             if (candEmail && candEmail.length >= 4 && str.includes(candEmail.toLowerCase())) {
                 return true;
             }
             return false;
         };
 
-        // 1. PRIORITAS UTAMA: Ambil langsung dari Supabase Storage Cloud (resmi & berlabel lengkap)
-        const seenFileNames = new Set();
-        const seenTimestamps = new Set();
-        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        // Helper untuk mengekstrak informasi modul, subtes, fase, dan waktu dari nama file
+        const parsePhotoMeta = (fileName, folderHint = '') => {
+            let namaModul = (folderHint || 'IST').toUpperCase();
+            let namaSubtes = '';
+            let subtesNo = 0;
+            let namaFase = 'Awal';
+
+            const parts = fileName.replace(/\.[^/.]+$/, '').split('_');
+
+            // 1. Modul
+            const modPart = parts.find(p => /^(ist|cfit|pauli|papi|disc|epps|msdt|mbti|mcmi)$/i.test(p));
+            if (modPart) namaModul = modPart.toUpperCase();
+
+            // 2. Subtes
+            const subtesPart = parts.find(p => /subtes/i.test(p));
+            if (subtesPart) {
+                namaSubtes = subtesPart.replace(/-/g, ' ');
+                const matchNum = subtesPart.match(/\d+/);
+                if (matchNum) subtesNo = parseInt(matchNum[0], 10);
+            }
+
+            // 3. Fase
+            const fasePart = parts.find(p => /^(awal|tengah|akhir|pelanggaran.*)$/i.test(p));
+            if (fasePart) {
+                namaFase = fasePart.charAt(0).toUpperCase() + fasePart.slice(1);
+            }
+
+            // 4. Waktu
+            const tglPart = parts.find(p => /^\d{4}-\d{2}-\d{2}$/.test(p));
+            const jamPart = parts.find(p => /^\d{2}[-:]\d{2}[-:]\d{2}$/.test(p));
+            let labelWaktu = "-";
+            if (tglPart && jamPart) {
+                labelWaktu = `${tglPart} ${jamPart.replace(/-/g, ':')}`;
+            }
+
+            return { namaModul, namaSubtes, subtesNo, namaFase, labelWaktu };
+        };
 
         if (sbClient && sbClient.storage) {
-            const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC'];
+            // 1. PRIORITAS 1: Ambil foto dari subfolder ID kandidat (Format Aman Fase 2: <id_kandidat>/<random_uuid>.jpg)
+            if (candId) {
+                try {
+                    const { data: files, error } = await sbClient.storage.from('foto_kandidat').list(candId, {
+                        limit: 100,
+                        sortBy: { column: 'name', order: 'asc' }
+                    });
+
+                    if (!error && files && files.length > 0) {
+                        const photoFiles = files.filter(f => 
+                            /\.(jpe?g|png|webp)$/i.test(f.name) && 
+                            (f.metadata ? f.metadata.size > 100 : true)
+                        );
+
+                        photoFiles.forEach(f => {
+                            const filePath = `${candId}/${f.name}`;
+                            const meta = parsePhotoMeta(f.name);
+                            if (meta.labelWaktu === '-' && f.created_at) {
+                                meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
+                            }
+                            const cleanBaseName = f.name.toLowerCase().trim();
+                            if (!seenFileNames.has(cleanBaseName)) {
+                                seenFileNames.add(cleanBaseName);
+                                if (meta.labelWaktu !== '-') seenTimestamps.add(meta.labelWaktu);
+
+                                rawPhotoEntries.push({
+                                    modul: meta.namaModul,
+                                    subtesStr: meta.namaSubtes,
+                                    subtesNo: meta.subtesNo,
+                                    fase: meta.namaFase,
+                                    labelWaktu: meta.labelWaktu,
+                                    path: filePath,
+                                    filePath: filePath,
+                                    fileName: f.name
+                                });
+                            }
+                        });
+                    }
+                } catch (eCandFolder) {
+                    console.warn(`[HRD] Scan folder kandidat ${candId}:`, eCandFolder);
+                }
+            }
+
+            // 2. PRIORITAS 2: Backwards compatibility untuk foto legacy di folder lama (IST, PAULI, dll)
+            const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC', 'MSDT', 'EPPS', 'CFIT', 'MBTI', 'MCMI'];
             for (const folderName of targetFolders) {
                 try {
                     const { data: files, error } = await sbClient.storage.from('foto_kandidat').list(folderName, {
@@ -2324,100 +4312,73 @@ async function renderCandidatePhotos(candidate) {
                             isMatchCurrentCandidate(f.name)
                         );
 
-                        if (photoFiles.length > 0) {
-                            // Dapatkan Signed URL sekaligus (Batch/Borongan)
-                            const filePaths = photoFiles.map(f => `${folderName}/${f.name}`);
-                            let signedMap = {};
-
-                            if (typeof sbClient.storage.from('foto_kandidat').createSignedUrls === 'function') {
-                                try {
-                                    const { data: signedList, error: signedErr } = await sbClient.storage
-                                        .from('foto_kandidat')
-                                        .createSignedUrls(filePaths, 3600);
-                                    if (!signedErr && Array.isArray(signedList)) {
-                                        signedList.forEach((item, idx) => {
-                                            if (item && item.signedUrl) {
-                                                const pth = item.path || filePaths[idx];
-                                                signedMap[pth] = item.signedUrl;
-                                                const fn = pth.split('/').pop();
-                                                if (fn) signedMap[fn] = item.signedUrl;
-                                            }
-                                        });
-                                    }
-                                } catch (eBatch) {
-                                    console.warn(`[HRD] Batch signed URL error folder ${folderName}:`, eBatch);
-                                }
+                        photoFiles.forEach(f => {
+                            const filePath = `${folderName}/${f.name}`;
+                            const meta = parsePhotoMeta(f.name, folderName);
+                            if (meta.labelWaktu === '-' && f.created_at) {
+                                meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
                             }
 
-                            photoFiles.forEach(f => {
-                                const filePath = `${folderName}/${f.name}`;
-                                const photoUrl = signedMap[filePath] || signedMap[f.name] || `${sbUrl}/storage/v1/object/public/foto_kandidat/${folderName}/${encodeURIComponent(f.name)}`;
+                            const cleanBaseName = f.name.toLowerCase().trim();
+                            if (!seenFileNames.has(cleanBaseName)) {
+                                seenFileNames.add(cleanBaseName);
+                                if (meta.labelWaktu !== '-') seenTimestamps.add(meta.labelWaktu);
 
-                                let labelSubtes = folderName;
-                                let labelWaktu = "-";
-
-                                const parts = f.name.replace(/\.[^/.]+$/, '').split('_');
-                                const subtesPart = parts.find(p => /(subtes|pauli|papi|disc)/i.test(p));
-                                if (subtesPart) {
-                                    labelSubtes = subtesPart.replace(/-/g, ' ');
-                                }
-                                const fasePart = parts.find(p => /^(awal|tengah|akhir)$/i.test(p));
-                                if (fasePart) {
-                                    labelSubtes += ` (${fasePart})`;
-                                }
-
-                                const tglPart = parts.find(p => /^\d{4}-\d{2}-\d{2}$/.test(p));
-                                const jamPart = parts.find(p => /^\d{2}-\d{2}-\d{2}$/.test(p));
-                                if (tglPart && jamPart) {
-                                    labelWaktu = `${tglPart} ${jamPart.replace(/-/g, ':')}`;
-                                } else if (f.created_at) {
-                                    const dt = new Date(f.created_at);
-                                    labelWaktu = dt.toLocaleString('id-ID');
-                                }
-
-                                const cleanBaseName = f.name.toLowerCase().trim();
-                                if (!seenFileNames.has(cleanBaseName)) {
-                                    seenFileNames.add(cleanBaseName);
-                                    if (labelWaktu !== '-') seenTimestamps.add(labelWaktu);
-
-                                    allPhotos.push({
-                                        labelSubtes: labelSubtes,
-                                        labelWaktu: labelWaktu,
-                                        url: photoUrl,
-                                        path: filePath,
-                                        fileName: f.name
-                                    });
-                                }
-                            });
-                        }
+                                rawPhotoEntries.push({
+                                    modul: meta.namaModul,
+                                    subtesStr: meta.namaSubtes,
+                                    subtesNo: meta.subtesNo,
+                                    fase: meta.namaFase,
+                                    labelWaktu: meta.labelWaktu,
+                                    path: filePath,
+                                    filePath: filePath,
+                                    fileName: f.name
+                                });
+                            }
+                        });
                     }
                 } catch (errStorage) {
-                    console.warn(`Catatan pembacaan storage folder ${folderName}:`, errStorage);
+                    console.warn(`Catatan pembacaan storage legacy folder ${folderName}:`, errStorage);
                 }
             }
         }
 
-        // 2. CADANGAN: Ambil dari objek hasil_ist kandidat HANYA jika file/waktu belum ada dari Supabase Storage
+        // 3. CADANGAN: Ambil dari objek hasil_ist kandidat jika belum tercatat
         if (candidate && candidate.hasil_ist) {
             try {
                 const parsedIst = typeof candidate.hasil_ist === 'string' ? JSON.parse(candidate.hasil_ist) : candidate.hasil_ist;
                 if (parsedIst && Array.isArray(parsedIst.foto_pengawasan)) {
                     parsedIst.foto_pengawasan.forEach(p => {
-                        const fn = (p.fileName || p.filePath || '').split('/').pop().toLowerCase().trim();
+                        let pth = p.filePath || p.path || p.fileName || '';
+                        if (!pth && p.url && p.url.includes('/foto_kandidat/')) {
+                            pth = decodeURIComponent(p.url.split('/foto_kandidat/')[1].split('?')[0]);
+                        }
+                        const fn = pth.split('/').pop().toLowerCase().trim();
                         const waktu = (p.waktu || '-').trim();
 
-                        // Deduplikasi ketat: lewati jika nama file atau waktu sudah ada di storage
                         if (fn && seenFileNames.has(fn)) return;
                         if (waktu !== '-' && seenTimestamps.has(waktu)) return;
 
                         if (fn) seenFileNames.add(fn);
                         if (waktu !== '-') seenTimestamps.add(waktu);
 
-                        allPhotos.push({
-                            labelSubtes: p.subtes || 'IST Subtes',
+                        let rawSubtes = p.subtes || 'Subtes 1';
+                        let subNum = 1;
+                        const matchNum = rawSubtes.match(/\d+/);
+                        if (matchNum) subNum = parseInt(matchNum[0], 10);
+
+                        let faseStr = p.fase || 'Awal';
+                        if (rawSubtes.toLowerCase().includes('akhir')) faseStr = 'Akhir';
+                        else if (rawSubtes.toLowerCase().includes('tengah')) faseStr = 'Tengah';
+
+                        rawPhotoEntries.push({
+                            modul: (p.folder || 'IST').toUpperCase(),
+                            subtesStr: `Subtes ${subNum}`,
+                            subtesNo: subNum,
+                            fase: faseStr,
                             labelWaktu: waktu,
-                            url: p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`,
-                            path: p.filePath || p.fileName,
+                            path: pth,
+                            filePath: pth,
                             fileName: fn
                         });
                     });
@@ -2425,39 +4386,101 @@ async function renderCandidatePhotos(candidate) {
             } catch (errParse) {}
         }
 
-        // 3. CADANGAN TERAKHIR: Ambil dari cache lokal HANYA jika belum ada di Supabase Storage
+        // 4. CADANGAN TERAKHIR: Ambil dari cache lokal HANYA jika file milik kandidat
         try {
             const localPhotos = JSON.parse(localStorage.getItem('kandidat_foto_pengawasan') || '[]');
             if (Array.isArray(localPhotos)) {
                 localPhotos.forEach(p => {
-                    const fn = (p.fileName || p.filePath || '').split('/').pop().toLowerCase().trim();
+                    let pth = p.filePath || p.path || p.fileName || '';
+                    const fn = pth.split('/').pop().toLowerCase().trim();
                     const waktu = (p.waktu || '-').trim();
-                    const pPhone = (p.candidatePhone || '').replace(/[^0-9]/g, '');
-                    const pEmail = (p.candidateEmail || '').toLowerCase();
-                    const isOwner = isMatchCurrentCandidate(fn) ||
-                        (candPhone && pPhone && pPhone === candPhone) ||
-                        (candEmail && pEmail && pEmail === candEmail.toLowerCase());
+                    const isOwner = (candId && p.candidateId && String(p.candidateId) === candId) ||
+                        isMatchCurrentCandidate(fn) ||
+                        (candPhone && p.candidatePhone && p.candidatePhone.replace(/[^0-9]/g, '') === candPhone) ||
+                        (candEmail && p.candidateEmail && p.candidateEmail.toLowerCase() === candEmail.toLowerCase());
 
                     if (isOwner) {
-                        // Deduplikasi ketat: lewati jika nama file atau waktu sudah ada di storage
                         if (fn && seenFileNames.has(fn)) return;
                         if (waktu !== '-' && seenTimestamps.has(waktu)) return;
 
                         if (fn) seenFileNames.add(fn);
                         if (waktu !== '-') seenTimestamps.add(waktu);
 
-                        const url = p.url || `${sbUrl}/storage/v1/object/public/foto_kandidat/${p.filePath || p.fileName}`;
-                        allPhotos.push({
-                            labelSubtes: p.subtes || 'IST Subtes',
+                        let pModul = (p.folder || 'IST').toUpperCase();
+                        let rawSub = p.subtes || '';
+                        let subNum = 0;
+                        const matchNum = rawSub.match(/\d+/);
+                        if (matchNum) subNum = parseInt(matchNum[0], 10);
+
+                        rawPhotoEntries.push({
+                            modul: pModul,
+                            subtesStr: subNum > 0 ? `Subtes ${subNum}` : '',
+                            subtesNo: subNum,
+                            fase: p.fase || 'Awal',
                             labelWaktu: waktu,
-                            url: url,
-                            path: p.filePath || p.fileName,
+                            path: pth,
+                            filePath: pth,
                             fileName: fn
                         });
                     }
                 });
             }
         } catch (errLocal) {}
+
+        // 5. DAPATKAN SHORT-LIVED SIGNED URLS DARI BUCKET PRIVATE (EXPIRY 300 DETIK / 5 MENIT)
+        // Menjamin keamanan data peserta: Anon/publik tidak bisa membuka URL foto tanpa otentikasi admin
+        const pathsToSign = [...new Set(rawPhotoEntries.map(p => p.path || p.filePath).filter(Boolean))];
+        const signedUrlMap = {};
+
+        if (pathsToSign.length > 0 && sbClient && sbClient.storage) {
+            // A. Batch Signed URLs (300 detik)
+            if (typeof sbClient.storage.from('foto_kandidat').createSignedUrls === 'function') {
+                try {
+                    const { data: signedList, error: signedErr } = await sbClient.storage
+                        .from('foto_kandidat')
+                        .createSignedUrls(pathsToSign, 300);
+                    if (!signedErr && Array.isArray(signedList)) {
+                        signedList.forEach((item, idx) => {
+                            if (item && item.signedUrl) {
+                                const targetPath = item.path || pathsToSign[idx];
+                                signedUrlMap[targetPath] = item.signedUrl;
+                                const fn = targetPath.split('/').pop();
+                                if (fn) signedUrlMap[fn] = item.signedUrl;
+                            }
+                        });
+                    }
+                } catch (eBatch) {
+                    console.warn('[HRD] Batch createSignedUrls error:', eBatch);
+                }
+            }
+
+            // B. Fallback individual jika batch gagal atau belum meng-cover seluruh path
+            for (const pth of pathsToSign) {
+                if (!signedUrlMap[pth]) {
+                    try {
+                        const { data: sData, error: sErr } = await sbClient.storage
+                            .from('foto_kandidat')
+                            .createSignedUrl(pth, 300);
+                        if (!sErr && sData && sData.signedUrl) {
+                            signedUrlMap[pth] = sData.signedUrl;
+                            const fn = pth.split('/').pop();
+                            if (fn) signedUrlMap[fn] = sData.signedUrl;
+                        }
+                    } catch (eSingle) {}
+                }
+            }
+        }
+
+        // Susun daftar foto valid yang berhasil mendapatkan Signed URL
+        rawPhotoEntries.forEach(p => {
+            const finalUrl = signedUrlMap[p.path] || signedUrlMap[p.filePath] || signedUrlMap[p.fileName] || '';
+            if (finalUrl) {
+                allPhotos.push({
+                    ...p,
+                    url: finalUrl
+                });
+            }
+        });
 
         // Tampilkan foto jika ditemukan
         if (allPhotos.length === 0) {
@@ -2466,52 +4489,144 @@ async function renderCandidatePhotos(candidate) {
             return;
         }
 
-        // Urutkan seluruh foto secara kronologis yang benar (Subtes 1..9, Awal -> Tengah -> Akhir)
+        // Deduplikasi sesi terkini: Pertahankan hanya foto dari sesi pengerjaan terbaru
+        // Mencegah foto dobel (#1, #2) jika ada pengujian ulang atau sesi testing di tanggal berbeda
+        const latestPhotosMap = new Map();
+        const getPhotoTs = (item) => {
+            if (item.labelWaktu && item.labelWaktu !== '-') {
+                const parsed = Date.parse(item.labelWaktu.replace(' ', 'T'));
+                if (!isNaN(parsed)) return parsed;
+            }
+            if (item.fileName) {
+                const m = item.fileName.match(/(\d{4}-\d{2}-\d{2})_(\d{2})[-:](\d{2})[-:](\d{2})/);
+                if (m) {
+                    const parsed = Date.parse(`${m[1]}T${m[2]}:${m[3]}:${m[4]}`);
+                    if (!isNaN(parsed)) return parsed;
+                }
+            }
+            return 0;
+        };
+
+        allPhotos.forEach(p => {
+            const mod = (p.modul || '').toUpperCase();
+            const sub = p.subtesNo || 0;
+            const fase = (p.fase || '').toLowerCase().trim();
+            const isGenericViolation = fase === 'pelanggaran';
+            const key = isGenericViolation ? `${mod}_${sub}_${fase}_${p.labelWaktu}` : `${mod}_${sub}_${fase}`;
+
+            const curTs = getPhotoTs(p);
+            if (!latestPhotosMap.has(key)) {
+                latestPhotosMap.set(key, p);
+            } else {
+                const existing = latestPhotosMap.get(key);
+                const exTs = getPhotoTs(existing);
+                if (curTs >= exTs) {
+                    latestPhotosMap.set(key, p);
+                }
+            }
+        });
+
+        allPhotos = Array.from(latestPhotosMap.values());
+
+        // Hanya tampilkan foto fase standar (Awal, Tengah, Akhir) — foto pelanggaran tetap tersimpan di server
+        // namun tidak ditampilkan di galeri dokumentasi karena sudah tercatat di badge integritas kandidat
+        allPhotos = allPhotos.filter(p => !/pelanggaran/i.test(p.fase || ''));
+
+        // Urutkan seluruh foto secara berpasangan kronologis yang rapi:
+        // 1. Modul Tes (IST, PAULI, PAPI, DISC, MSDT, EPPS, CFIT, MBTI)
+        // 2. Subtes 1..9
+        // 3. Waktu pengambilan (sehingga Awal -> Tengah -> Akhir berpasangan berdampingan)
+        const moduleWeights = {
+            'IST': 1,
+            'PAULI': 2,
+            'PAPI': 3,
+            'DISC': 4,
+            'MSDT': 5,
+            'EPPS': 6,
+            'CFIT': 7,
+            'MBTI': 8,
+            'MCMI': 8
+        };
+
+        const getFaseWeight = (f) => {
+            const l = (f || '').toLowerCase();
+            if (l.includes('awal')) return 1;
+            if (l.includes('tengah')) return 2;
+            if (l.includes('akhir')) return 3;
+            return 4;
+        };
+
         allPhotos.sort((a, b) => {
-            const getSubtestNumber = (label) => {
-                const match = (label || '').match(/subtes\s*(\d+)/i);
-                if (match) return parseInt(match[1], 10);
-                if (/papi/i.test(label)) return 10;
-                if (/disc/i.test(label)) return 11;
-                if (/pauli/i.test(label)) return 12;
-                return 999;
-            };
+            const modA = moduleWeights[a.modul] || 99;
+            const modB = moduleWeights[b.modul] || 99;
+            if (modA !== modB) return modA - modB;
 
-            const getFaseWeight = (label) => {
-                const l = (label || '').toLowerCase();
-                if (l.includes('awal') || l.includes('login') || l.includes('profil')) return 1;
-                if (l.includes('tengah')) return 2;
-                if (l.includes('akhir') || l.includes('selesai')) return 3;
-                return 4;
-            };
-
-            const numA = getSubtestNumber(a.labelSubtes);
-            const numB = getSubtestNumber(b.labelSubtes);
-            if (numA !== numB) return numA - numB;
-
-            const faseA = getFaseWeight(a.labelSubtes);
-            const faseB = getFaseWeight(b.labelSubtes);
-            if (faseA !== faseB) return faseA - faseB;
+            if (a.subtesNo !== b.subtesNo) return a.subtesNo - b.subtesNo;
 
             const timeA = a.labelWaktu || '';
             const timeB = b.labelWaktu || '';
-            return timeA.localeCompare(timeB);
+            if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+            return getFaseWeight(a.fase) - getFaseWeight(b.fase);
+        });
+
+        // Hitung pengulangan sesi untuk penomoran urut unik (#1, #2) jika ada sesi yang sama
+        const faseCounts = {};
+        allPhotos.forEach(p => {
+            const key = `${p.modul}_${p.subtesNo}_${p.fase}`;
+            faseCounts[key] = (faseCounts[key] || 0) + 1;
+        });
+
+        const faseTracker = {};
+        allPhotos.forEach(p => {
+            const key = `${p.modul}_${p.subtesNo}_${p.fase}`;
+            let baseLabel = p.subtesStr ? `${p.modul} - ${p.subtesStr} (${p.fase})` : `${p.modul} (${p.fase})`;
+
+            if (faseCounts[key] > 1) {
+                faseTracker[key] = (faseTracker[key] || 0) + 1;
+                baseLabel += ` #${faseTracker[key]}`;
+            }
+            p.labelSubtes = baseLabel;
         });
 
         grid.innerHTML = '';
         allPhotos.forEach(p => {
             const card = document.createElement('div');
-            card.className = "border border-slate-200 rounded-lg p-2.5 bg-white text-center shadow-sm hover:shadow-md transition flex flex-col items-center";
+            card.className = "border border-slate-200 rounded-2xl p-3 bg-white text-center shadow-xs hover:shadow-md transition flex flex-col items-center justify-between";
+
+            // Badge Fase warna elegan
+            let badgeCls = "bg-sky-50 text-[#003865] border-sky-200";
+            let faseIcon = "fa-solid fa-play text-sky-500";
+            const fLower = (p.fase || '').toLowerCase();
+            if (fLower.includes('tengah')) {
+                badgeCls = "bg-amber-50 text-amber-800 border-amber-200";
+                faseIcon = "fa-solid fa-hourglass-half text-amber-500";
+            } else if (fLower.includes('akhir')) {
+                badgeCls = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                faseIcon = "fa-solid fa-check text-emerald-600";
+            } else if (fLower.includes('pelanggaran')) {
+                badgeCls = "bg-rose-50 text-rose-800 border-rose-200";
+                faseIcon = "fa-solid fa-triangle-exclamation text-rose-600";
+            }
+
             card.innerHTML = `
-                <div class="w-full h-44 bg-slate-900 rounded overflow-hidden flex items-center justify-center border border-slate-200 mb-2">
-                    <img src="${p.url}" alt="${escapeHtml(p.labelSubtes)}" loading="lazy" class="w-full h-full object-cover" onerror="const c = this.closest('.shadow-sm'); if (c) c.remove();"
- >
+                <div class="w-full h-44 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 mb-2 relative">
+                    <img src="${p.url}" alt="${escapeHtml(p.labelSubtes)}" loading="lazy" class="w-full h-full object-cover select-none" onerror="const c = this.closest('.shadow-xs'); if (c) c.remove();">
+                    <span class="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-black ${badgeCls} border shadow-2xs backdrop-blur-sm flex items-center gap-1">
+                        <i class="${faseIcon} text-[9px]"></i> ${escapeHtml(p.fase || 'Awal')}
+                    </span>
                 </div>
-                <p class="font-bold text-xs text-slate-800 tracking-wide">${escapeHtml(p.labelSubtes)}</p>
-                <p class="text-[11px] text-slate-500 font-mono mt-0.5">${escapeHtml(p.labelWaktu)}</p>
+                <div class="w-full text-center">
+                    <p class="font-black text-xs text-[#003865] tracking-wide leading-tight">${escapeHtml(p.labelSubtes)}</p>
+                    <p class="text-[11px] text-slate-500 font-mono mt-1">${escapeHtml(p.labelWaktu)}</p>
+                </div>
             `;
             grid.appendChild(card);
         });
+
+        // Bersihkan section pelanggaran terpisah jika pernah ada sebelumnya
+        const oldViolationSection = document.getElementById('hrdFotoPelanggaranSection');
+        if (oldViolationSection) oldViolationSection.remove();
 
     } catch (e) {
         console.warn('Gagal memuat galeri foto:', e);
@@ -2522,6 +4637,25 @@ async function renderCandidatePhotos(candidate) {
 // =========================================================================
 // OTENTIKASI & LOGOUT DIRECT HRD (PORTAL HRD.HTML)
 // =========================================================================
+
+function toggleHrdPasswordVisibility() {
+    const pinInput = document.getElementById('inputHrdDirectPin');
+    const icon = document.getElementById('hrdPasswordToggleIcon');
+    if (!pinInput) return;
+    if (pinInput.type === 'password') {
+        pinInput.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        pinInput.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
 
 async function handleDirectHrdLogin(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
@@ -2539,55 +4673,84 @@ async function handleDirectHrdLogin(e) {
 
     const pinInput = document.getElementById('inputHrdDirectPin');
     const pin = pinInput ? pinInput.value.trim() : '';
+
     if (!pin) return customAlert("Akses Ditolak", "Kata sandi HRD tidak boleh kosong.", "error");
+
+    // Daftar email admin yang digunakan untuk otorisasi Supabase Auth
+    const adminEmails = ['febriyandah3@gmail.com', 'febriyanh3@gmail.com'];
+    const savedEmail = localStorage.getItem('altrak_hrd_saved_email');
+    if (savedEmail && !adminEmails.includes(savedEmail)) {
+        adminEmails.unshift(savedEmail);
+    }
+    const emailInput = document.getElementById('inputHrdEmail');
+    if (emailInput && emailInput.value.trim()) {
+        const val = emailInput.value.trim();
+        if (!adminEmails.includes(val)) adminEmails.unshift(val);
+    }
 
     // Verifikasi kredensial terhadap akun HRD di Supabase Auth
     const loadingEl = document.getElementById('modal-loading');
     if (loadingEl) loadingEl.classList.remove('hide-section');
 
     try {
-        let authSuccess = false;
         const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
-        if (sb && sb.auth) {
-            const hrdAdminEmail = atob('ZmVicml5YW5kYWgzQGdtYWlsLmNvbQ=='); // Encoded untuk keamanan
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({
-                    email: hrdAdminEmail,
-                    password: pin
-                });
-                if (!error && data && data.session) {
-                    authSuccess = true;
-                } else if (error && (error.status === 429 || (error.message && error.message.toLowerCase().includes('rate limit')))) {
-                    const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
-                    localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
-                    if (typeof setLockCookie === 'function') setLockCookie(lockTime);
+        if (!sb || !sb.auth) {
+            if (loadingEl) loadingEl.classList.add('hide-section');
+            return customAlert("Kesalahan Koneksi", "Koneksi Supabase belum siap.", "error");
+        }
+
+        let loginSuccess = false;
+        let lastError = null;
+
+        for (const email of adminEmails) {
+            const { data, error } = await sb.auth.signInWithPassword({
+                email: email,
+                password: pin
+            });
+
+            if (!error && data && data.session) {
+                // Verifikasi status hak akses admin via RPC is_admin
+                const { data: isAdmin, error: adminErr } = await sb.rpc('is_admin');
+                if (!adminErr && isAdmin) {
+                    loginSuccess = true;
+                    try {
+                        localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
+                        localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
+                        if (typeof clearLockCookie === 'function') clearLockCookie();
+                        localStorage.setItem('altrak_hrd_saved_email', email);
+                    } catch (e) {}
+
+                    isHrdAuthenticated = true;
+                    if (pinInput) pinInput.value = '';
                     if (loadingEl) loadingEl.classList.add('hide-section');
-                    return customAlert("Akses Terkunci", "Terlalu banyak percobaan pada server (Rate Limited). Akses dibekukan sementara demi keamanan.", "error");
+
+                    const loginView = document.getElementById('hrd-login-view');
+                    if (loginView) loginView.classList.add('hide-section');
+                    const dashView = document.getElementById('hrd-dashboard-view');
+                    if (dashView) dashView.classList.remove('hide-section');
+
+                    loadHrdData();
+                    loadHrdTokens();
+                    break;
+                } else {
+                    await sb.auth.signOut();
                 }
-            } catch (e) {
-                console.warn('[HRD Login] Verifikasi sandi gagal:', e);
+            } else {
+                lastError = error;
             }
         }
 
-        if (loadingEl) loadingEl.classList.add('hide-section');
+        if (!loginSuccess) {
+            if (loadingEl) loadingEl.classList.add('hide-section');
+            if (lastError && (lastError.status === 429 || (lastError.message && lastError.message.toLowerCase().includes('rate limit')))) {
+                const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
+                localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
+                if (typeof setLockCookie === 'function') setLockCookie(lockTime);
+                return customAlert("Akses Terkunci", "Terlalu banyak percobaan pada server (Rate Limited). Akses dibekukan sementara demi keamanan.", "error");
+            }
 
-        if (authSuccess) {
-            try {
-                localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
-                localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
-                if (typeof clearLockCookie === 'function') clearLockCookie();
-            } catch (e) {}
-            isHrdAuthenticated = true;
-            if (pinInput) pinInput.value = '';
-            const loginView = document.getElementById('hrd-login-view');
-            if (loginView) loginView.classList.add('hide-section');
-            const dashView = document.getElementById('hrd-dashboard-view');
-            if (dashView) dashView.classList.remove('hide-section');
-            loadHrdData();
-        } else {
             let currentAttempts = parseInt(localStorage.getItem(HRD_ATTEMPTS_STORAGE_KEY) || '0', 10) + 1;
             localStorage.setItem(HRD_ATTEMPTS_STORAGE_KEY, currentAttempts.toString());
-
             isHrdAuthenticated = false;
             if (pinInput) pinInput.value = '';
 
@@ -2595,16 +4758,16 @@ async function handleDirectHrdLogin(e) {
                 const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
                 localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
                 if (typeof setLockCookie === 'function') setLockCookie(lockTime);
-                customAlert(
+                return customAlert(
                     "Akses Dikunci",
-                    "Terlalu banyak percobaan (3x). Akses otorisasi HRD dikunci 15 menit demi keamanan.",
+                    "Terlalu banyak percobaan gagal (3x). Akses otorisasi HRD dikunci 15 menit demi keamanan.",
                     "error"
                 );
             } else {
                 const sisaCoba = MAX_HRD_ATTEMPTS - currentAttempts;
-                customAlert(
+                return customAlert(
                     "Akses Ditolak",
-                    `Sandi HRD tidak sesuai. Sisa kesempatan mencoba: ${sisaCoba} kali.`,
+                    `Kata sandi tidak valid. Sisa kesempatan mencoba: ${sisaCoba} kali.`,
                     "error"
                 );
             }
@@ -2621,8 +4784,12 @@ async function logoutDirectHrd() {
     if (loadingEl) loadingEl.classList.remove('hide-section');
     try {
         const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
-        if (sb && sb.auth) await sb.auth.signOut();
-    } catch (err) {}
+        if (sb && sb.auth) {
+            await sb.auth.signOut();
+        }
+    } catch (err) {
+        console.warn('Gagal logout Supabase:', err);
+    }
     isHrdAuthenticated = false;
     cachedHrdData = [];
     const pinInput = document.getElementById('inputHrdDirectPin');
@@ -2720,10 +4887,16 @@ function renderTokenTable(tokens) {
             <td class="p-2.5 text-slate-300">${pemakai}</td>
             <td class="p-2.5 text-slate-400">${waktuPakai}</td>
             <td class="p-2.5 text-center">
-                <button onclick="copySingleToken('${escapeHtml(item.token)}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-2.5 py-1 rounded text-xs transition border border-slate-700 flex items-center gap-1 mx-auto cursor-pointer" title="Salin Kode Token">
-                    <i class="fa-solid fa-copy text-[10px]"></i>
-                    <span>Salin</span>
-                </button>
+                <div class="flex items-center justify-center gap-1.5">
+                    <button onclick="copySingleToken('${escapeHtml(item.token)}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-2.5 py-1 rounded text-xs transition border border-slate-700 flex items-center gap-1 cursor-pointer" title="Salin Kode Token">
+                        <i class="fa-solid fa-copy text-[10px]"></i>
+                        <span>Salin</span>
+                    </button>
+                    <button onclick="handleHapusSingleToken('${escapeHtml(item.token)}')" class="bg-rose-950/60 hover:bg-rose-900/80 text-rose-400 hover:text-rose-300 font-bold px-2 py-1 rounded text-xs transition border border-rose-800/50 flex items-center gap-1 cursor-pointer" title="Hapus Token Ini">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        <span>Hapus</span>
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
@@ -2817,15 +4990,209 @@ function handleSalinSemuaToken() {
     });
 }
 
-// Inisialisasi otomatis jika dibuka di halaman hrd.html
+async function handleHapusSingleToken(token) {
+    if (!token) return;
+    const cleanToken = token.trim();
+
+    customAlert(
+        "Hapus Token Ujian",
+        `Apakah Anda yakin ingin menghapus token "${cleanToken.toUpperCase()}" dari database?`,
+        "error",
+        true,
+        async () => {
+            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            if (!sb) {
+                showHrdToast("Koneksi Supabase tidak tersedia.", "error");
+                return;
+            }
+
+            try {
+                let deleted = false;
+
+                // 1. Coba via RPC jika sudah dipasang di database
+                try {
+                    const { error: rpcErr } = await sb.rpc('hapus_token_ujian', { p_token: cleanToken });
+                    if (!rpcErr) deleted = true;
+                } catch (eRpc) {}
+
+                // 2. Direct delete jika RPC belum ada / gagal
+                if (!deleted) {
+                    const { data, error } = await sb
+                        .from('token_ujian')
+                        .delete()
+                        .ilike('token', cleanToken)
+                        .select();
+
+                    if (error) {
+                        console.warn('[Hapus Single Token Error]', error);
+                        showHrdToast("Gagal menghapus token: " + (error.message || error), "error");
+                        return;
+                    }
+                    if (data && data.length > 0) {
+                        deleted = true;
+                    }
+                }
+
+                // Muat ulang daftar token untuk memverifikasi apakah benar-benar terhapus
+                await loadHrdTokens();
+                const stillExists = cachedTokenList && cachedTokenList.some(t => (t.token || '').toLowerCase() === cleanToken.toLowerCase());
+
+                if (stillExists) {
+                    customAlert(
+                        "Penghapusan Ditolak Database",
+                        "Database Supabase memblokir penghapusan token karena aturan Row Level Security (RLS). Silakan jalankan query izin DELETE di SQL Editor Supabase.",
+                        "error"
+                    );
+                } else {
+                    showHrdToast(`Token "${cleanToken.toUpperCase()}" berhasil dihapus.`, 'success');
+                }
+            } catch (err) {
+                console.error("Gagal menghapus token:", err);
+                showHrdToast("Gagal menghapus token: " + (err.message || err), "error");
+            }
+        }
+    );
+}
+
+async function handleBersihkanTokenTerpakai() {
+    const terpakaiList = cachedTokenList.filter(t => (t.status || 'tersedia') !== 'tersedia');
+    if (terpakaiList.length === 0) {
+        customAlert("Bersihkan Token", "Saat ini tidak ada token yang berstatus 'Sudah Terpakai'.", "info");
+        return;
+    }
+
+    customAlert(
+        "Bersihkan Token Terpakai",
+        `Ditemukan ${terpakaiList.length} token yang sudah terpakai. Apakah Anda yakin ingin MENGHAPUS SEMUA token terpakai tersebut? Token yang masih tersedia tidak akan terhapus.`,
+        "error",
+        true,
+        async () => {
+            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            if (!sb) {
+                showHrdToast("Koneksi Supabase tidak tersedia.", "error");
+                return;
+            }
+
+            try {
+                let rpcOk = false;
+                try {
+                    const { error: rpcErr } = await sb.rpc('bersihkan_token_terpakai');
+                    if (!rpcErr) rpcOk = true;
+                } catch (eRpc) {}
+
+                if (!rpcOk) {
+                    const { error } = await sb
+                        .from('token_ujian')
+                        .delete()
+                        .neq('status', 'tersedia')
+                        .select();
+
+                    if (error) {
+                        console.warn('[Hapus Token Terpakai Error]', error);
+                        showHrdToast("Gagal membersihkan: " + (error.message || error), "error");
+                        return;
+                    }
+                }
+
+                await loadHrdTokens();
+                const remainingTerpakai = cachedTokenList ? cachedTokenList.filter(t => (t.status || 'tersedia') !== 'tersedia').length : 0;
+                if (remainingTerpakai > 0) {
+                    customAlert(
+                        "Penghapusan Ditolak Database",
+                        "Database Supabase memblokir penghapusan token karena aturan Row Level Security (RLS). Silakan jalankan query izin DELETE di SQL Editor Supabase.",
+                        "error"
+                    );
+                } else {
+                    showHrdToast(`Berhasil membersihkan ${terpakaiList.length} token terpakai!`, 'success');
+                }
+            } catch (err) {
+                console.error("Gagal membersihkan token terpakai:", err);
+                showHrdToast("Gagal membersihkan: " + (err.message || err), "error");
+            }
+        }
+    );
+}
+
+async function handleHapusSemuaToken() {
+    if (!cachedTokenList || cachedTokenList.length === 0) {
+        customAlert("Daftar Token Kosong", "Tidak ada token untuk dihapus di database.", "info");
+        return;
+    }
+
+    const totalToDelete = cachedTokenList.length;
+
+    customAlert(
+        "Hapus Seluruh Token",
+        `PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA (${totalToDelete}) TOKEN dari database? Tindakan ini permanen dan tidak dapat dibatalkan.`,
+        "error",
+        true,
+        async () => {
+            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            if (!sb) {
+                showHrdToast("Koneksi Supabase tidak tersedia.", "error");
+                return;
+            }
+
+            try {
+                let rpcOk = false;
+                // 1. Coba via fungsi RPC khusus jika tersedia
+                try {
+                    const { error: rpcErr } = await sb.rpc('hapus_semua_token');
+                    if (!rpcErr) rpcOk = true;
+                } catch (eRpc) {}
+
+                // 2. Direct delete jika RPC belum dibuat
+                if (!rpcOk) {
+                    const { error } = await sb
+                        .from('token_ujian')
+                        .delete()
+                        .neq('token', '___none___')
+                        .select();
+
+                    if (error) {
+                        console.warn('[Hapus Semua Token Error]', error);
+                        showHrdToast("Gagal menghapus semua: " + (error.message || error), "error");
+                        return;
+                    }
+                }
+
+                await loadHrdTokens();
+
+                // Verifikasi apakah token benar-benar terhapus
+                if (cachedTokenList && cachedTokenList.length > 0) {
+                    customAlert(
+                        "Penghapusan Ditolak Database",
+                        "Database Supabase memblokir penghapusan token karena aturan Row Level Security (RLS). Silakan jalankan query izin DELETE di SQL Editor Supabase.",
+                        "error"
+                    );
+                } else {
+                    showHrdToast("Semua token berhasil dihapus!", 'success');
+                }
+            } catch (err) {
+                console.error("Gagal menghapus semua token:", err);
+                showHrdToast("Gagal menghapus: " + (err.message || err), "error");
+            }
+        }
+    );
+}
+
 if (typeof window !== 'undefined') {
     window.handleDirectHrdLogin = handleDirectHrdLogin;
     window.logoutDirectHrd = logoutDirectHrd;
+    window.toggleHrdPasswordVisibility = toggleHrdPasswordVisibility;
     window.toggleTokenSection = toggleTokenSection;
     window.loadHrdTokens = loadHrdTokens;
     window.handleBuatTokenHrd = handleBuatTokenHrd;
     window.copySingleToken = copySingleToken;
     window.handleSalinSemuaToken = handleSalinSemuaToken;
+    window.handleHapusSingleToken = handleHapusSingleToken;
+    window.handleBersihkanTokenTerpakai = handleBersihkanTokenTerpakai;
+    window.handleHapusSemuaToken = handleHapusSemuaToken;
+    window.handleScoreChange = handleScoreChange;
+    window.handleSwChange = handleSwChange;
+    window.handleIstIqInputChange = handleIstIqInputChange;
+    window.simpanKoreksiIstKeSupabase = simpanKoreksiIstKeSupabase;
+    window.renderMsdtResults = renderMsdtResults;
 
     window.addEventListener('DOMContentLoaded', async () => {
         if (!document.getElementById('hrd-login-view')) return;
@@ -2834,23 +5201,50 @@ if (typeof window !== 'undefined') {
             history.replaceState(null, '', window.location.pathname);
         }
 
+        // Isi otomatis email terakhir jika tersimpan
+        const emailInput = document.getElementById('inputHrdEmail');
+        if (emailInput) {
+            try {
+                const savedEmail = localStorage.getItem('altrak_hrd_saved_email');
+                if (savedEmail) emailInput.value = savedEmail;
+            } catch (e) {}
+        }
+
         const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
         if (!sb || !sb.auth) return;
         try {
             const { data } = await sb.auth.getSession();
             if (data && data.session) {
-                isHrdAuthenticated = true;
-                const loginView = document.getElementById('hrd-login-view');
-                if (loginView) loginView.classList.add('hide-section');
-                const dashView = document.getElementById('hrd-dashboard-view');
-                if (dashView) dashView.classList.remove('hide-section');
-                loadHrdData();
-                loadHrdTokens();
+                // Verifikasi status hak akses admin
+                const { data: isAdmin, error: adminErr } = await sb.rpc('is_admin');
+                if (!adminErr && isAdmin) {
+                    isHrdAuthenticated = true;
+                    const loginView = document.getElementById('hrd-login-view');
+                    if (loginView) loginView.classList.add('hide-section');
+                    const dashView = document.getElementById('hrd-dashboard-view');
+                    if (dashView) dashView.classList.remove('hide-section');
+                    loadHrdData();
+                    loadHrdTokens();
+                } else {
+                    // Sesi ada tetapi bukan admin di admin_users
+                    await sb.auth.signOut();
+                    isHrdAuthenticated = false;
+                }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[HRD Auth] Cek sesi gagal:', e);
+        }
     });
 }
 
-
-
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add('hide-section');
+        modal.style.display = 'none';
+    }
+}
+if (typeof window !== 'undefined') {
+    window.closeModal = closeModal;
+}
 

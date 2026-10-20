@@ -21,7 +21,7 @@ function tampilkanHalamanSelesai() {
     }
     const namaEl = document.getElementById('selesai-nama');
     if (namaEl && state.user && state.user.name) {
-        namaEl.textContent = 'Selamat, ' + state.user.name + ' — semoga sukses dalam proses seleksi!';
+        namaEl.textContent = 'Selamat, ' + state.user.name + ' semoga sukses dalam proses seleksi!';
     }
     showPage('page-selesai');
     window.scrollTo(0, 0);
@@ -118,6 +118,12 @@ function startISTTest() {
  * @param {number} testNum Nomor modul tes yang diselesaikan
  */
 function completeModule(testNum) {
+    if (testNum === 2) {
+        localStorage.setItem('papi_selesai', 'true');
+    } else if (testNum === 3) {
+        localStorage.setItem('disc_selesai', 'true');
+    }
+
     const modalIds = {
         1: 'modal-module-ist',
         2: 'modal-module-papi',
@@ -195,14 +201,7 @@ function clearUserClipboard() {
 // - Angka 0-9 : Menjawab Pauli
 // - Blokir PrintScreen, F12, Ctrl+P, Ctrl+S, Ctrl+U, dan Ctrl+Shift+I/J/C
 document.addEventListener('keydown', (e) => {
-    // 1. Shortcut internal otorisasi HRD (Ctrl + Shift + A)
-    if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-        e.preventDefault();
-        openHrdLoginModal();
-        return;
-    }
-
-    // 2. Blokir tombol PrintScreen (Anti-Screenshot) & langsung aktifkan sensor hitam di Subtes 09
+    // 1. Blokir tombol PrintScreen (Anti-Screenshot) & langsung aktifkan sensor hitam di Subtes 09
     if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
         clearUserClipboard();
@@ -263,25 +262,12 @@ document.addEventListener('keydown', (e) => {
             return;
         }
     }
-
-    // 5. Input Pauli via keyboard (Angka 0 s.d 9)
-    const pauliPage = document.getElementById('page-pauli');
-    if (state.pauli && state.pauli.isActive && pauliPage && !pauliPage.classList.contains('hide-section')) {
-        const modalMsg = document.getElementById('modal-message');
-        if (modalMsg && !modalMsg.classList.contains('hide-section')) return;
-
-        // Cek input angka 0-9
-        if (/^[0-9]$/.test(e.key)) {
-            e.preventDefault();
-            handlePauliInput(parseInt(e.key, 10));
-        }
-    }
 });
 
 // Tandai bahwa pengamanan global aktif
 window._appSecurityLoaded = true;
 
-// Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli, IST, atau PAPI Kostick)
+// Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli, IST, PAPI Kostick, DISC, MSDT, EPPS, CFIT, MBTI)
 function isTestActive() {
     const isPauli = typeof state !== 'undefined' && state.pauli && state.pauli.isActive && !isTrialMode && !window._tesSelesai;
     if (isPauli) return { active: true, testType: 'Pauli' };
@@ -298,6 +284,22 @@ function isTestActive() {
     const discView = document.getElementById('view-disc');
     const isDisc = discView && !discView.classList.contains('hide-section');
     if (isDisc) return { active: true, testType: 'DISC' };
+
+    const msdtView = document.getElementById('view-msdt');
+    const isMsdt = msdtView && !msdtView.classList.contains('hide-section') && !(window.tahap2State && window.tahap2State.modulSelesai && window.tahap2State.modulSelesai.msdt);
+    if (isMsdt) return { active: true, testType: 'MSDT' };
+
+    const eppsView = document.getElementById('view-epps');
+    const isEpps = eppsView && !eppsView.classList.contains('hide-section') && !(window.tahap2State && window.tahap2State.modulSelesai && window.tahap2State.modulSelesai.epps);
+    if (isEpps) return { active: true, testType: 'EPPS' };
+
+    const cfitView = document.getElementById('view-cfit');
+    const isCfit = cfitView && !cfitView.classList.contains('hide-section') && !(window.tahap2State && window.tahap2State.modulSelesai && window.tahap2State.modulSelesai.cfit);
+    if (isCfit) return { active: true, testType: 'CFIT' };
+
+    const mbtiView = document.getElementById('view-mbti');
+    const isMbti = mbtiView && !mbtiView.classList.contains('hide-section') && !(window.tahap2State && window.tahap2State.modulSelesai && window.tahap2State.modulSelesai.mbti);
+    if (isMbti) return { active: true, testType: 'MBTI' };
 
     return { active: false, testType: null };
 }
@@ -326,12 +328,11 @@ document.addEventListener('contextmenu', (e) => {
     return false;
 });
 
-// Blokir aksi copy, cut, paste, dan dragstart selama asesmen berlangsung (Pauli & IST)
+// Blokir aksi copy, cut, paste, dan dragstart selama asesmen berlangsung (Seluruh Modul Tahap 1 & Tahap 2)
 ['copy', 'cut', 'paste', 'dragstart'].forEach((evtName) => {
     document.addEventListener(evtName, (e) => {
-        const isPauliActive = typeof state !== 'undefined' && state.pauli && state.pauli.isActive;
-        const isIstActive = typeof istLogic !== 'undefined' && (istLogic.fase === 'UJIAN' || istLogic.fase === 'CONTOH');
-        if (isPauliActive || isIstActive) {
+        const testStatus = isTestActive();
+        if (testStatus.active) {
             e.preventDefault();
         }
     });
@@ -368,10 +369,26 @@ function handleIntegrityViolation(reason) {
     clearUserClipboard();
 
     tabSwitchViolations++;
+
+    // Jepret foto bukti pelanggaran otomatis via webcam jika tersedia
+    if (typeof window.jepretDanUpload === 'function') {
+        let identifier = '';
+        try {
+            if (typeof state !== 'undefined' && state.user) {
+                identifier = state.user.phone || state.user.email || '';
+            }
+            if (!identifier && typeof localStorage !== 'undefined') {
+                identifier = localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || '';
+            }
+        } catch (e) {}
+        const folder = testStatus.testType || 'Asesmen';
+        try {
+            window.jepretDanUpload(identifier, folder, `${folder}-Pelanggaran`, `Pelanggaran-${tabSwitchViolations}`);
+        } catch (errSnap) {}
+    }
     const isPauli = testStatus.testType === 'Pauli';
-    const isPapi = testStatus.testType === 'PAPI Kostick';
-    const isDisc = testStatus.testType === 'DISC';
-    const namaTes = isPauli ? 'Pauli' : (isPapi ? 'PAPI Kostick' : (isDisc ? 'DISC' : 'IST'));
+    const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI'].includes(testStatus.testType);
+    const namaTes = testStatus.testType || 'IST';
 
     if (tabSwitchViolations <= 3) {
         const sisa = 3 - tabSwitchViolations;
@@ -379,11 +396,11 @@ function handleIntegrityViolation(reason) {
             ? `Sisa toleransi pelanggaran: ${sisa} kali lagi.`
             : `PERINGATAN TERAKHIR! Jika Anda berpindah tab atau aplikasi sekali lagi, tes Anda akan otomatis diakhiri dan dikumpulkan ke server!`;
 
-        const pesanModal = (isPapi || isDisc)
+        const pesanModal = isTahap2OrPersonality
             ? `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations}).\n\nSistem merekam seluruh aktivitas ini ke database HRD PT Altrak 1978.\n\nTes ${namaTes} WAJIB diselesaikan seluruhnya dan tidak dapat ditinggalkan.\n\nHarap tetap fokus pada halaman asesmen sampai seluruh nomor selesai.`
             : `Terdeteksi perpindahan ${reason}! (Pelanggaran ke-${tabSwitchViolations} dari batas maksimal 3 kali).\n\nSistem merekam seluruh aktivitas ini demi integritas seleksi PT Altrak 1978. ${pesanSisa}\n\nHarap tetap fokus pada jendela asesmen sampai waktu selesai.`;
 
-        if (isPauli || isPapi || isDisc) {
+        if (isPauli || isTahap2OrPersonality) {
             customAlert("⚠️ Peringatan Integritas Ujian", pesanModal, "error");
         } else if (typeof istUI !== 'undefined' && istUI.showModal) {
             istUI.showModal({
@@ -417,9 +434,9 @@ function handleIntegrityViolation(reason) {
                     prosesSimpanPauli(true);
                 }
             }, 1200);
-        } else if (isPapi || isDisc) {
-            // PAPI Kostick & DISC: TIDAK dihentikan otomatis, seluruh nomor WAJIB diselesaikan 100%
-            const pesanPapiLanjut = `Peringatan Keras Integritas (Pelanggaran ke-${tabSwitchViolations} kali)!\n\nTerdeteksi perpindahan ${reason}.\n\nCatatan pelanggaran ini telah terekam secara permanen di database laporan HRD PT Altrak 1978. Tes ${namaTes} TIDAK DAPAT dihentikan paksa dan Anda WAJIB menyelesaikan seluruh butir asesmen sampai selesai.\n\nHarap tetap fokus dan lanjutkan pengerjaan soal.`;
+        } else if (isTahap2OrPersonality) {
+            // PAPI Kostick, DISC, EPPS, MSDT, dll: TIDAK dihentikan otomatis, seluruh nomor WAJIB diselesaikan 100%
+            const pesanPapiLanjut = `Peringatan Keras Integritas (Pelanggaran ke-${tabSwitchViolations} kali)!\n\nTerdeteksi perpindahan ${reason}.\n\nCatatan pelanggaran ini telah terekam secara permanen di database laporan HRD PT Altrak 1978. Tes ${namaTes} TIDAK DAPAT dihentikan paksa dan Anda WAJIB menyelesaikan seluruh soal asesmen sampai selesai.\n\nHarap tetap fokus dan lanjutkan pengerjaan soal.`;
 
             customAlert(
                 "⚠️ Pelanggaran Integritas Dicatat",
@@ -534,6 +551,12 @@ window.addEventListener('focus', () => {
 
 // 3. Deteksi global saat peserta keluar dari mode Layar Penuh (Fullscreen) sejak Dashboard hingga selesai
 document.addEventListener('fullscreenchange', () => {
+    const selesaiView = document.getElementById('view-selesai') || document.getElementById('page-selesai');
+    const isSelesaiVisible = selesaiView && !selesaiView.classList.contains('hide-section') && selesaiView.style.display !== 'none';
+    if (window._tesSelesai || isSelesaiVisible) {
+        return;
+    }
+
     const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
     if (isCandidateLoggedIn && !document.fullscreenElement) {
         const testStatus = isTestActive();
@@ -562,9 +585,13 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 
-// Pastikan browser kembali masuk Fullscreen saat tombol modal pesan diklik
+// Pastikan browser kembali masuk Fullscreen saat tombol modal pesan diklik (kecuali di halaman selesai)
 document.addEventListener('click', (e) => {
     if (e.target && (e.target.id === 'msgBtnOk' || e.target.closest('#msgBtnOk'))) {
+        const selesaiView = document.getElementById('view-selesai') || document.getElementById('page-selesai');
+        const isSelesaiVisible = selesaiView && !selesaiView.classList.contains('hide-section') && selesaiView.style.display !== 'none';
+        if (window._tesSelesai || isSelesaiVisible) return;
+
         const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
         if (isCandidateLoggedIn && !document.fullscreenElement && document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(() => {});

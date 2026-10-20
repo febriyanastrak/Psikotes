@@ -312,7 +312,7 @@ const istUI = {
 
                         <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 text-center shrink-0 self-start sm:self-auto">
                             <span class="text-[10px] uppercase font-bold tracking-wider text-blue-200 block">Jumlah Soal</span>
-                            <span class="text-lg font-black text-[#ffbe1a]">${totalSoal} Butir Soal</span>
+                            <span class="text-lg font-black text-[#ffbe1a]">${totalSoal} Soal</span>
                         </div>
                     </div>
                 </div>
@@ -792,7 +792,7 @@ const istUI = {
             2: {
                 formatLabel: "Pilihan Ganda (A - E)",
                 formatIcon: "fa-list-ol",
-                highlightedText: "Ditentukan <strong>5 (lima) kata</strong> pada setiap butir soal. Pada <strong>4 dari 5 kata</strong> tersebut terdapat suatu <strong>kesamaan sifat atau kategori</strong>. Carilah <strong>kata kelima yang berbeda</strong> atau tidak memiliki kesamaan dengan keempat kata lainnya.",
+                highlightedText: "Ditentukan <strong>5 (lima) kata</strong> pada setiap soal. Pada <strong>4 dari 5 kata</strong> tersebut terdapat suatu <strong>kesamaan sifat atau kategori</strong>. Carilah <strong>kata kelima yang berbeda</strong> atau tidak memiliki kesamaan dengan keempat kata lainnya.",
                 steps: [
                     { no: "1", title: "Amati 5 Kata", desc: "Baca kelima pilihan kata yang disajikan pada soal dengan teliti." },
                     { no: "2", title: "Temukan Kesamaan 4 Kata", desc: "Cari hubungan atau kategori yang menyatukan 4 kata di antaranya." },
@@ -814,7 +814,7 @@ const istUI = {
             4: {
                 formatLabel: "Kolom Isian (Ketik Kata)",
                 formatIcon: "fa-keyboard",
-                highlightedText: "Ditentukan <strong>dua perkataan</strong> pada setiap butir soal. Carilah <strong>satu perkataan payung / kategori umum</strong> yang dapat mencakup dan meliputi pengertian kedua kata tadi. <strong>Ketikkan perkataan itu</strong> langsung pada kolom yang disediakan.",
+                highlightedText: "Ditentukan <strong>dua perkataan</strong> pada setiap soal. Carilah <strong>satu perkataan payung / kategori umum</strong> yang dapat mencakup dan meliputi pengertian kedua kata tadi. <strong>Ketikkan perkataan itu</strong> langsung pada kolom yang disediakan.",
                 steps: [
                     { no: "1", title: "Amati Sepasang Kata", desc: "Cermati kedua kata yang ditampilkan (contoh: ayam – itik)." },
                     { no: "2", title: "Cari Kategori Payung", desc: "Tentukan satu perkataan umum yang membawahi keduanya (contoh: burung)." },
@@ -886,7 +886,7 @@ const istUI = {
             steps: [
                 { no: "1", title: "Pahami Petunjuk", desc: "Baca seluruh arahan pengerjaan dengan cermat." },
                 { no: "2", title: "Pelajari Contoh", desc: "Perhatikan contoh soal dan kunci jawaban yang disajikan." },
-                { no: "3", title: "Kerjakan Ujian", desc: "Jawab setiap butir soal sesuai waktu yang ditentukan." }
+                { no: "3", title: "Kerjakan Ujian", desc: "Jawab setiap soal sesuai waktu yang ditentukan." }
             ],
             tips: "Gunakan sesi percobaan ini sebaik mungkin untuk memahami cara menjawab."
         };
@@ -1542,7 +1542,7 @@ const istUI = {
                 <div>
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#edf3f9] text-[#003865] uppercase tracking-wider">Soal 01 Selesai</span>
                     <h2 class="text-2xl font-black text-slate-800 mt-2">Soal 01 Telah Ditutup</h2>
-                    <p class="text-sm text-slate-500 mt-2">Seluruh jawaban Anda untuk 20 butir soal telah berhasil disimpan ke sistem asesmen.</p>
+                    <p class="text-sm text-slate-500 mt-2">Seluruh jawaban Anda untuk 20 soal telah berhasil disimpan ke sistem asesmen.</p>
                 </div>
 
                 <!-- Ringkasan Peserta (Aman, Tanpa Menampilkan Kunci Jawaban / Benar-Salah) -->

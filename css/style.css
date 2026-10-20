@@ -29,8 +29,11 @@ body {
 .corporate-modern-bg {
     background-color: #071f38;
     background-image: radial-gradient(circle at 50% 10%, #0d3862 0%, #071f38 60%, #041224 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
     color: #ffffff;
-    min-height: 100%;
+    min-height: calc(100vh - 4rem);
 }
 
 .corporate-altrak-surface {
@@ -875,6 +878,8 @@ input[type="number"] {
     #panelTabPapi > div,
     #panelTabIst,
     #panelTabIst > div,
+    #panelTabCfit,
+    #panelTabCfit > div,
     #panelTabPauli,
     #panelTabPauli > div,
     #panelTabDisc,
@@ -882,6 +887,67 @@ input[type="number"] {
     .border {
         break-inside: auto !important;
         page-break-inside: auto !important;
+    }
+
+    /* KUNCI CETAK IST: Lembar Koreksi 9 Subtes otomatis mulai rapi di halaman baru */
+    #panelTabIst > div:last-child {
+        break-before: page !important;
+        page-break-before: always !important;
+        margin-top: 0 !important;
+    }
+
+    #istCorrectionSheetsContainer {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+    }
+
+    /* Setiap kotak kartu subtes utuh 1 paket (kepala + tabel + RW tidak boleh terbelah dua) */
+    #istCorrectionSheetsContainer > div {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        display: block !important;
+        height: auto !important;
+        margin-bottom: 8px !important;
+    }
+
+    #istCorrectionSheetsContainer > div > div:nth-child(2) {
+        max-height: none !important;
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
+    }
+
+    /* KUNCI CETAK CFIT: Lembar Koreksi 4 Subtes otomatis mulai rapi di halaman baru */
+    #panelTabCfit > div:last-child {
+        break-before: page !important;
+        page-break-before: always !important;
+        margin-top: 0 !important;
+    }
+
+    #cfitCorrectionSheetsContainer {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 8px !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+    }
+
+    #cfitCorrectionSheetsContainer > div {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        display: block !important;
+        height: auto !important;
+        margin-bottom: 8px !important;
+    }
+
+    #cfitCorrectionSheetsContainer > div > div:nth-child(2) {
+        max-height: none !important;
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
     }
 
     /* KUNCI KHUSUS: Tabel Norma Pauli dan Matriks Jawaban PAPI harus utuh 1 paket (tidak boleh terbelah dua) */

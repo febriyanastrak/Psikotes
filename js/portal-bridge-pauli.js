@@ -1,72 +1,17 @@
 // =========================================================================
-// JEMBATAN NAVIGASI & KONEKSI DATABASE MODUL PAULI & DASHBOARD
+// JEMBATAN NAVIGASI & EVALUASI DASHBOARD MODUL (PORTAL BRIDGE)
 // PT Altrak 1978 - Portal Psikotes Terpadu
+// Bersih tanpa teknik monkey-patching / penyadapan fungsi global
 // =========================================================================
 
 (function () {
-    // Jalankan saat dokumen pauli.html selesai dimuat
-    window.addEventListener('DOMContentLoaded', () => {
-        pasangPenyadapShowPage();
-        sinkronisasiSesiDanAlurDashboard();
-        pasangPenyadapLogin();
-        pasangPenyadapModulPapiDanDisc();
-        pasangPenyadapSelesaiPauli();
-    });
-
-    /**
-     * Menyadap fungsi showPage agar setiap kali masuk ke Dashboard,
-     * status penyelesaian tes (termasuk 9 subtes IST) langsung dievaluasi & dibuka kuncinya
-     */
-    function pasangPenyadapShowPage() {
-        if (typeof window.showPage === 'function') {
-            const fungsiAsliShowPage = window.showPage;
-            window.showPage = function (pageId) {
-                fungsiAsliShowPage(pageId);
-                if (pageId === 'page-dashboard') {
-                    setTimeout(() => {
-                        terapkanPenguncianDashboard();
-                    }, 50);
-                }
-            };
-        }
-    }
-
-    /**
-     * 1. SINKRONISASI SESI PESERTA & STATUS PENGUNCIAN BERURUTAN PADA DASHBOARD
-     */
-    function sinkronisasiSesiDanAlurDashboard() {
-        const idPeserta = localStorage.getItem('id_peserta');
-        const namaPeserta = localStorage.getItem('nama_peserta');
-        const kembaliDariIst = sessionStorage.getItem('kembali_dari_ist') === 'true';
-
-        // Jika peserta baru kembali dari IST di ist.html atau session aktif
-        if (kembaliDariIst && idPeserta && namaPeserta) {
-            sessionStorage.removeItem('kembali_dari_ist');
-
-            if (typeof state !== 'undefined' && state.user) {
-                state.user.name = namaPeserta;
-            }
-
-            const navName = document.getElementById('nav-user-name');
-            if (navName) navName.textContent = namaPeserta.split(' ')[0];
-            const navInfo = document.getElementById('nav-user-info');
-            if (navInfo) navInfo.classList.remove('hide-section');
-
-            if (typeof showPage === 'function') {
-                showPage('page-dashboard');
-            }
-        }
-
-        // Terapkan evaluasi penguncian kartu dashboard
-        terapkanPenguncianDashboard();
-    }
+    'use strict';
 
     /**
      * Menerapkan status penguncian berurutan pada kartu dashboard
      * Secara otomatis mendeteksi jika 9 subtes IST sudah selesai
      */
     function terapkanPenguncianDashboard() {
-        // Cek data subtes IST yang tersimpan
         let subtestsSelesai = [];
         try {
             subtestsSelesai = JSON.parse(localStorage.getItem('altrak_ist_completed_subtests') || '[]');
@@ -74,7 +19,6 @@
             subtestsSelesai = [];
         }
 
-        // Jika 9 subtes IST sudah selesai ATAU bendera ist_selesai sudah bernilai true
         const isIstSelesai = localStorage.getItem('ist_selesai') === 'true' || 
             (Array.isArray(subtestsSelesai) && subtestsSelesai.length >= 9) ||
             (typeof istLogic !== 'undefined' && istLogic.completedSubtests && istLogic.completedSubtests.length >= 9);
@@ -84,22 +28,7 @@
             if (typeof unlockDashboardCard === 'function') {
                 unlockDashboardCard(1); // Buka kunci Tes 2: PAPI Kostick
             }
-
-            // Kirim update hasil IST ke Supabase dinonaktifkan agar tidak menimpa skor IST dari database
-            if (!localStorage.getItem('ist_terkirim_supabase')) {
-                // const dataIST = {
-                //     id_peserta: localStorage.getItem('id_peserta') || 'kandidat',
-                //     nama_peserta: localStorage.getItem('nama_peserta') || 'Peserta',
-                //     subtest_selesai: subtestsSelesai,
-                //     waktu_selesai: new Date().toISOString()
-                // };
-                // if (typeof updateHasilTes === 'function') {
-                //     updateHasilTes('hasil_ist', dataIST).then(sukses => {
-                //         if (sukses) localStorage.setItem('ist_terkirim_supabase', 'true');
-                //     });
-                // }
-                localStorage.setItem('ist_terkirim_supabase', 'true');
-            }
+            localStorage.setItem('ist_terkirim_supabase', 'true');
         }
 
         const papiSelesai = localStorage.getItem('papi_selesai') === 'true';
@@ -118,184 +47,39 @@
     }
 
     /**
-     * 2. PENYADAP FORMULIR LOGIN DI PAULI.HTML (INSERT KE SUPABASE)
+     * Sinkronisasi sesi peserta jika baru kembali dari modul IST
      */
-    function pasangPenyadapLogin() {
-        if (typeof window.handleRequestOTP === 'function') {
-            const origOTP = window.handleRequestOTP;
+    function sinkronisasiSesiDanAlurDashboard() {
+        const idPeserta = localStorage.getItem('id_peserta');
+        const namaPeserta = localStorage.getItem('nama_peserta');
+        const kembaliDariIst = sessionStorage.getItem('kembali_dari_ist') === 'true';
 
-            window.handleRequestOTP = async function (e) {
-                // Jalankan validasi asli bawaan form pauli
-                origOTP(e);
+        if (kembaliDariIst && idPeserta && namaPeserta) {
+            sessionStorage.removeItem('kembali_dari_ist');
 
-                // Jika validasi form berhasil dan user state terisi
-                if (typeof state !== 'undefined' && state.user && state.user.name) {
-                    const rawName = state.user.name.trim();
+            if (typeof state !== 'undefined' && state.user) {
+                state.user.name = namaPeserta;
+            }
 
-                    // Bersihkan flag tes lama untuk sesi baru
-                    [
-                        'ist_selesai', 'papi_selesai', 'disc_selesai', 'pauli_selesai',
-                        'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
-                        'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
-                        'hasil_papi', 'hasil_disc', 'hasil_pauli', 'hasil_ist'
-                    ].forEach(k => localStorage.removeItem(k));
+            const navName = document.getElementById('nav-user-name');
+            if (navName) navName.textContent = namaPeserta.split(' ')[0];
+            const navInfo = document.getElementById('nav-user-info');
+            if (navInfo) navInfo.classList.remove('hide-section');
 
-                    if (typeof resetDashboardState === 'function') {
-                        resetDashboardState();
-                    }
-
-                    // Periksa apakah ID peserta sudah ada dari sesi sebelumnya di localStorage
-                    let idPesertaBaru = localStorage.getItem('id_peserta') || null;
-                    const cleanPhone = (state.user && (state.user.phone || state.user.no_wa) || '').replace(/[^0-9]/g, '');
-                    const cleanEmail = (state.user && state.user.email || '').toLowerCase().trim();
-
-                    try {
-                        const sbUrl = window.SUPABASE_URL || '';
-                        const sbKey = window.SUPABASE_KEY || '';
-
-                        let supabase = null;
-                        if (window.supabase && typeof window.supabase.from === 'function') {
-                            supabase = window.supabase;
-                        } else if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof supabaseClient.from === 'function') {
-                            supabase = supabaseClient;
-                        } else if (window.supabase && typeof window.supabase.createClient === 'function') {
-                            supabase = window.supabase.createClient(sbUrl, sbKey);
-                            window.supabase = supabase;
-                        }
-
-                        if (supabase && typeof supabase.from === 'function') {
-                            // Jika belum ada ID di localStorage, cari kandidat yang sudah terdaftar agar tidak dobel
-                            if (!idPesertaBaru) {
-                                try {
-                                    // 1. Cek berdasarkan Email
-                                    if (cleanEmail && !cleanEmail.includes('altrak1978.co.id')) {
-                                        const { data: byEmail } = await supabase.from('kandidat_psikotes').select('id').eq('email', cleanEmail).limit(1);
-                                        if (byEmail && byEmail.length > 0 && byEmail[0].id) {
-                                            idPesertaBaru = byEmail[0].id;
-                                        }
-                                    }
-                                    // 2. Cek berdasarkan No WhatsApp jika belum ketemu
-                                    if (!idPesertaBaru && cleanPhone && cleanPhone.length >= 6) {
-                                        const waVars = [cleanPhone];
-                                        if (cleanPhone.startsWith('0')) {
-                                            waVars.push('62' + cleanPhone.slice(1));
-                                        } else if (cleanPhone.startsWith('62')) {
-                                            waVars.push('0' + cleanPhone.slice(2));
-                                        }
-                                        for (const w of waVars) {
-                                            const { data: byWa } = await supabase.from('kandidat_psikotes').select('id').eq('no_wa', w).limit(1);
-                                            if (byWa && byWa.length > 0 && byWa[0].id) {
-                                                idPesertaBaru = byWa[0].id;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    // 3. Cek berdasarkan Nama Lengkap jika belum ketemu
-                                    if (!idPesertaBaru && rawName && rawName.length >= 3) {
-                                        const { data: byName } = await supabase.from('kandidat_psikotes').select('id').eq('nama_lengkap', rawName).limit(1);
-                                        if (byName && byName.length > 0 && byName[0].id) {
-                                            idPesertaBaru = byName[0].id;
-                                        }
-                                    }
-                                } catch (eFind) {}
-                            }
-
-                            if (idPesertaBaru) {
-                                // Sudah ada kandidat: perbarui data profil tanpa membuat baris baru (mencegah dobel)
-                                console.log('[Portal Login] Menggunakan sesi kandidat terdaftar. ID:', idPesertaBaru);
-                                try {
-                                    await supabase.from('kandidat_psikotes').update({
-                                        nama_lengkap: rawName,
-                                        email: cleanEmail,
-                                        no_wa: cleanPhone
-                                    }).eq('id', idPesertaBaru);
-                                } catch (eUp) {}
-                            } else {
-                                // Benar-benar kandidat baru: lakukan INSERT tepat satu kali
-                                const { data, error } = await supabase
-                                    .from('kandidat_psikotes')
-                                    .insert([
-                                        {
-                                            nama_lengkap: rawName,
-                                            email: cleanEmail,
-                                            no_wa: cleanPhone,
-                                            posisi_dilamar: 'Peserta Seleksi'
-                                        }
-                                    ])
-                                    .select();
-
-                                if (!error && data && data.length > 0 && data[0].id) {
-                                    idPesertaBaru = data[0].id;
-                                    console.log('[Portal Login] Kandidat baru tersimpan di Supabase dengan ID:', idPesertaBaru);
-                                } else if (error) {
-                                    console.warn('[Portal Login] Catatan Supabase RLS/Insert:', error.message || error);
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('[Portal Login] Catatan koneksi Supabase:', err);
-                    }
-
-                    if (!idPesertaBaru) {
-                        idPesertaBaru = (typeof crypto !== 'undefined' && crypto.randomUUID)
-                            ? crypto.randomUUID()
-                            : 'kandidat-' + Date.now();
-                    }
-
-                    localStorage.setItem('id_peserta', String(idPesertaBaru));
-                    localStorage.setItem('nama_peserta', rawName);
-
-                    const profil = {
-                        name: rawName,
-                        id: idPesertaBaru,
-                        email: state.user.email || 'peserta@altrak1978.co.id',
-                        position: 'Peserta Seleksi'
-                    };
-                    localStorage.setItem('altrak_candidate_profile', JSON.stringify(profil));
-                }
-            };
+            if (typeof pindahFase === 'function') {
+                pindahFase('view-dashboard');
+            } else if (typeof showPage === 'function') {
+                showPage('page-dashboard');
+            }
         }
+
+        terapkanPenguncianDashboard();
     }
 
-    /**
-     * 3. PENYADAP PENYELESAIAN MODUL PAPI (MODUL 2) & DISC (MODUL 3)
-     */
-    function pasangPenyadapModulPapiDanDisc() {
-        if (typeof window.completeModule === 'function') {
-            const fungsiAsliComplete = window.completeModule;
-
-            window.completeModule = async function (testNum) {
-                const idPeserta = localStorage.getItem('id_peserta') || 'kandidat';
-                const namaPeserta = localStorage.getItem('nama_peserta') || (state.user && state.user.name) || 'Peserta';
-
-                if (testNum === 2) {
-                    // Hasil PAPI sudah disimpan dengan lengkap (skor/jawaban) oleh papi.js
-                    // Jangan menimpa kolom hasil_papi di sini
-                    console.log('[Portal Bridge] Tes 2 (PAPI) selesai.');
-                    localStorage.setItem('papi_selesai', 'true');
-
-                } else if (testNum === 3) {
-                    // Hasil DISC sudah dihitung dan disimpan lengkap oleh disc.js via Supabase RPC
-                    // Jangan menimpa kolom hasil_disc dengan data dummy di sini
-                    console.log('[Portal Bridge] Tes 3 (DISC) selesai.');
-                    localStorage.setItem('disc_selesai', 'true');
-                }
-
-                // Jalankan fungsi alur bawaan aplikasi
-                fungsiAsliComplete(testNum);
-            };
-        }
-    }
-
-    /**
-     * 4. PENYADAP PENYELESAIAN TES PAULI (MODUL 4)
-     */
-    function pasangPenyadapSelesaiPauli() {
-        // DINONAKTIFKAN: Penyimpanan data Pauli ke Supabase sudah ditangani oleh
-        // sendToSupabase() di pauli.js secara lengkap (termasuk tabel legacy).
-        // Menjalankan dua jalur penyimpanan bersamaan menyebabkan race condition
-        // yang membuat data saling menimpa dan bisa hilang.
-        // Referensi: pauli.js → selesaikanTesPauli() → sendToSupabase()
-        console.log('[Portal Bridge] Penyadap Pauli dinonaktifkan — penyimpanan ditangani pauli.js sendToSupabase()');
+    if (typeof window !== 'undefined') {
+        window.terapkanPenguncianDashboard = terapkanPenguncianDashboard;
+        window.addEventListener('DOMContentLoaded', () => {
+            sinkronisasiSesiDanAlurDashboard();
+        });
     }
 })();

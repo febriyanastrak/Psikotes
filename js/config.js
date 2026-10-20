@@ -71,10 +71,11 @@ if (typeof window !== 'undefined') {
  * @returns {Promise<boolean>} True jika pembaruan berhasil dikirim ke server Supabase
  */
 async function updateHasilTes(kolomTes, dataJSON) {
-    console.log(`[Supabase] Memulai pembaruan kolom: ${kolomTes}...`);
+    console.log(`[Supabase] Memulai pembaruan aman kolom: ${kolomTes}...`);
 
-    // 1. Ambil ID peserta dari penyimpanan lokal browser
+    // 1. Ambil ID peserta dan session_secret dari penyimpanan lokal browser
     const idPeserta = localStorage.getItem('id_peserta');
+    const sessionSecret = localStorage.getItem('session_secret') || '';
     if (!idPeserta) {
         console.warn('[Supabase] ID peserta tidak ditemukan di localStorage. Menyimpan ke cache cadangan.');
         localStorage.setItem(`cadangan_${kolomTes}`, JSON.stringify(dataJSON));
@@ -89,36 +90,63 @@ async function updateHasilTes(kolomTes, dataJSON) {
         console.warn('[Supabase] Gagal menyimpan cadangan lokal:', errLokal);
     }
 
-    // 3. Siapkan payload pembaruan untuk Supabase
-    const payloadUpdate = {};
-    payloadUpdate[kolomTes] = dataJSON;
-    if (kolomTes === 'hasil_pauli') {
-        payloadUpdate['waktu_selesai'] = new Date().toISOString();
+    const sbActive = (typeof supabaseClient !== 'undefined' && supabaseClient)
+        ? supabaseClient
+        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+
+    if (!sbActive) {
+        console.warn('[Supabase] Library Supabase tidak aktif. Data tetap tersimpan aman di browser.');
+        return false;
     }
 
-    // 4. Jalankan perintah UPDATE ke tabel kandidat_psikotes berdasarkan id
-    try {
-        const sbActive = (typeof supabaseClient !== 'undefined' && supabaseClient)
-            ? supabaseClient
-            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+    // 3. PRIORITAS UTAMA: Gunakan RPC update_hasil_tes_aman dengan validasi session_secret (Security Hardening Fase 3)
+    if (sessionSecret) {
+        try {
+            const { data: rpcRes, error: rpcErr } = await sbActive.rpc('update_hasil_tes_aman', {
+                p_kandidat_id: String(idPeserta),
+                p_session_secret: String(sessionSecret),
+                p_kolom: kolomTes,
+                p_payload: dataJSON
+            });
 
-        if (sbActive) {
-            const { data, error } = await sbActive
-                .from('kandidat_psikotes')
-                .update(payloadUpdate)
-                .eq('id', idPeserta);
-
-            if (error) {
-                console.warn(`[Supabase UPDATE Catatan] Status server untuk ${kolomTes}:`, error.message || error);
-                return false;
+            if (!rpcErr && rpcRes && rpcRes.success) {
+                console.log(`[Supabase RPC update_hasil_tes_aman Berhasil] Kolom ${kolomTes} untuk ID ${idPeserta} berhasil diperbarui.`);
+                return true;
             }
+            if (rpcErr) {
+                console.warn('[Supabase update_hasil_tes_aman RPC Error]', rpcErr.message || rpcErr);
+            }
+        } catch (eRpc) {
+            console.warn('[Supabase update_hasil_tes_aman Exception]', eRpc);
+        }
+    }
 
-            console.log(`[Supabase UPDATE Berhasil] Kolom ${kolomTes} untuk ID ${idPeserta} berhasil diperbarui.`);
-            return true;
-        } else {
-            console.warn('[Supabase] Library Supabase tidak aktif. Data tetap tersimpan aman di browser.');
+    // 4. CADANGAN: Update langsung dengan klausa session_secret jika tersedia
+    try {
+        const payloadUpdate = {};
+        payloadUpdate[kolomTes] = dataJSON;
+        if (kolomTes === 'hasil_pauli' || kolomTes === 'status_tahap_2') {
+            payloadUpdate['waktu_selesai'] = new Date().toISOString();
+        }
+
+        let query = sbActive
+            .from('kandidat_psikotes')
+            .update(payloadUpdate)
+            .eq('id', idPeserta);
+
+        if (sessionSecret) {
+            query = query.eq('session_secret', sessionSecret);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.warn(`[Supabase UPDATE Catatan] Status server untuk ${kolomTes}:`, error.message || error);
             return false;
         }
+
+        console.log(`[Supabase UPDATE Berhasil] Kolom ${kolomTes} untuk ID ${idPeserta} berhasil diperbarui.`);
+        return true;
     } catch (errServer) {
         console.warn(`[Supabase Jaringan] Gagal mengirim data ${kolomTes} ke server:`, errServer);
         return false;

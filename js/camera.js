@@ -161,7 +161,8 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
         ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
 
         const dataUrl = canvasEl.toDataURL('image/jpeg', 0.85);
-        localStorage.setItem('kandidat_snapshot_login', dataUrl);
+        // Cegah QuotaExceededError (5MB): Jangan simpan Base64 gambar besar ke localStorage.
+        try { localStorage.removeItem('kandidat_snapshot_login'); } catch (e) {}
 
         // Jika Supabase storage tersedia, upload snapshot ke folder di bucket foto_kandidat
         let sbClient = (window.supabase && typeof window.supabase.storage !== 'undefined')
@@ -202,61 +203,58 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
             const subtes = (namaSubtes || 'Subtes-1').trim().replace(/\s+/g, '-');
             const fase = (faseWaktu || 'Awal').trim();
 
-            // Identifikasi kandidat unik: Utamakan nomor WhatsApp/telepon, lalu email
-            let candPhone = '';
-            let candEmail = '';
+            // 1. Identifikasi Candidate ID (UUID atau ID unik peserta) - Hindari nomor telepon / email
+            let candidateId = '';
             try {
-                if (typeof state !== 'undefined' && state.user) {
-                    candPhone = (state.user.phone || '').toString().trim().replace(/[^0-9]/g, '');
-                    candEmail = (state.user.email || '').toString().trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+                if (typeof localStorage !== 'undefined') {
+                    candidateId = (localStorage.getItem('id_peserta') || '').toString().trim();
                 }
-                if (!candPhone && typeof localStorage !== 'undefined') {
-                    candPhone = (localStorage.getItem('phone_peserta') || '').toString().trim().replace(/[^0-9]/g, '');
-                }
-                if (!candEmail && typeof localStorage !== 'undefined') {
-                    candEmail = (localStorage.getItem('email_peserta') || '').toString().trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+                if (!candidateId && typeof state !== 'undefined' && state.user && state.user.id) {
+                    candidateId = state.user.id.toString().trim();
                 }
             } catch (eId) {}
 
-            // Fallback ke parameter emailKandidat jika ada
-            if (!candPhone && !candEmail && emailKandidat) {
-                const rawParam = String(emailKandidat).trim();
-                if (/^\+?\d+$/.test(rawParam)) {
-                    candPhone = rawParam.replace(/[^0-9]/g, '');
-                } else {
-                    candEmail = rawParam.replace(/[^a-zA-Z0-9_-]/g, '_');
-                }
+            // Fallback: Jika ID belum tersimpan, buat UUID acak agar privasi tetap terjaga
+            if (!candidateId) {
+                candidateId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                    ? crypto.randomUUID()
+                    : 'kandidat-' + Math.random().toString(36).substring(2, 12);
+                try {
+                    if (typeof localStorage !== 'undefined' && !localStorage.getItem('id_peserta')) {
+                        localStorage.setItem('id_peserta', candidateId);
+                    }
+                } catch (eSet) {}
             }
 
-            const candidateTag = candPhone ? candPhone : (candEmail ? candEmail : 'peserta');
+            const safeCandidateId = candidateId.replace(/[^a-zA-Z0-9_-]/g, '_');
 
-            // Format tanggal & waktu: YYYY-MM-DD_HH-mm-ss (Tahun-Bulan-Tanggal_Jam-Menit-Detik)
+            // 2. Buat random UUID untuk nama file foto agar unik dan mencegah enumeration
+            const randomSuffix = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                ? crypto.randomUUID()
+                : (Date.now().toString(36) + Math.random().toString(36).substring(2, 8));
+
+            // Format tanggal & waktu: YYYY-MM-DD_HH-mm-ss
             const d = new Date();
             const pad = (n) => String(n).padStart(2, '0');
             const waktuStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 
-            // Format nama file bersih spesifik per-kandidat:
-            // Contoh: PAULI/PAULI_08435345345_Tes-Pauli_Awal_2026-10-02_14-00-00.jpg
-            const fileName = `${folder}_${candidateTag}_${subtes}_${fase}_${waktuStr}.jpg`;
-            const filePath = `${folder}/${fileName}`;
-            const sbUrl = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
-            const publicUrl = `${sbUrl}/storage/v1/object/public/foto_kandidat/${filePath}`;
+            // Format nama file: {folder}_{subtes}_{fase}_{waktuStr}_{randomUUID}.jpg
+            // Simpan di subfolder per ID kandidat: {safeCandidateId}/{fileName}
+            const fileName = `${folder}_${subtes}_${fase}_${waktuStr}_${randomSuffix}.jpg`;
+            const filePath = `${safeCandidateId}/${fileName}`;
 
-            // Simpan jejak metadata foto ke penyimpanan browser untuk pelaporan HRD
+            // Simpan jejak metadata foto (hanya path & info tes, TANPA public URL & TANPA PII telepon/email)
             try {
                 let fotoList = JSON.parse(localStorage.getItem('kandidat_foto_pengawasan') || '[]');
                 fotoList.push({
-                    candidatePhone: candPhone,
-                    candidateEmail: candEmail,
-                    candidateTag,
+                    candidateId: safeCandidateId,
                     folder,
                     subtes: (namaSubtes || 'Subtes 1').replace(/-/g, ' '),
                     fase,
                     waktu: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
                     fileName,
                     filePath,
-                    path: filePath,
-                    url: publicUrl
+                    path: filePath
                 });
                 localStorage.setItem('kandidat_foto_pengawasan', JSON.stringify(fotoList));
             } catch (eStorage) {}

@@ -891,7 +891,7 @@
     }
 
     /**
-     * Kunci pemetaan standar psikometri 90 butir soal PAPI Kostick (20 dimensi)
+     * Kunci pemetaan standar psikometri 90 soal PAPI Kostick (20 dimensi)
      */
     const PAPI_SCORING_KEY = [
         { no: 1, a: 'G', b: 'E' }, { no: 2, a: 'A', b: 'N' }, { no: 3, a: 'P', b: 'A' }, { no: 4, a: 'X', b: 'P' }, { no: 5, a: 'B', b: 'X' },
@@ -960,8 +960,9 @@
 
         // Kirim ke Supabase
         try {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            const candidateId = user.id || localStorage.getItem('id_peserta') || localStorage.getItem('current_peserta_id');
+            const candidateId = localStorage.getItem('id_peserta')
+                || (typeof state !== 'undefined' && state.user && state.user.id)
+                || localStorage.getItem('current_peserta_id');
 
             let sb = window.supabase;
             if (!sb && typeof supabase !== 'undefined') sb = supabase;

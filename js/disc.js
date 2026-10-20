@@ -193,7 +193,7 @@
         const selesai = hitungNomorSelesai();
         const sisa = total - selesai;
 
-        const pesan = `Batas waktu standar 15 menit telah habis!\n\nUntuk Tes DISC Assessment, seluruh ${total} butir soal WAJIB diselesaikan secara lengkap (masing-masing memiliki tepat 1 pilihan Paling [P] dan 1 pilihan Paling Tidak [K]) agar grafik profil kepribadian kerja Anda dapat dianalisis secara valid.\n\nMasih ada ${sisa} nomor yang belum lengkap. Silakan segera lengkapi seluruh nomor tersebut!`;
+        const pesan = `Batas waktu standar 15 menit telah habis!\n\nUntuk Tes DISC Assessment, seluruh ${total} soal WAJIB diselesaikan secara lengkap (masing-masing memiliki tepat 1 pilihan Paling [P] dan 1 pilihan Paling Tidak [K]) agar grafik profil kepribadian kerja Anda dapat dianalisis secara valid.\n\nMasih ada ${sisa} nomor yang belum lengkap. Silakan segera lengkapi seluruh nomor tersebut!`;
 
         if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
             istUI.showModal({

@@ -641,9 +641,9 @@ const istLogic = {
         const totalSoal = subtestData.soal.length;
         const belumDijawab = totalSoal - totalDijawab;
 
-        let pesan = `Anda telah menjawab ${totalDijawab} dari ${totalSoal} butir soal.`;
+        let pesan = `Anda telah menjawab ${totalDijawab} dari ${totalSoal} soal.`;
         if (belumDijawab > 0) {
-            pesan += `\n\nMasih terdapat ${belumDijawab} butir soal yang belum dijawab.`;
+            pesan += `\n\nMasih terdapat ${belumDijawab} soal yang belum dijawab.`;
         }
         pesan += `\n\nApakah Anda yakin ingin menyelesaikan dan mengumpulkan hasil ${subtestName} sekarang?`;
 

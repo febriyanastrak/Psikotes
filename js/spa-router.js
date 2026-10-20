@@ -44,7 +44,27 @@ function pindahFase(targetId) {
 
         'page-hrd': 'view-hrd',
         'hrd': 'view-hrd',
-        'view-hrd': 'view-hrd'
+        'view-hrd': 'view-hrd',
+
+        'page-dashboard-tahap2': 'view-dashboard-tahap2',
+        'dashboard-tahap2': 'view-dashboard-tahap2',
+        'view-dashboard-tahap2': 'view-dashboard-tahap2',
+
+        'page-msdt': 'view-msdt',
+        'msdt': 'view-msdt',
+        'view-msdt': 'view-msdt',
+
+        'page-epps': 'view-epps',
+        'epps': 'view-epps',
+        'view-epps': 'view-epps',
+
+        'page-cfit': 'view-cfit',
+        'cfit': 'view-cfit',
+        'view-cfit': 'view-cfit',
+
+        'page-mbti': 'view-mbti',
+        'mbti': 'view-mbti',
+        'view-mbti': 'view-mbti'
     };
 
     const finalTargetId = mapId[targetId] || targetId;
@@ -61,9 +81,18 @@ function pindahFase(targetId) {
     const targetSection = document.getElementById(finalTargetId) || document.getElementById(targetId);
     if (targetSection) {
         targetSection.classList.remove('hide-section');
-        const displayType = (finalTargetId === 'view-dashboard' || finalTargetId === 'view-hrd' || finalTargetId === 'view-disc') ? 'block' : 'flex';
+        const displayType = (finalTargetId === 'view-dashboard' || finalTargetId === 'view-hrd' || finalTargetId === 'view-disc' || finalTargetId === 'view-dashboard-tahap2') ? 'block' : 'flex';
         targetSection.style.setProperty('display', displayType, 'important');
         targetSection.classList.add(displayType === 'block' ? 'fase-aktif-block' : 'fase-aktif');
+
+        // Sinkronisasi background canvas agar tidak bocor putih saat modul corporate-modern-bg aktif
+        if (targetSection.classList.contains('corporate-modern-bg')) {
+            document.body.style.backgroundColor = '#071f38';
+            document.documentElement.style.backgroundColor = '#071f38';
+        } else {
+            document.body.style.backgroundColor = '';
+            document.documentElement.style.backgroundColor = '';
+        }
     } else {
         console.warn('[SPA Router] Section target tidak ditemukan:', finalTargetId);
     }
@@ -107,9 +136,24 @@ function pindahFase(targetId) {
             stopProctoringCamera();
         }
         if (finalTargetId === 'view-selesai') {
+            window._tesSelesai = true;
+            // Kembalikan layar ke mode normal (exitFullscreen) saat di halaman selesai
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
             try {
                 localStorage.removeItem('kandidat_foto_pengawasan');
             } catch (e) {}
+        }
+    }
+
+    // 6. Jika menuju Dashboard Tahap 2, hentikan kamera & perbarui progres modul kepemimpinan
+    if (finalTargetId === 'view-dashboard-tahap2') {
+        if (typeof stopProctoringCamera === 'function') {
+            stopProctoringCamera();
+        }
+        if (typeof updateDashboardTahap2Progress === 'function') {
+            updateDashboardTahap2Progress();
         }
     }
 }
@@ -130,345 +174,17 @@ if (typeof window !== 'undefined') {
  * @param {Event} event Objek event submit form
  */
 async function handleLoginSPA(event) {
-    if (event && event.preventDefault) {
+    if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
     }
-
-    // Bersihkan status error sebelumnya
-    if (typeof clearLoginValidationErrors === 'function') {
-        clearLoginValidationErrors();
-    } else {
-        const alertBox = document.getElementById('loginAlertBox');
-        if (alertBox) alertBox.classList.add('hide-section');
-        ['errorName', 'errorEmail', 'errorPhone', 'errorPosisi', 'errorDomisili', 'errorPenempatan', 'errorToken', 'errorConsent'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hide-section');
-        });
+    if (typeof window.handleCandidateLogin === 'function') {
+        return window.handleCandidateLogin(event);
     }
+    console.warn('[SPA Router] Modul auth belum siap.');
+}
 
-    // Helper untuk menampilkan error inline tanpa alert popup
-    const triggerError = (inputId, errorId, message) => {
-        if (typeof showLoginFieldError === 'function') {
-            showLoginFieldError(inputId, errorId, message);
-        } else {
-            const errEl = document.getElementById(errorId);
-            if (errEl) {
-                const span = errEl.querySelector('span') || errEl;
-                span.textContent = message;
-                errEl.classList.remove('hide-section');
-            }
-            const alertBox = document.getElementById('loginAlertBox');
-            const alertMsg = document.getElementById('loginAlertMsg');
-            if (alertBox && alertMsg) {
-                alertMsg.textContent = message;
-                alertBox.classList.remove('hide-section');
-            }
-            const inputEl = document.getElementById(inputId);
-            if (inputEl) {
-                inputEl.classList.add('border-red-500', 'bg-red-50/50');
-                inputEl.focus();
-            }
-        }
-    };
-
-    // Ambil data dari semua input formulir pendaftaran
-    const nameInput = document.getElementById('inputName');
-    const emailInput = document.getElementById('inputEmail');
-    const phoneInput = document.getElementById('inputPhone');
-    const posisiInput = document.getElementById('inputPosisi');
-    const domisiliInput = document.getElementById('inputDomisili');
-    const penempatanInput = document.getElementById('inputPenempatan');
-    const tokenInput = document.getElementById('inputToken');
-    const consentCheck = document.getElementById('checkboxConsent');
-
-    const cleanName = (nameInput ? nameInput.value : '').trim();
-    const cleanEmail = (emailInput ? emailInput.value : '').trim();
-    const cleanPhone = (phoneInput ? phoneInput.value : '').trim();
-    const cleanPosisi = (posisiInput ? posisiInput.value : '').trim();
-    const cleanDomisili = (domisiliInput ? domisiliInput.value : '').trim();
-    const cleanPenempatan = (penempatanInput ? penempatanInput.value : '').trim();
-    const cleanToken = (tokenInput ? tokenInput.value : '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    // 1. Validasi Nama Lengkap
-    if (!cleanName || cleanName.length < 3) {
-        triggerError('inputName', 'errorName', 'Harap masukkan Nama Lengkap minimal 3 karakter!');
-        return;
-    }
-
-    // 2. Validasi Alamat Email
-    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-        triggerError('inputEmail', 'errorEmail', 'Harap masukkan Alamat Email Aktif yang benar!');
-        return;
-    }
-
-    // 3. Validasi Nomor WhatsApp
-    if (!cleanPhone || cleanPhone.length < 9) {
-        triggerError('inputPhone', 'errorPhone', 'Harap masukkan Nomor WhatsApp / HP yang valid!');
-        return;
-    }
-
-    // 4. Validasi Posisi / Jabatan yang Dilamar
-    if (!cleanPosisi || cleanPosisi.length < 2) {
-        triggerError('inputPosisi', 'errorPosisi', 'Harap masukkan posisi atau jabatan yang Anda lamar!');
-        return;
-    }
-
-    // 5. Validasi Lokasi Domisili
-    if (!cleanDomisili || cleanDomisili.length < 2) {
-        triggerError('inputDomisili', 'errorDomisili', 'Harap masukkan lokasi domisili tempat tinggal saat ini!');
-        return;
-    }
-
-    // 6. Validasi Penempatan Kerja
-    if (!cleanPenempatan || cleanPenempatan.length < 2) {
-        triggerError('inputPenempatan', 'errorPenempatan', 'Harap pilih lokasi cabang penempatan kerja!');
-        return;
-    }
-
-    // 7. Validasi Token Akses Ujian (5 Karakter Sekali Pakai)
-    if (!cleanToken || cleanToken.length !== 5) {
-        triggerError('inputToken', 'errorToken', 'Token akses ujian wajib 5 karakter huruf/angka (contoh: gk7g8)!');
-        return;
-    }
-
-    // 8. Validasi Checkbox Pakta Integritas
-    if (!consentCheck || !consentCheck.checked) {
-        const consentContainer = document.getElementById('checkboxConsentContainer');
-        if (consentContainer) {
-            consentContainer.classList.add('border-red-500', 'bg-red-50/40');
-        }
-        triggerError('checkboxConsent', 'errorConsent', 'Anda harus menyetujui Pakta Integritas terlebih dahulu!');
-        return;
-    }
-
-    // Ubah tampilan tombol ke mode loading
-    const btnSubmit = document.getElementById('btnSubmitLogin');
-    const btnText = document.getElementById('btnSubmitLoginText');
-    const btnIcon = document.getElementById('btnSubmitLoginIcon');
-
-    if (btnSubmit) btnSubmit.disabled = true;
-    if (btnText) btnText.textContent = "Memvalidasi Token...";
-    if (btnIcon) btnIcon.className = "fa-solid fa-circle-notch fa-spin";
-
-    // Verifikasi Token Sekali Pakai ke Supabase Database via RPC
-    const sbUrl = window.SUPABASE_URL || '';
-    const sbKey = window.SUPABASE_KEY || '';
-
-    let supabase = null;
-    if (window.supabase && typeof window.supabase.from === 'function') {
-        supabase = window.supabase;
-    } else if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof supabaseClient.from === 'function') {
-        supabase = supabaseClient;
-    } else if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(sbUrl, sbKey);
-        window.supabase = supabase;
-    }
-
-    if (supabase && typeof supabase.rpc === 'function') {
-        try {
-            const { data: resKlaim, error: errKlaim } = await supabase.rpc('klaim_token_ujian', {
-                p_token: cleanToken,
-                p_nama: cleanName,
-                p_phone: cleanPhone
-            });
-
-            if (!errKlaim && resKlaim && resKlaim.valid === false) {
-                if (btnSubmit) btnSubmit.disabled = false;
-                if (btnText) btnText.textContent = "Mulai Tes";
-                if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right-long";
-                triggerError('inputToken', 'errorToken', resKlaim.pesan || 'Token ujian tidak valid atau sudah pernah digunakan.');
-                if (typeof customAlert === 'function') {
-                    customAlert("Akses Ditolak", resKlaim.pesan || "Token ujian tidak valid atau sudah pernah digunakan.", "error");
-                }
-                return;
-            }
-        } catch (eToken) {
-            console.warn('[Token RPC]', eToken);
-        }
-    }
-
-    if (btnText) btnText.textContent = "Menghubungkan ke Portal...";
-
-    // Simpan ke state memori lokal & localStorage
-    if (typeof state !== 'undefined') {
-        state.user = {
-            name: cleanName,
-            email: cleanEmail,
-            phone: cleanPhone,
-            posisi: cleanPosisi,
-            domisili: cleanDomisili,
-            penempatan: cleanPenempatan,
-            token: cleanToken,
-            startTime: new Date().toLocaleTimeString('id-ID')
-        };
-    }
-
-    localStorage.setItem('nama_peserta', cleanName);
-    localStorage.setItem('email_peserta', cleanEmail);
-    localStorage.setItem('phone_peserta', cleanPhone);
-    localStorage.setItem('posisi_peserta', cleanPosisi);
-    localStorage.setItem('domisili_peserta', cleanDomisili);
-    localStorage.setItem('penempatan_peserta', cleanPenempatan);
-    localStorage.setItem('token_peserta', cleanToken);
-
-    // Bersihkan seluruh sesi tes sebelumnya dari browser
-    const keysToClear = [
-        'ist_selesai', 'papi_selesai', 'disc_selesai', 'pauli_selesai',
-        'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
-        'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
-        'hasil_papi', 'hasil_disc', 'hasil_pauli', 'hasil_ist',
-        'pauli_matrix', 'pauli_line', 'altrak_fase_aktif'
-    ];
-    keysToClear.forEach(k => localStorage.removeItem(k));
-    try { sessionStorage.removeItem('altrak_fase_aktif'); } catch (e) {}
-
-    // Reset visual kartu dashboard ke kondisi awal (Tes 1 aktif, 2-4 terkunci, 0/4)
-    if (typeof resetDashboardState === 'function') {
-        resetDashboardState();
-    }
-
-    let idPesertaBaru = null;
-
-    // 2. Jalankan perintah INSERT ke Supabase (tabel kandidat_psikotes)
-    try {
-        if (supabase && typeof supabase.from === 'function') {
-            // Cek apakah kandidat dengan No WA, Email, atau Nama ini sudah terdaftar sebelumnya
-            let existingId = null;
-            try {
-                // 1. Cek berdasarkan Email
-                if (cleanEmail && !cleanEmail.includes('altrak1978.co.id')) {
-                    const { data: byEmail } = await supabase.from('kandidat_psikotes').select('id').eq('email', cleanEmail).limit(1);
-                    if (byEmail && byEmail.length > 0 && byEmail[0].id) {
-                        existingId = byEmail[0].id;
-                    }
-                }
-                // 2. Cek berdasarkan No WA (uji format 08xxx dan 628xxx)
-                if (!existingId && cleanPhone && cleanPhone.length >= 6) {
-                    const waVars = [cleanPhone];
-                    if (cleanPhone.startsWith('0')) {
-                        waVars.push('62' + cleanPhone.slice(1));
-                    } else if (cleanPhone.startsWith('62')) {
-                        waVars.push('0' + cleanPhone.slice(2));
-                    }
-                    for (const w of waVars) {
-                        const { data: byWa } = await supabase.from('kandidat_psikotes').select('id').eq('no_wa', w).limit(1);
-                        if (byWa && byWa.length > 0 && byWa[0].id) {
-                            existingId = byWa[0].id;
-                            break;
-                        }
-                    }
-                }
-                // 3. Cek berdasarkan Nama Lengkap
-                if (!existingId && cleanName && cleanName.length >= 3) {
-                    const { data: byName } = await supabase.from('kandidat_psikotes').select('id').eq('nama_lengkap', cleanName).limit(1);
-                    if (byName && byName.length > 0 && byName[0].id) {
-                        existingId = byName[0].id;
-                    }
-                }
-            } catch (errCheck) {}
-
-            if (existingId) {
-                idPesertaBaru = existingId;
-                console.log('[Supabase SPA] Melanjutkan sesi kandidat terdaftar. ID:', idPesertaBaru);
-
-                try {
-                    await supabase.from('kandidat_psikotes').update({
-                        nama_lengkap: cleanName,
-                        email: cleanEmail,
-                        no_wa: cleanPhone,
-                        posisi_dilamar: cleanPosisi,
-                        posisi: cleanPosisi,
-                        domisili: cleanDomisili,
-                        penempatan: cleanPenempatan,
-                        token: cleanToken
-                    }).eq('id', idPesertaBaru);
-                } catch (eUpdate) {}
-            } else {
-                const { data, error } = await supabase
-                    .from('kandidat_psikotes')
-                    .insert([
-                        {
-                            nama_lengkap: cleanName,
-                            email: cleanEmail,
-                            no_wa: cleanPhone,
-                            posisi_dilamar: cleanPosisi,
-                            posisi: cleanPosisi,
-                            domisili: cleanDomisili,
-                            penempatan: cleanPenempatan,
-                            token: cleanToken
-                        }
-                    ])
-                    .select();
-
-                if (!error && data && data.length > 0 && data[0].id) {
-                    idPesertaBaru = data[0].id;
-                    console.log('[Supabase SPA] Data kandidat baru berhasil didaftarkan ke Supabase. ID:', idPesertaBaru);
-                } else if (error) {
-                    console.warn('[Supabase SPA] Respon server (aman tersimpan di cadangan lokal):', error.message || error);
-                }
-            }
-        }
-    } catch (err) {
-        console.warn('[Supabase SPA] Peringatan jaringan Supabase:', err);
-    }
-
-    // 3. Ambil ID peserta dari Supabase, jika belum ada buat UUID cadangan aman
-    if (!idPesertaBaru) {
-        idPesertaBaru = (typeof crypto !== 'undefined' && crypto.randomUUID)
-            ? crypto.randomUUID()
-            : 'kandidat-' + Date.now();
-    }
-
-    // Simpan ID dan data peserta ke localStorage
-    localStorage.setItem('id_peserta', String(idPesertaBaru));
-    localStorage.setItem('nama_peserta', cleanName);
-    localStorage.setItem('email_peserta', cleanEmail);
-    localStorage.setItem('phone_peserta', cleanPhone);
-
-    const savedPosisiProfile = localStorage.getItem('posisi_peserta') || 'Peserta Seleksi';
-    const savedDomisiliProfile = localStorage.getItem('domisili_peserta') || '-';
-    const savedPenempatanProfile = localStorage.getItem('penempatan_peserta') || '-';
-    const savedTokenProfile = localStorage.getItem('token_peserta') || '-';
-
-    const profilLengkap = {
-        name: cleanName,
-        id: idPesertaBaru,
-        email: cleanEmail,
-        phone: cleanPhone,
-        position: savedPosisiProfile,
-        posisi: savedPosisiProfile,
-        domisili: savedDomisiliProfile,
-        penempatan: savedPenempatanProfile,
-        token: savedTokenProfile
-    };
-    localStorage.setItem('altrak_candidate_profile', JSON.stringify(profilLengkap));
-
-    // Perbarui badge identitas pada navbar
-    const navName = document.getElementById('nav-user-name');
-    if (navName) navName.textContent = cleanName.split(' ')[0];
-    const navInfo = document.getElementById('nav-user-info');
-    if (navInfo) navInfo.classList.remove('hide-section');
-
-    // 4. Validasi Akses Kamera: Pastikan kamera aktif sebelum masuk ke dashboard (tanpa jepret foto saat login)
-    const streamAktif = (typeof cameraStream !== 'undefined' && cameraStream && cameraStream.active) ||
-                        (typeof window.cameraStream !== 'undefined' && window.cameraStream && window.cameraStream.active);
-    if (!streamAktif) {
-        if (typeof tampilkanModalKamera === 'function') {
-            tampilkanModalKamera("Akses kamera wajib diizinkan untuk memulai rangkaian tes asesmen PT Altrak 1978.");
-        }
-        if (btnSubmit) btnSubmit.disabled = false;
-        if (btnText) btnText.textContent = "Mulai Tes";
-        if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right-long";
-        return;
-    }
-
-    // Kembalikan tampilan tombol
-    if (btnSubmit) btnSubmit.disabled = false;
-    if (btnText) btnText.textContent = "Mulai Tes";
-    if (btnIcon) btnIcon.className = "fa-solid fa-arrow-right-long";
-
-    // 5. Jalankan pindahFase('view-dashboard')
-    pindahFase('view-dashboard');
+if (typeof window !== 'undefined') {
+    window.handleLoginSPA = handleLoginSPA;
 }
 
 // Inisialisasi awal saat dokumen siap: pulihkan fase aktif (Auto-Restore) atau buka view-login
@@ -496,9 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 2. Jika seluruh rangkaian tes sudah selesai: Kunci permanen di view-selesai
-    if (savedId && savedName && (isPauliSelesai || activeFase === 'view-selesai')) {
-        console.log('[SPA Router] Seluruh rangkaian asesmen telah selesai. Menampilkan halaman selesai.');
+    const isTahap2Aktif = localStorage.getItem('altrak_tahap2_aktif') === 'true';
+    const isFaseTahap2 = activeFase && (activeFase.includes('tahap2') || activeFase.includes('msdt') || activeFase.includes('epps') || activeFase.includes('cfit') || activeFase.includes('mbti'));
+
+    // 2. Jika seluruh rangkaian tes reguler sudah selesai dan bukan sesi aktif Tahap 2: Kunci di view-selesai
+    if (savedId && savedName && (isPauliSelesai || activeFase === 'view-selesai') && (!isTahap2Aktif || !isFaseTahap2)) {
+        console.log('[SPA Router] Seluruh rangkaian asesmen tahap 1 telah selesai. Menampilkan halaman selesai.');
         pindahFase('view-selesai');
         setTimeout(() => {
             if (typeof tampilkanHalamanSelesai === 'function') {
@@ -546,13 +265,43 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (activeFase === 'view-pauli-tutorial') {
                 pindahFase('view-pauli-tutorial');
             }
-            // Dashboard Asesmen
+            // Dashboard Asesmen Reguler
             else if (activeFase === 'view-dashboard') {
                 if (typeof terapkanPenguncianDashboard === 'function') {
                     terapkanPenguncianDashboard();
                 }
                 if (typeof updateDashboardProgress === 'function') {
                     updateDashboardProgress();
+                }
+            }
+            // Dashboard Asesmen Kepemimpinan Tahap 2
+            else if (activeFase === 'view-dashboard-tahap2') {
+                if (typeof bukaDashboardTahap2 === 'function') {
+                    bukaDashboardTahap2();
+                }
+            }
+            // Modul Tahap 2: MSDT
+            else if (activeFase === 'view-msdt') {
+                if (typeof startMsdtTest === 'function') {
+                    startMsdtTest();
+                }
+            }
+            // Modul Tahap 2: EPPS
+            else if (activeFase === 'view-epps') {
+                if (typeof startEppsTest === 'function') {
+                    startEppsTest();
+                }
+            }
+            // Modul Tahap 2: CFIT
+            else if (activeFase === 'view-cfit') {
+                if (typeof startCfitTest === 'function') {
+                    startCfitTest();
+                }
+            }
+            // Modul Tahap 2: MBTI
+            else if (activeFase === 'view-mbti') {
+                if (typeof startMbtiTest === 'function') {
+                    startMbtiTest();
                 }
             }
         }, 150);

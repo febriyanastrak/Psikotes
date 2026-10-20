@@ -55,14 +55,20 @@
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <h2 class="text-2xl font-black text-white mb-1">Otorisasi Tim HRD</h2>
-                <p class="text-xs text-slate-300 mb-6">Masukkan kata sandi akun HRD untuk membuka akses rekapitulasi data dan grafik kandidat.</p>
+                <p class="text-xs text-slate-300 mb-6">Masukkan kata sandi akun HRD untuk membuka akses rekapitulasi data dan analitik kandidat.</p>
 
                 <form onsubmit="handleDirectHrdLogin(event)" class="space-y-4 text-left">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Kata Sandi</label>
-                        <input type="password" id="inputHrdDirectPin" required
-                            class="w-full font-medium text-sm px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-altrak-yellow focus:outline-none transition"
-                            placeholder="Masukkan sandi HRD">
+                        <div class="relative">
+                            <input type="password" id="inputHrdDirectPin" required autocomplete="current-password"
+                                class="w-full font-medium text-sm px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-altrak-yellow focus:outline-none transition pr-10"
+                                placeholder="Masukkan kata sandi">
+                            <button type="button" onclick="toggleHrdPasswordVisibility()" title="Lihat kata sandi"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition cursor-pointer p-1">
+                                <i id="hrdPasswordToggleIcon" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit"
                         class="w-full mt-2 bg-altrak-yellow hover:bg-yellow-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
@@ -136,6 +142,16 @@
                                 <i class="fa-solid fa-copy text-amber-400"></i>
                                 <span>Salin Yang Tersedia</span>
                             </button>
+                            <button onclick="handleBersihkanTokenTerpakai()"
+                                class="bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl transition border border-slate-700 flex items-center gap-1.5 cursor-pointer" title="Bersihkan token yang statusnya sudah terpakai">
+                                <i class="fa-solid fa-broom"></i>
+                                <span>Bersihkan Terpakai</span>
+                            </button>
+                            <button onclick="handleHapusSemuaToken()"
+                                class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 font-bold text-xs px-3 py-2.5 rounded-xl transition border border-rose-800/40 flex items-center gap-1.5 cursor-pointer" title="Hapus semua token">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Hapus Semua</span>
+                            </button>
                             <button onclick="loadHrdTokens()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1 cursor-pointer" title="Perbarui Token">
                                 <i class="fa-solid fa-rotate"></i>
@@ -208,7 +224,7 @@
     <!-- MODAL GRAFIK ANALISIS PAULI -->
     <div id="modal-hrd-chart"
         class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-sm overflow-y-auto custom-scrollbar">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full relative text-slate-800 font-sans mx-auto my-auto overflow-hidden flex flex-col max-h-[95vh]">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full relative text-slate-800 font-sans mx-auto my-auto overflow-hidden flex flex-col max-h-[95vh]">
             <div class="bg-slate-50 border-b border-slate-200 px-6 py-5 flex justify-between items-center sticky top-0 z-10">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-600 p-2.5 rounded-lg text-white">
@@ -226,51 +242,78 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar">
-                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="space-y-1">
+                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
+                    <div class="space-y-1 lg:col-span-3">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Nama Lengkap</p>
-                        <p class="text-lg font-bold text-slate-800 capitalize" id="rptName">-</p>
+                        <p class="text-base sm:text-lg font-bold text-slate-800 capitalize truncate" id="rptName">-</p>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 lg:col-span-2">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kontak (WhatsApp)</p>
-                        <p class="text-base font-semibold text-slate-700" id="rptWa">-</p>
+                        <p class="text-sm sm:text-base font-semibold text-slate-700" id="rptWa">-</p>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 lg:col-span-4">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Posisi &amp; Lokasi</p>
-                        <p class="text-xs font-bold text-[#003865] leading-snug" id="rptPosisi">-</p>
+                        <div class="text-xs font-bold text-[#003865] leading-snug" id="rptPosisi">-</div>
                     </div>
-                    <div class="space-y-1">
+                    <div class="space-y-1 lg:col-span-3">
                         <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tanggal Penyelesaian</p>
-                        <p class="text-base font-semibold text-slate-700" id="rptDate">-</p>
+                        <div class="text-sm sm:text-base font-semibold text-slate-700 flex flex-wrap items-center gap-1.5" id="rptDate">-</div>
                     </div>
                 </div>
 
                 <!-- BARIS TAB NAVIGASI 4 TES + DOKUMENTASI FOTO -->
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 mb-6 no-print">
-                    <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 mb-6 no-print overflow-hidden">
+                    <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 custom-scrollbar min-w-0 flex-1">
+                        <!-- KELOMPOK 1: TAHAP 1 (UMUM) -->
                         <button type="button" id="tabBtnIst" onclick="switchHrdTab('ist')"
-                            class="hrd-tab-btn active px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#003865] text-white shadow-sm">
-                            <i class="fa-solid fa-brain"></i> <span>Hasil IST (IQ & 9 Subtes)</span>
+                            class="hrd-tab-btn active px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#003865] text-white shadow-sm shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-brain"></i> <span>Hasil IST</span>
                         </button>
                         <button type="button" id="tabBtnPapi" onclick="switchHrdTab('papi')"
-                            class="hrd-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200">
-                            <i class="fa-solid fa-compass"></i> <span>Hasil PAPI Kostick</span>
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-compass"></i> <span>Hasil PAPI</span>
                         </button>
                         <button type="button" id="tabBtnDisc" onclick="switchHrdTab('disc')"
-                            class="hrd-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
                             <i class="fa-solid fa-chart-pie"></i> <span>Hasil DISC</span>
                         </button>
                         <button type="button" id="tabBtnPauli" onclick="switchHrdTab('pauli')"
-                            class="hrd-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
                             <i class="fa-solid fa-chart-line"></i> <span>Hasil Pauli</span>
                         </button>
+
+                        <!-- PEMISAH ANTARA TAHAP 1 & TAHAP 2 -->
+                        <div id="dividerTahap2" class="h-5 w-[1px] bg-slate-300 mx-0.5 shrink-0" style="display: none;"></div>
+
+                        <!-- KELOMPOK 2: TAHAP 2 (MANAJERIAL) -->
+                        <button type="button" id="tabBtnMsdt" onclick="switchHrdTab('msdt')" style="display: none;"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-user-tie text-blue-600"></i> <span>Hasil MSDT</span>
+                        </button>
+                        <button type="button" id="tabBtnEpps" onclick="switchHrdTab('epps')" style="display: none;"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-layer-group text-emerald-600"></i> <span>Hasil EPPS</span>
+                        </button>
+                        <button type="button" id="tabBtnCfit" onclick="switchHrdTab('cfit')" style="display: none;"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-shapes text-amber-600"></i> <span>Hasil CFIT</span>
+                        </button>
+                        <button type="button" id="tabBtnMbti" onclick="switchHrdTab('mbti')" style="display: none;"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-compass text-indigo-600"></i> <span>Hasil MBTI</span>
+                        </button>
+
+                        <!-- PEMISAH SEBELUM DOKUMENTASI FOTO -->
+                        <div class="h-5 w-[1px] bg-slate-300 mx-0.5 shrink-0"></div>
+
+                        <!-- KELOMPOK 3: LAMPIRAN AUDIT & DOKUMENTASI FOTO -->
                         <button type="button" id="tabBtnFoto" onclick="switchHrdTab('foto')"
-                            class="hrd-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-amber-500/10 text-amber-800 border border-amber-500/30 hover:bg-amber-500/20">
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-amber-500/10 text-amber-800 border border-amber-500/30 hover:bg-amber-500/20 shrink-0 whitespace-nowrap">
                             <i class="fa-solid fa-camera"></i> <span>Dokumentasi Foto</span>
                         </button>
                     </div>
                     <button type="button" onclick="window.print()"
-                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white shadow-sm">
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white shadow-sm shrink-0 whitespace-nowrap">
                         <i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>
                     </button>
                 </div>
@@ -395,50 +438,118 @@
 
                 <!-- 1. PANEL TAB IST (INTELLIGENCE STRUCTURE TEST) -->
                 <div id="panelTabIst" class="space-y-6">
+
+                    <!-- METRIK ATAS (SKOR IQ EDITABLE, TOTAL JAWABAN BENAR, & SUBTES SELESAI) -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Kartu 1: Total Skor IQ (Dapat Diketik/Diedit Manual oleh HRD) -->
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-center">
-                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Total Skor IQ</p>
-                            <p class="text-3xl font-black text-[#003865]" id="istRptIq">-</p>
-                            <span id="istRptKategori" class="inline-block text-xs font-bold px-3 py-1 rounded-full border mt-2 text-blue-700 bg-blue-50 border-blue-200">-</span>
+                            <div class="flex items-center justify-center gap-1.5 mb-1">
+                                <p class="text-[11px] uppercase font-bold text-slate-400 tracking-wider">TOTAL SKOR IQ</p>  
+                            </div>
+                            <div class="flex justify-center items-center my-1">
+                                <input type="number" id="inputIstSkorIq" min="40" max="200"
+                                    oninput="handleIstIqInputChange(this.value)"
+                                    class="text-3xl font-black text-[#003865] text-center w-28 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-300 focus:border-blue-500 rounded-xl py-0.5 outline-none transition shadow-inner"
+                                    placeholder="-" value="" />
+                                <span id="istRptIq" class="hidden">-</span>
+                            </div>
+                            <span id="istRptKategori" class="inline-block text-xs font-bold px-3 py-1 rounded-full border mt-1 text-blue-700 bg-blue-50 border-blue-200">
+                                -
+                            </span>
                         </div>
+
+                        <!-- Kartu 2: Total Jawaban Benar (Otomatis Terakumulasi dari Lembar Koreksi) -->
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-center">
-                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Total Jawaban Benar</p>
-                            <p class="text-3xl font-black text-emerald-600" id="istRptTotalBenar">-</p>
-                            <p class="text-xs text-slate-500 mt-2 font-medium">Dari butir soal yang terjawab</p>
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">TOTAL JAWABAN BENAR</p>
+                            <p class="text-3xl font-black text-emerald-600" id="istRptTotalBenar">0</p>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">Dari soal yang terjawab</p>
                         </div>
+
+                        <!-- Kartu 3: Status Subtes Selesai -->
                         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-center">
-                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Subtes Selesai</p>
-                            <p class="text-3xl font-black text-amber-600" id="istRptSubtesSelesai">-</p>
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">SUBTES SELESAI</p>
+                            <p class="text-3xl font-black text-amber-600" id="istRptSubtesSelesai">9 / 9</p>
                             <p class="text-xs text-slate-500 mt-2 font-medium">Dari 9 Subtes Terjadwal</p>
                         </div>
                     </div>
 
-                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex justify-between items-center">
-                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-table-list text-[#003865]"></i> Rincian 9 Subtes IST (Skor & Kemampuan)
-                            </h3>
-                            <span class="text-[11px] text-slate-400 font-medium">Evaluasi Lengkap Nilai & Persentase</span>
+                    <!-- PROFIL KECERDASAN IST: GRAFIK KURVA (KIRI) & TABEL ASPEK RW / SW (KANAN) -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-line text-red-600"></i> Profil Kecerdasan IST (Grafik Reaktif SW)
+                                </h3>
+                                <p class="text-xs text-slate-500">Ketik nilai pada kolom SW tabel di sebelah kanan untuk memperbarui kurva grafik secara real-time</p>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                Standar Rentang SW: 60 – 130
+                            </span>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
-                                <thead class="bg-slate-100 text-xs font-bold text-slate-600 border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-3 px-4">Subtes</th>
-                                        <th class="py-3 px-4">Kemampuan Diuji</th>
-                                        <th class="py-3 px-4 text-center">Benar</th>
-                                        <th class="py-3 px-4 text-center">Salah</th>
-                                        <th class="py-3 px-4 text-center">Kosong</th>
-                                        <th class="py-3 px-4 text-center">Skor (RW)</th>
-                                        <th class="py-3 px-4 text-center">Persentase (%)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="istSubtesTableBody" class="divide-y divide-slate-100">
-                                    <tr><td colspan="7" class="text-center p-6 text-slate-400">Data hasil tes IST belum tersedia untuk peserta ini.</td></tr>
-                                </tbody>
-                            </table>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                            <!-- Sisi Kiri: Canvas Grafik Kurva Profil IST (Chart.js) -->
+                            <div class="lg:col-span-7 w-full h-[330px] relative bg-slate-50/50 rounded-xl p-3 border border-slate-200 flex items-center justify-center">
+                                <canvas id="istProfileChart"></canvas>
+                            </div>
+
+                            <!-- Sisi Kanan: Tabel Profil Aspek (RW Terhitung & SW Editable) Sesuai Standar IST -->
+                            <div class="lg:col-span-5 overflow-x-auto">
+                                <table class="w-full text-center text-xs border-collapse border border-slate-300">
+                                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px]">
+                                        <tr class="border-b border-slate-300">
+                                            <th class="p-2 border-r border-slate-300 w-16">ASPEK</th>
+                                            <th class="p-2 border-r border-slate-300 w-16">RW</th>
+                                            <th class="p-2 border-r border-slate-300 w-24">SW</th>
+                                            <th class="p-2 bg-slate-200/60 w-16">KATEGORI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="istAspekTableBody" class="divide-y divide-slate-200 text-slate-800 font-medium">
+                                        <!-- Dimuat otomatis via JavaScript (SE s/d ME) -->
+                                    </tbody>
+                                    <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-400">
+                                        <tr>
+                                            <td class="p-2 border-r border-slate-300 font-black">Σ</td>
+                                            <td class="p-2 border-r border-slate-300 text-emerald-700 font-black" id="istAspekTotalRw">0</td>
+                                            <td class="p-2 border-r border-slate-300 text-blue-700 font-black" id="istAspekRataSw">0</td>
+                                            <td class="p-2 text-slate-500 font-semibold" id="istAspekKategoriRata">MR</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- LEMBAR RINCIAN KOREKSI 9 SUBTES IST (GRID 9 TABEL SESUAI FORM PENILAIAN IST) -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-[#003865]"></i> Lembar Koreksi Subtes IST (Subtes 01 sampai 09)
+                                </h3>
+                                <p class="text-xs text-slate-500">Skor dapat diedit langsung: Subtes Pilihan Ganda (0 / 1), Subtes Esai GE (0 / 1 / 2). Perubahan langsung memperbarui RS/RW & Total Jawaban Benar.</p>
+                            </div>
+                            <div class="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                Total 176 Soal
+                            </div>
+                        </div>
+
+                        <!-- Wadah Grid 9 Subtes Kolom Berdampingan (SE, WA, AN, GE, RA, ZR, FA, WU, ME) -->
+                        <div id="istCorrectionSheetsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                            <!-- Dimuat dinamis via JavaScript -->
+                        </div>
+
+                        <!-- Tombol Aksi Simpan Koreksi HRD -->
+                        <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <span id="istSaveStatusText" class="text-xs text-slate-500 font-medium"></span>
+                            <button type="button" id="btnSimpanKoreksiIst" onclick="simpanKoreksiIstKeSupabase()"
+                                class="w-full sm:w-auto bg-[#003865] hover:bg-[#0a4980] text-white font-extrabold px-6 py-2.5 rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-floppy-disk text-amber-400"></i>
+                                <span>Simpan Koreksi HRD</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- 3. PANEL TAB PAPI KOSTICK -->
@@ -692,6 +803,966 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- PANEL TAB MSDT -->
+                <div id="panelTabMsdt" class="hidden space-y-6">
+                    <!-- KARTU EVALUASI WAKTU & STATUS OVERTIME (30 MENIT SILENT TIMER) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#003865] flex items-center justify-center text-lg font-bold border border-blue-200">
+                                    <i class="fa-solid fa-stopwatch"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-slate-800">Evaluasi Waktu Pengerjaan MSDT</h4>
+                                    <p class="text-xs text-slate-500">Standar Alokasi Waktu: 30 Menit (1.800 Detik) &bull; Dihitung Senyap di Background</p>
+                                </div>
+                            </div>
+                            <div id="msdtRptBadgeWaktu">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                    Menunggu Data
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Total Durasi Pengerjaan</p>
+                                <p class="text-xl font-black text-[#003865] mt-0.5" id="msdtRptDurasi">-</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="msdtRptWaktuMulaiSelesai">-</p>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Batas Waktu Standar</p>
+                                <p class="text-xl font-black text-blue-700 mt-0.5">30 Menit 00 Detik</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">1.800 Detik Pengerjaan</p>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Penyimpangan Waktu (Overtime)</p>
+                                <p class="text-xl font-black text-slate-700 mt-0.5" id="msdtRptOvertime">-</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="msdtRptKetWaktu">Pengerjaan tepat waktu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KARTU GAYA KEPEMIMPINAN DOMINAN REDDIN 3-D MODEL -->
+                    <div class="bg-gradient-to-r from-[#003865] via-[#084577] to-[#0a4980] rounded-2xl p-6 text-white shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="space-y-1.5">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-widest">
+                                <i class="fa-solid fa-crown text-amber-400"></i> Reddin 3-D Leadership Model
+                            </div>
+                            <h3 class="text-xl sm:text-2xl font-black text-white" id="msdtRptGayaNama">-</h3>
+                            <p class="text-xs text-slate-200 max-w-xl leading-relaxed" id="msdtRptGayaDeskripsi">-</p>
+                        </div>
+                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/20 text-center flex-shrink-0">
+                            <span class="text-[10px] uppercase font-bold text-slate-300 block">Kategori Efektivitas</span>
+                            <span class="text-sm font-black text-amber-300" id="msdtRptTipe">-</span>
+                        </div>
+                    </div>
+
+                    <!-- METRIK 3 DIMENSI KEPEMIMPINAN (TO, RO, E) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Task Orientation (TO)</p>
+                            <p class="text-3xl font-black text-[#003865]" id="msdtRptTO">-</p>
+                            <p class="text-xs font-bold text-slate-600 mt-1" id="msdtRptRawTO">Raw Score: -</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Orientasi Target &amp; Tugas Kerja</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Relationships Orientation (RO)</p>
+                            <p class="text-3xl font-black text-blue-600" id="msdtRptRO">-</p>
+                            <p class="text-xs font-bold text-slate-600 mt-1" id="msdtRptRawRO">Raw Score: -</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Orientasi Relasi &amp; Komunikasi Tim</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Effectiveness (E)</p>
+                            <p class="text-3xl font-black text-emerald-600" id="msdtRptE">-</p>
+                            <p class="text-xs font-bold text-slate-600 mt-1" id="msdtRptRawE">Raw Score: -</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Tingkat Efektivitas Manajerial</p>
+                        </div>
+                    </div>
+
+                    <!-- KARTU 1: LEMBAR JAWABAN MSDT (PERSIS FOTO 1 - BERWARNA) -->
+                    <div class="bg-white border-2 border-slate-300 rounded-2xl p-6 shadow-sm space-y-6">
+                        <div class="text-center pb-3 border-b-2 border-slate-700">
+                            <p class="text-xs font-black uppercase tracking-widest text-slate-500">Lembar Jawaban</p>
+                            <h3 class="text-2xl font-black text-slate-900 tracking-wider">MSDT</h3>
+                        </div>
+
+                        <!-- TABEL MATRIKS 8 KOLOM x 8 BARIS (64 SOAL) -->
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-center border-collapse border-2 border-slate-700 text-xs font-bold">
+                                <thead>
+                                    <tr class="bg-slate-100 divide-x border-b-2 border-slate-700 text-slate-600">
+                                        <th class="py-1 px-1.5 w-10 border-r-2 border-slate-700 bg-slate-200">#</th>
+                                        <th class="py-1 px-1">1</th>
+                                        <th class="py-1 px-1">2</th>
+                                        <th class="py-1 px-1">3</th>
+                                        <th class="py-1 px-1">4</th>
+                                        <th class="py-1 px-1">5</th>
+                                        <th class="py-1 px-1">6</th>
+                                        <th class="py-1 px-1">7</th>
+                                        <th class="py-1 px-1">8</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="msdtMatrixTableBody" class="divide-y divide-slate-300 bg-white">
+                                    <!-- Diisi secara dinamis via JavaScript: 8 baris x 8 kolom soal -->
+                                </tbody>
+                                <tfoot class="border-t-2 border-slate-700">
+                                    <!-- Baris Hitungan A -->
+                                    <tr class="bg-blue-50/70 border-b border-slate-300 divide-x divide-slate-300 text-blue-900" id="msdtRowA">
+                                        <td class="py-1 px-2 font-black text-center border-r-2 border-slate-700 bg-blue-100 text-blue-950">A</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                    </tr>
+                                    <!-- Baris Hitungan B -->
+                                    <tr class="bg-amber-50/70 border-b border-slate-300 divide-x divide-slate-300 text-amber-900" id="msdtRowB">
+                                        <td class="py-1 px-2 font-black text-center border-r-2 border-slate-700 bg-amber-100 text-amber-950">B</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                        <td class="py-1 px-1 font-bold">-</td>
+                                    </tr>
+                                    <!-- Baris Koreksi -->
+                                    <tr class="bg-purple-50/70 border-b-2 border-slate-700 divide-x divide-slate-300 text-purple-900 font-black">
+                                        <td class="py-1 px-2 font-black text-center border-r-2 border-slate-700 bg-purple-100 text-purple-950 text-[10px]">KOREKSI</td>
+                                        <td class="py-1 px-1 text-purple-700">+1</td>
+                                        <td class="py-1 px-1 text-purple-700">+2</td>
+                                        <td class="py-1 px-1 text-purple-700">+1</td>
+                                        <td class="py-1 px-1 text-purple-700">0</td>
+                                        <td class="py-1 px-1 text-purple-700">+3</td>
+                                        <td class="py-1 px-1 text-purple-700">-1</td>
+                                        <td class="py-1 px-1 text-purple-700">0</td>
+                                        <td class="py-1 px-1 text-purple-700">-4</td>
+                                    </tr>
+                                    <!-- Baris Jumlah -->
+                                    <tr class="bg-emerald-50 divide-x divide-slate-300 text-emerald-950 font-black text-sm" id="msdtRowJumlah">
+                                        <td class="py-1.5 px-2 font-black text-center border-r-2 border-slate-700 bg-emerald-100 text-emerald-950 text-[10px]">JUMLAH</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                        <td class="py-1.5 px-1">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <!-- LABEL DIMENSI (TO, RO, E, O) DI BAWAH KOLOM -->
+                            <div class="grid grid-cols-9 text-center font-black text-xs pt-2 pb-4 text-slate-700">
+                                <div class="col-span-1"></div>
+                                <div class="col-span-2 text-blue-800 bg-blue-100/50 py-1 rounded-l border border-blue-200">TO</div>
+                                <div class="col-span-2 text-indigo-800 bg-indigo-100/50 py-1 border-y border-indigo-200">RO</div>
+                                <div class="col-span-2 text-emerald-800 bg-emerald-100/50 py-1 border-y border-emerald-200">E</div>
+                                <div class="col-span-2 text-slate-800 bg-slate-100 py-1 rounded-r border border-slate-300">O</div>
+                            </div>
+                        </div>
+
+                        <!-- TABEL SKORING GAYA & DISTRIBUSI DIMENSI TO, RO, E, O (PERSIS GAMBAR) -->
+                        <div class="pt-2 border-t border-slate-200">
+                            <div class="mb-2">
+                                <h4 class="font-black text-slate-800 text-sm inline-block border-b-2 border-[#38bdf8] pb-0.5">
+                                    Skoring
+                                </h4>
+                            </div>
+
+                            <div class="overflow-x-auto custom-scrollbar">
+                                <table class="w-full max-w-xl border-collapse text-xs select-none">
+                                    <!-- BARIS 1: DS ...... A -->
+                                    <tr class="bg-[#f0f9ff] h-8 border-b border-white">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left w-28">DS ...... A</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left w-14" id="msdtValGaya_Ds">= -</td>
+                                        <td class="w-16 p-0"></td>
+                                        <td class="w-16 p-0"></td>
+                                        <td class="w-16 p-0"></td>
+                                        <td class="w-16 p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Ds_O">-</td>
+                                    </tr>
+
+                                    <!-- BARIS 2: Mi ...... B -->
+                                    <tr class="bg-white h-8 border-b border-slate-50">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Mi ...... B</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Mi">= -</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Mi_RO">-</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 3: Au ...... C -->
+                                    <tr class="bg-[#f0f9ff] h-8 border-b border-white">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Au ...... C</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Au">= -</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Au_TO">-</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 4: Co ...... D -->
+                                    <tr class="bg-white h-8 border-b border-slate-50">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Co ...... D</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Co">= -</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Co_TO">-</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Co_RO">-</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 5: Bu ...... E -->
+                                    <tr class="bg-[#f0f9ff] h-8 border-b border-white">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Bu ...... E</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Bu">= -</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Bu_E">-</td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 6: Dv ...... F -->
+                                    <tr class="bg-white h-8 border-b border-slate-50">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Dv ...... F</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Dv">= -</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Dv_RO">-</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Dv_E">-</td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 7: Ba ...... G -->
+                                    <tr class="bg-[#f0f9ff] h-8 border-b border-white">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">Ba ...... G</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_Ba">= -</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Ba_TO">-</td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_Ba_E">-</td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS 8: E ...... H -->
+                                    <tr class="bg-white h-8">
+                                        <td class="px-3 py-1 font-mono text-slate-800 font-bold text-left">E  ...... H</td>
+                                        <td class="px-2 py-1 text-slate-800 font-bold text-left" id="msdtValGaya_E">= -</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_E_TO">-</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_E_RO">-</td>
+                                        <td class="p-0 bg-[#38bdf8] text-white font-black text-center text-sm shadow-xs" id="msdtBlock_E_E">-</td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- BARIS TOTAL PERSIS SEPERTI GAMBAR (GARIS CYAN ATAS) -->
+                                    <tr class="bg-[#dce9f0] border-t-4 border-[#38bdf8] h-9">
+                                        <td colspan="2" class="px-3 py-1 text-left font-black tracking-wider text-slate-600 uppercase text-[10px]">TOTAL</td>
+                                        <td class="text-center font-black text-base text-slate-900" id="msdtSumCol_TO">-</td>
+                                        <td class="text-center font-black text-base text-slate-900" id="msdtSumCol_RO">-</td>
+                                        <td class="text-center font-black text-base text-slate-900" id="msdtSumCol_E">-</td>
+                                        <td class="text-center font-black text-base text-slate-900" id="msdtSumCol_O">-</td>
+                                    </tr>
+
+                                    <!-- LABEL KOLOM DI BAWAH ANGKA TOTAL (TO, RO, E, O) -->
+                                    <tr class="text-slate-800 font-black text-xs h-7">
+                                        <td colspan="2"></td>
+                                        <td class="text-center">TO</td>
+                                        <td class="text-center">RO</td>
+                                        <td class="text-center">E</td>
+                                        <td class="text-center">O</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KARTU 2: TABEL NORMA & POHON KEPUTUSAN REDDIN (PERSIS FOTO 2 - BERWARNA) -->
+                    <div class="bg-white border-2 border-slate-300 rounded-2xl p-6 shadow-sm space-y-6">
+                        <div>
+                            <h4 class="text-xs uppercase tracking-widest font-black text-slate-400 mb-1">Pedoman Skoring &amp; Evaluasi</h4>
+                            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-sitemap text-[#003865]"></i> Tabel Norma Skor &amp; Pohon Keputusan Reddin 3-D
+                            </h3>
+                        </div>
+
+                        <!-- 1. TABEL NORMA SKOR (RAW KE INDEKS - PERSIS FOTO 2) -->
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-center border-collapse border-2 border-slate-600 text-xs sm:text-sm font-bold bg-white">
+                                <thead>
+                                    <tr class="divide-x-2 divide-slate-600 border-b-2 border-slate-600 bg-slate-100 text-slate-700">
+                                        <th class="py-2 px-2" id="normaHead_0">0 - 29</th>
+                                        <th class="py-2 px-2" id="normaHead_1">30 - 31</th>
+                                        <th class="py-2 px-2" id="normaHead_2">32</th>
+                                        <th class="py-2 px-2" id="normaHead_3">33</th>
+                                        <th class="py-2 px-2" id="normaHead_4">34</th>
+                                        <th class="py-2 px-2" id="normaHead_5">35</th>
+                                        <th class="py-2 px-2" id="normaHead_6">36 - 37</th>
+                                        <th class="py-2 px-2" id="normaHead_7">&gt;= 38</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="divide-x-2 divide-slate-600 font-black text-slate-800 text-sm sm:text-base">
+                                        <td class="py-2.5 px-2" id="normaCol_0">0</td>
+                                        <td class="py-2.5 px-2" id="normaCol_1">0.6</td>
+                                        <td class="py-2.5 px-2" id="normaCol_2">1.2</td>
+                                        <td class="py-2.5 px-2" id="normaCol_3">1.8</td>
+                                        <td class="py-2.5 px-2" id="normaCol_4">2.4</td>
+                                        <td class="py-2.5 px-2" id="normaCol_5">3.0</td>
+                                        <td class="py-2.5 px-2" id="normaCol_6">3.6</td>
+                                        <td class="py-2.5 px-2" id="normaCol_7">4.0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 2. DIAGRAM POHON KEPUTUSAN (DECISION TREE SVG - PERSIS FOTO 2 BERWARNA) -->
+                        <div class="overflow-x-auto custom-scrollbar p-2 bg-slate-50/50 rounded-xl border border-slate-200">
+                            <svg id="msdtDecisionTreeSvg" viewBox="0 0 740 400" class="w-full min-w-[680px] h-auto font-sans">
+
+                                <!-- CABANG 1: TO DI ATAS 2 -->
+                                <g id="dt_path_to_high" stroke="#334155" stroke-width="2" fill="none">
+                                    <text x="15" y="94" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">To di atas 2</text>
+                                    <line x1="95" y1="90" x2="170" y2="90" id="dt_line_to_high"/>
+                                    <line x1="170" y1="50" x2="170" y2="130" id="dt_split_to_high"/>
+                                </g>
+
+                                <!-- CABANG 1.1: TO ATAS -> RO ATAS -->
+                                <g id="dt_path_to_high_ro_high" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="170" y1="50" x2="210" y2="50" id="dt_line_th_rh"/>
+                                    <text x="215" y="54" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">Ro di atas 2</text>
+                                    <line x1="298" y1="50" x2="360" y2="50" id="dt_line_th_rh_split"/>
+                                    <line x1="360" y1="26" x2="360" y2="74" id="dt_split_th_rh"/>
+                                </g>
+
+                                <!-- LEAF 1.1.1: EXECUTIVE -->
+                                <g id="dt_leaf_executive" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="26" x2="400" y2="26" id="dt_line_exec_1"/>
+                                    <text x="405" y="30" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_exec_e">E di atas 2</text>
+                                    <line x1="475" y1="26" x2="540" y2="26" id="dt_line_exec_2"/>
+                                    <rect x="545" y="12" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_executive"/>
+                                    <text x="552" y="30" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_executive">Executive</text>
+                                </g>
+
+                                <!-- LEAF 1.1.2: COMPROMISER -->
+                                <g id="dt_leaf_compromiser" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="74" x2="400" y2="74" id="dt_line_comp_1"/>
+                                    <text x="405" y="78" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_comp_e">E di bawah 2</text>
+                                    <line x1="485" y1="74" x2="540" y2="74" id="dt_line_comp_2"/>
+                                    <rect x="545" y="60" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_compromiser"/>
+                                    <text x="552" y="78" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_compromiser">Compromiser</text>
+                                </g>
+
+                                <!-- CABANG 1.2: TO ATAS -> RO BAWAH -->
+                                <g id="dt_path_to_high_ro_low" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="170" y1="130" x2="210" y2="130" id="dt_line_th_rl"/>
+                                    <text x="215" y="134" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">Ro di bawah 2</text>
+                                    <line x1="308" y1="130" x2="360" y2="130" id="dt_line_th_rl_split"/>
+                                    <line x1="360" y1="106" x2="360" y2="154" id="dt_split_th_rl"/>
+                                </g>
+
+                                <!-- LEAF 1.2.1: BENEVOLENT AUTOCRAT -->
+                                <g id="dt_leaf_benevolent_autocrat" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="106" x2="400" y2="106" id="dt_line_ba_1"/>
+                                    <text x="405" y="110" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_ba_e">E di atas 2</text>
+                                    <line x1="475" y1="106" x2="540" y2="106" id="dt_line_ba_2"/>
+                                    <rect x="545" y="92" width="160" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_benevolent_autocrat"/>
+                                    <text x="552" y="110" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_benevolent_autocrat">Benevolent Autocrat</text>
+                                </g>
+
+                                <!-- LEAF 1.2.2: AUTOCRAT -->
+                                <g id="dt_leaf_autocrat" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="154" x2="400" y2="154" id="dt_line_auto_1"/>
+                                    <text x="405" y="158" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_auto_e">E di bawah 2</text>
+                                    <line x1="485" y1="154" x2="540" y2="154" id="dt_line_auto_2"/>
+                                    <rect x="545" y="140" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_autocrat"/>
+                                    <text x="552" y="158" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_autocrat">Autocrat</text>
+                                </g>
+
+                                <!-- PEMBATAS TENGAH DENGAN LABEL DIMENSI (PERSIS FOTO 2) -->
+                                <g stroke="#334155" stroke-width="2" fill="none">
+                                    <text x="15" y="205" font-size="14" font-weight="black" fill="#0f172a" stroke="none">TO</text>
+                                    <line x1="45" y1="200" x2="165" y2="200"/>
+                                    <text x="175" y="205" font-size="14" font-weight="black" fill="#0f172a" stroke="none">RO</text>
+                                    <line x1="205" y1="200" x2="350" y2="200"/>
+                                    <text x="360" y="205" font-size="14" font-weight="black" fill="#0f172a" stroke="none">E</text>
+                                </g>
+
+                                <!-- CABANG 2: TO DI BAWAH 2 -->
+                                <g id="dt_path_to_low" stroke="#334155" stroke-width="2" fill="none">
+                                    <text x="15" y="304" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">To di bawah 2</text>
+                                    <line x1="105" y1="300" x2="170" y2="300" id="dt_line_to_low"/>
+                                    <line x1="170" y1="260" x2="170" y2="340" id="dt_split_to_low"/>
+                                </g>
+
+                                <!-- CABANG 2.1: TO BAWAH -> RO ATAS -->
+                                <g id="dt_path_to_low_ro_high" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="170" y1="260" x2="210" y2="260" id="dt_line_tl_rh"/>
+                                    <text x="215" y="264" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">Ro di atas 2</text>
+                                    <line x1="298" y1="260" x2="360" y2="260" id="dt_line_tl_rh_split"/>
+                                    <line x1="360" y1="236" x2="360" y2="284" id="dt_split_tl_rh"/>
+                                </g>
+
+                                <!-- LEAF 2.1.1: DEVELOPER -->
+                                <g id="dt_leaf_developer" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="236" x2="400" y2="236" id="dt_line_dev_1"/>
+                                    <text x="405" y="240" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_dev_e">E di atas 2</text>
+                                    <line x1="475" y1="236" x2="540" y2="236" id="dt_line_dev_2"/>
+                                    <rect x="545" y="222" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_developer"/>
+                                    <text x="552" y="240" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_developer">Developer</text>
+                                </g>
+
+                                <!-- LEAF 2.1.2: MISSIONARY -->
+                                <g id="dt_leaf_missionary" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="284" x2="400" y2="284" id="dt_line_miss_1"/>
+                                    <text x="405" y="288" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_miss_e">E di bawah 2</text>
+                                    <line x1="485" y1="284" x2="540" y2="284" id="dt_line_miss_2"/>
+                                    <rect x="545" y="270" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_missionary"/>
+                                    <text x="552" y="288" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_missionary">Missionary</text>
+                                </g>
+
+                                <!-- CABANG 2.2: TO BAWAH -> RO BAWAH -->
+                                <g id="dt_path_to_low_ro_low" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="170" y1="340" x2="210" y2="340" id="dt_line_tl_rl"/>
+                                    <text x="215" y="344" font-size="13" font-weight="bold" fill="#0f172a" stroke="none">Ro di bawah 2</text>
+                                    <line x1="308" y1="340" x2="360" y2="340" id="dt_line_tl_rl_split"/>
+                                    <line x1="360" y1="316" x2="360" y2="364" id="dt_split_tl_rl"/>
+                                </g>
+
+                                <!-- LEAF 2.2.1: BUREAUCRAT -->
+                                <g id="dt_leaf_bureaucrat" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="316" x2="400" y2="316" id="dt_line_bur_1"/>
+                                    <text x="405" y="320" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_bur_e">E di atas 2</text>
+                                    <line x1="475" y1="316" x2="540" y2="316" id="dt_line_bur_2"/>
+                                    <rect x="545" y="302" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_bureaucrat"/>
+                                    <text x="552" y="320" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_bureaucrat">Bureaucrat</text>
+                                </g>
+
+                                <!-- LEAF 2.2.2: DESERTER -->
+                                <g id="dt_leaf_deserter" stroke="#334155" stroke-width="2" fill="none">
+                                    <line x1="360" y1="364" x2="400" y2="364" id="dt_line_des_1"/>
+                                    <text x="405" y="368" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_des_e">E di bawah 2</text>
+                                    <line x1="485" y1="364" x2="540" y2="364" id="dt_line_des_2"/>
+                                    <rect x="545" y="350" width="130" height="26" rx="6" fill="#f8fafc" stroke="#cbd5e1" id="dt_bg_deserter"/>
+                                    <text x="552" y="368" font-size="13" font-weight="bold" fill="#0f172a" stroke="none" id="dt_txt_deserter">Deserter</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div id="msdtEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
+                        <i class="fa-solid fa-user-tie text-3xl mb-2 text-slate-300"></i>
+                        <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen MSDT Tahap 2.</p>
+                    </div>
+                </div>
+
+                <!-- PANEL TAB EPPS -->
+                <div id="panelTabEpps" class="hidden space-y-6">
+                    <!-- KARTU EVALUASI WAKTU & STATUS OVERTIME (60 MENIT SILENT TIMER) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#003865] flex items-center justify-center text-lg font-bold border border-blue-200">
+                                    <i class="fa-solid fa-stopwatch"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-slate-800">Evaluasi Waktu Pengerjaan EPPS</h4>
+                                    <p class="text-xs text-slate-500">Standar Alokasi Waktu: 60 Menit (3.600 Detik) &bull; Dihitung Senyap di Background</p>
+                                </div>
+                            </div>
+                            <div id="eppsRptBadgeWaktu">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                    Menunggu Data
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Total Durasi Pengerjaan</p>
+                                <p class="text-xl font-black text-[#003865] mt-0.5" id="eppsRptDurasi">-</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="eppsRptWaktuMulaiSelesai">-</p>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Batas Waktu Standar</p>
+                                <p class="text-xl font-black text-blue-700 mt-0.5">60 Menit 00 Detik</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">3.600 Detik Pengerjaan</p>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200 text-center">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Penyimpangan Waktu (Overtime)</p>
+                                <p class="text-xl font-black text-slate-700 mt-0.5" id="eppsRptOvertime">-</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5" id="eppsRptKetWaktu">Pengerjaan tepat waktu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KARTU UJI KONSISTENSI (CONS) & INTEGRITAS SKORING 210 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm relative overflow-hidden">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">SKALA KONSISTENSI (con)</p>
+                            <p class="text-3xl font-black text-[#003865] mt-1" id="eppsRptConScore">-</p>
+                            <div class="mt-2" id="eppsRptConStatusBadge">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Menunggu</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">15 Pasangan Uji (Valid jika &ge; 10)</p>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm relative overflow-hidden">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">INTEGRITAS SKOR RESMI (&Sigma; s)</p>
+                            <p class="text-3xl font-black text-emerald-600 mt-1" id="eppsRptSumTotal">-</p>
+                            <div class="mt-2" id="eppsRptSumBadge">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">100% Valid (&Sigma;=210)</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">Total Seluruh 15 Skala Edwards</p>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm relative overflow-hidden">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">KELENGKAPAN JAWABAN</p>
+                            <p class="text-3xl font-black text-blue-600 mt-1" id="eppsRptAnsweredCount">-</p>
+                            <div class="mt-2">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">Anti-Skip Terpenuhi</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">Dari 225 Pasangan Soal</p>
+                        </div>
+                    </div>
+
+                    <!-- KARTU TOP 3 KEBUTUHAN DOMINAN & KEBUTUHAN TERENDAH -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-[#003865] to-[#0a4980] rounded-2xl p-5 text-white shadow-md space-y-3">
+                            <div class="flex items-center gap-2 pb-2 border-b border-white/20">
+                                <span class="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-bold border border-amber-400/30">
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                </span>
+                                <h4 class="text-sm font-black text-white">3 Kebutuhan Motivasi Paling Menonjol (Dominan)</h4>
+                            </div>
+                            <div class="space-y-2.5" id="eppsTopNeedsContainer">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                                <span class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold border border-rose-200">
+                                    <i class="fa-solid fa-arrow-trend-down"></i>
+                                </span>
+                                <h4 class="text-sm font-black text-slate-800">3 Kebutuhan Paling Rendah (Dikesampingkan)</h4>
+                            </div>
+                            <div class="space-y-2.5" id="eppsLowNeedsContainer">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL RESMI SKORING 15 SKALA EPPS (r, c, s, %ile, Norma) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-table-list text-[#003865]"></i> Lembar Skoring Resmi: 15 Variabel Kebutuhan Pokok Edwards
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Rumus Edwards: Skor Total (s = r + c) &bull; Rata-rata Norma: 14.0 &bull; Total Skor: 210</p>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                                Mean Profile = 14.0
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                                        <th class="py-2.5 px-3">Kode</th>
+                                        <th class="py-2.5 px-3">Variabel Kebutuhan Kerja</th>
+                                        <th class="py-2.5 px-2 text-center" title="Skor Baris (Row)">r (Baris)</th>
+                                        <th class="py-2.5 px-2 text-center" title="Skor Kolom (Col)">c (Kolom)</th>
+                                        <th class="py-2.5 px-3 text-center bg-blue-50/60 text-[#003865] font-black" title="Total Raw Score">s (Total)</th>
+                                        <th class="py-2.5 px-2 text-center" title="Persentil Norma Standard">Persentil</th>
+                                        <th class="py-2.5 px-2 text-center" title="Norma vs Rata-rata 14">Norma</th>
+                                        <th class="py-2.5 px-3 w-40">Grafik Profil</th>
+                                        <th class="py-2.5 px-3 text-center">Kategori</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eppsTableBody" class="divide-y divide-slate-100">
+                                    <!-- Diisi via JS -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-slate-100 font-black text-slate-800 border-t-2 border-slate-300">
+                                        <td class="py-2.5 px-3" colspan="2">TOTAL KESELURUHAN</td>
+                                        <td class="py-2.5 px-2 text-center font-mono" id="eppsSumRow">-</td>
+                                        <td class="py-2.5 px-2 text-center font-mono" id="eppsSumCol">-</td>
+                                        <td class="py-2.5 px-3 text-center bg-blue-100 text-[#003865] text-sm font-mono" id="eppsSumTotalCell">210</td>
+                                        <td class="py-2.5 px-2 text-center text-slate-400">-</td>
+                                        <td class="py-2.5 px-2 text-center text-slate-400">-</td>
+                                        <td class="py-2.5 px-3 text-slate-400 text-[10px]">Validasi Mutlak = 210</td>
+                                        <td class="py-2.5 px-3 text-center text-emerald-700 font-bold">100% Akurat</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- GRAFIK VISUAL PROFIL PERSENTIL EPPS (BENTUK BAR CHART SESUAI PDF HALAMAN 8) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-column text-blue-600"></i> Grafik Profil Persentil EPPS (Edwards Profile Chart)
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Garis Tengah Mewakili Rata-rata Persentil 50 (Skor Mentah 14)</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 pt-2" id="eppsVisualChartContainer">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+
+                    <!-- ANALISIS NARASI PSIKOLOGIS 15 KEBUTUHAN MURRAY (DINAMIKA MANAJERIAL) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <div class="pb-3 border-b border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-brain text-purple-600"></i> Analisis Narasi Psikologis &amp; Dinamika Perilaku Kerja
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Interpretasi Komprehensif Berdasarkan Bobot Skor 15 Skala Kebutuhan Murray</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="eppsNarrativeContainer">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+
+                    <!-- LEMBAR JAWABAN LENGKAP 225 SOAL (COLLAPSIBLE AUDIT SHEET) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+                        <details class="group cursor-pointer">
+                            <summary class="flex justify-between items-center text-xs font-bold text-slate-700 hover:text-[#003865] transition list-none">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-slate-400 group-open:text-[#003865]"></i>
+                                    <span>Lembar Audit Jawaban Peserta (225 Soal Lengkap)</span>
+                                </span>
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </span>
+                            </summary>
+                            <div class="pt-4 mt-3 border-t border-slate-100">
+                                <div class="grid grid-cols-5 sm:grid-cols-9 md:grid-cols-15 gap-1.5" id="eppsAuditGrid">
+                                    <!-- Diisi via JS: 225 badge A/B -->
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- HIDDEN COMPATIBILITY ELEMENT FOR LEGACY SCRIPTS -->
+                    <div class="hidden" id="eppsRptCon">-</div>
+                    <div class="hidden" id="eppsGridContainer"></div>
+
+                    <!-- EMPTY NOTICE EPPS -->
+                    <div id="eppsEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
+                        <i class="fa-solid fa-layer-group text-3xl mb-2 text-slate-300"></i>
+                        <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen EPPS Tahap 2.</p>
+                    </div>
+                </div>
+
+                <!-- PANEL TAB CFIT -->
+                <div id="panelTabCfit" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">TOTAL SKOR RAW</p>
+                            <p class="text-3xl font-black text-[#003865]" id="cfitRptRaw">-</p>
+                            <p class="text-xs text-slate-500 mt-1">Dari total 50 soal 4 subtes</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">ESTIMASI FLUID IQ</p>
+                            <p class="text-3xl font-black text-amber-600" id="cfitRptIq">-</p>
+                            <p class="text-xs text-slate-500 mt-1">Tabel Norma Skala 3</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">KATEGORI INTELEKTUAL</p>
+                            <p class="text-lg font-black text-slate-800 mt-2" id="cfitRptKategori">-</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Klasifikasi Resmi</p>
+                        </div>
+                    </div>
+
+                    <!-- TABEL 4 SUBTES CFIT -->
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Subtes</th>
+                                    <th class="p-3 text-center">Deskripsi Materi</th>
+                                    <th class="p-3 text-center">Alokasi Waktu</th>
+                                    <th class="p-3 text-center">Jawaban Benar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700" id="cfitSubtestTableBody">
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 1</td>
+                                    <td class="p-3 text-center">Seriation (Pola Deret Geometris)</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">3 Menit (13 Soal)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="cfitSub1">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 2</td>
+                                    <td class="p-3 text-center">Classification (Klasifikasi Gambar Ganjil)</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">4 Menit (14 Soal - Pilih 2)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="cfitSub2">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 3</td>
+                                    <td class="p-3 text-center">Matrices (Matriks Hubungan Gambar)</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">3 Menit (13 Soal)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="cfitSub3">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 4</td>
+                                    <td class="p-3 text-center">Conditions / Topology (Kesesuaian Titik)</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">2.5 Menit (10 Soal)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="cfitSub4">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- LEMBAR RINCIAN KOREKSI 50 SOAL CFIT (GRID 4 TABEL PERSIS SEPERTI IST) -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-[#003865]"></i> Lembar Rincian Koreksi 50 Soal CFIT
+                                </h3>
+                                <p class="text-xs text-slate-500">Evaluasi per nomor: Baris Hijau (Jawaban Benar = 1), Baris Merah (Jawaban Salah = 0)</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="cfitRptPelanggaranBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                    Tab Switch: 0x
+                                </span>
+                                <button type="button" onclick="window.print()" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+                                    <i class="fa-solid fa-print"></i> Cetak Lembar CFIT
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Wadah Grid 4 Subtes Berdampingan (Subtes 1, 2, 3, 4) -->
+                        <div id="cfitCorrectionSheetsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Diisi via JavaScript -->
+                        </div>
+                    </div>
+
+                    <div id="cfitEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
+                        <i class="fa-solid fa-shapes text-3xl mb-2 text-slate-300"></i>
+                        <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen CFIT Tahap 2.</p>
+                    </div>
+                </div>
+
+                <!-- PANEL TAB MBTI -->
+                <div id="panelTabMbti" class="hidden space-y-6">
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+                        <!-- HEADER PROFIL MBTI UTAMA -->
+                        <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#0a4980] rounded-2xl p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden shadow-md">
+                            <div class="flex items-center gap-4 relative z-10">
+                                <div class="w-16 h-16 rounded-2xl bg-white/10 text-amber-400 border border-white/20 flex items-center justify-center text-3xl font-black shadow-inner shrink-0">
+                                    <i class="fa-solid fa-compass"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] uppercase font-bold tracking-widest text-sky-200 block">Tipe Kepribadian Manajerial MBTI</span>
+                                    <h3 class="text-2xl sm:text-3xl font-black text-amber-400 tracking-wider" id="mbtiRptTipe">-</h3>
+                                    <p class="text-xs sm:text-sm text-slate-200 mt-0.5 font-bold" id="mbtiRptNama">-</p>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 text-right relative z-10">
+                                <span class="text-[10px] uppercase font-bold text-sky-200 block">Durasi Pengerjaan</span>
+                                <span class="text-base font-black text-white" id="mbtiRptDurasi">-</span>
+                            </div>
+                        </div>
+
+                        <!-- 4 BARIS GRAFIK PERSENTASE 4 DIMENSI MBTI -->
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-[#003865] flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-amber-500"></i>
+                                <span>Distribusi 4 Dimensi Kepribadian Kerja:</span>
+                            </h4>
+
+                            <!-- 1. E vs I -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center text-xs font-bold">
+                                    <span class="text-[#003865]" id="mbtiLabelE">Ekstrovert (E): <strong id="mbtiPctE">50%</strong></span>
+                                    <span class="text-slate-400 text-[11px] font-semibold">Pemusatan Energi</span>
+                                    <span class="text-indigo-800 text-right" id="mbtiLabelI">Introvert (I): <strong id="mbtiPctI">50%</strong></span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                                    <div id="mbtiBarE" class="h-full bg-[#003865] transition-all duration-500" style="width: 50%;"></div>
+                                    <div id="mbtiBarI" class="h-full bg-indigo-500 transition-all duration-500" style="width: 50%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- 2. S vs N -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center text-xs font-bold">
+                                    <span class="text-emerald-700" id="mbtiLabelS">Sensing (S): <strong id="mbtiPctS">50%</strong></span>
+                                    <span class="text-slate-400 text-[11px] font-semibold">Pengolahan Informasi</span>
+                                    <span class="text-sky-700 text-right" id="mbtiLabelN">Intuition (N): <strong id="mbtiPctN">50%</strong></span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                                    <div id="mbtiBarS" class="h-full bg-emerald-600 transition-all duration-500" style="width: 50%;"></div>
+                                    <div id="mbtiBarN" class="h-full bg-sky-500 transition-all duration-500" style="width: 50%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- 3. T vs F -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center text-xs font-bold">
+                                    <span class="text-blue-800" id="mbtiLabelT">Thinking (T): <strong id="mbtiPctT">50%</strong></span>
+                                    <span class="text-slate-400 text-[11px] font-semibold">Pengambilan Keputusan</span>
+                                    <span class="text-rose-700 text-right" id="mbtiLabelF">Feeling (F): <strong id="mbtiPctF">50%</strong></span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                                    <div id="mbtiBarT" class="h-full bg-blue-700 transition-all duration-500" style="width: 50%;"></div>
+                                    <div id="mbtiBarF" class="h-full bg-rose-500 transition-all duration-500" style="width: 50%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- 4. J vs P -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center text-xs font-bold">
+                                    <span class="text-purple-800" id="mbtiLabelJ">Judging (J): <strong id="mbtiPctJ">50%</strong></span>
+                                    <span class="text-slate-400 text-[11px] font-semibold">Gaya Kerja &amp; Waktu</span>
+                                    <span class="text-amber-700 text-right" id="mbtiLabelP">Perceiving (P): <strong id="mbtiPctP">50%</strong></span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+                                    <div id="mbtiBarJ" class="h-full bg-purple-600 transition-all duration-500" style="width: 50%;"></div>
+                                    <div id="mbtiBarP" class="h-full bg-amber-500 transition-all duration-500" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RINGKASAN DESKRIPSI KERJA & KEKUATAN -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
+                                <span class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                    <i class="fa-solid fa-briefcase text-amber-500"></i> Gaya Kerja di Perusahaan:
+                                </span>
+                                <p class="text-xs text-slate-700 leading-relaxed font-medium" id="mbtiRptGayaKerja">-</p>
+                            </div>
+                            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
+                                <span class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                    <i class="fa-solid fa-star text-amber-500"></i> Kekuatan Utama Manajerial:
+                                </span>
+                                <p class="text-xs text-slate-700 leading-relaxed font-medium" id="mbtiRptKekuatan">-</p>
+                            </div>
+                        </div>
+
+                        <!-- BADGE TEMPERAMEN, ALIAS, & POPULASI -->
+                        <div class="flex flex-wrap items-center gap-2" id="mbtiMetaBadges" style="display:none;">
+                            <span id="mbtiRptTemperamen" class="text-xs font-bold px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200"></span>
+                            <span id="mbtiRptAlias" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 italic"></span>
+                            <span id="mbtiRptPopulasi" class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200"></span>
+                        </div>
+
+                        <!-- GAMBARAN SINGKAT -->
+                        <div id="mbtiGambaranSection" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-tie text-amber-500"></i> Gambaran Singkat Kepribadian:
+                            </h4>
+                            <p class="text-xs text-slate-700 leading-relaxed font-medium" id="mbtiRptGambaran">-</p>
+                        </div>
+
+                        <!-- DEFINISI MBTI -->
+                        <div id="mbtiDefinisiSection" class="bg-gradient-to-br from-slate-50 to-sky-50/30 border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                <i class="fa-solid fa-book-open text-sky-500"></i> Definisi & Temperamen MBTI:
+                            </h4>
+                            <p class="text-xs text-slate-700 leading-relaxed font-medium" id="mbtiRptDefinisi">-</p>
+                        </div>
+
+                        <!-- BREAKDOWN 4 DIMENSI MBTI (E/I/S/N/T/F/J/P) -->
+                        <div id="mbtiDimensiSection" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-3" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                <i class="fa-solid fa-puzzle-piece text-emerald-500"></i> Interpretasi 4 Dimensi MBTI Kandidat:
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="mbtiDimensiGrid">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </div>
+
+                        <!-- CIRI-CIRI UMUM -->
+                        <div id="mbtiCiriSection" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-3" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-blue-500"></i> Ciri-ciri Umum Kepribadian:
+                            </h4>
+                            <ul class="space-y-1.5" id="mbtiCiriList">
+                                <!-- Diisi via JS -->
+                            </ul>
+                        </div>
+
+                        <!-- SARAN KARIR -->
+                        <div id="mbtiKarirSection" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-3" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                <i class="fa-solid fa-briefcase text-emerald-500"></i> Rekomendasi Karir & Jabatan yang Cocok:
+                            </h4>
+                            <p class="text-[11px] text-slate-500 font-medium" id="mbtiKarirCatatan">-</p>
+                            <div class="flex flex-wrap gap-2" id="mbtiKarirTags">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </div>
+
+                        <!-- PARTNER ALAMI -->
+                        <div id="mbtiPartnerSection" class="bg-gradient-to-br from-rose-50/50 to-pink-50/30 border border-rose-200 rounded-2xl p-5 shadow-2xs space-y-2" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-rose-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-heart text-rose-400"></i> Partner Alami (Pasangan Ideal MBTI):
+                            </h4>
+                            <p class="text-sm font-black text-rose-600" id="mbtiRptMitra">-</p>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium" id="mbtiRptMitraDesc">-</p>
+                        </div>
+
+                        <!-- SARAN PENGEMBANGAN -->
+                        <div id="mbtiSaranSection" class="bg-amber-50/60 border border-amber-200 rounded-2xl p-5 shadow-2xs space-y-3" style="display:none;">
+                            <h4 class="text-xs font-black uppercase text-amber-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lightbulb text-amber-500"></i> Saran Pengembangan Diri:
+                            </h4>
+                            <ul class="space-y-1.5" id="mbtiSaranList">
+                                <!-- Diisi via JS -->
+                            </ul>
+                        </div>
+
+                        <!-- KATA KUNCI & TOKOH TERKENAL -->
+                        <div id="mbtiExtrasSection" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="display:none;">
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2">
+                                <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tags text-sky-500"></i> Kata Kunci Kepribadian:
+                                </h4>
+                                <div class="flex flex-wrap gap-1.5" id="mbtiKataKunciTags">
+                                    <!-- Diisi via JS -->
+                                </div>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2">
+                                <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users text-purple-500"></i> Tokoh Terkenal Bertipe Sama:
+                                </h4>
+                                <p class="text-[11px] text-slate-600 leading-relaxed font-medium" id="mbtiTokohList">-</p>
+                            </div>
+                        </div>
+
+                        <!-- PENJELASAN 4 SKALA KECENDERUNGAN MBTI -->
+                        <details id="mbtiSkalaDetails" class="bg-white border border-slate-200 rounded-2xl shadow-2xs" style="display:none;">
+                            <summary class="p-5 flex justify-between items-center text-xs font-bold text-slate-700 hover:text-[#003865] transition list-none cursor-pointer">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-book text-slate-400"></i>
+                                    <span>Teori Referensi: Penjelasan 4 Skala Kecenderungan MBTI</span>
+                                </span>
+                                <span class="text-slate-400 transition-transform"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+                            </summary>
+                            <div class="p-5 pt-0 space-y-4" id="mbtiSkalaContent">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </details>
+                    </div>
+
+                    <div id="mbtiEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
+                        <i class="fa-solid fa-compass text-3xl mb-2 text-slate-300"></i>
+                        <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen MBTI Tahap 2.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -759,10 +1830,14 @@
 
     <!-- Scripts Modular -->
     <script src="js/config.js"></script>
-    <script src="js/data/pauli-data.js"></script>
+    <script src="js/data/cfit-data.js"></script>
+    <script src="js/data/epps-data.js"></script>
+    <script src="js/data/mbti-data.js"></script>
     <script src="js/state.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/hrd-export.js"></script>
+    <script src="js/hrd-charts.js"></script>
     <script src="js/hrd.js"></script>
 </body>
 

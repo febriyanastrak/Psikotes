@@ -53,9 +53,12 @@ const server = http.createServer((req, res) => {
     const urlParts = rawUrl.split(/[\/\\]/).filter(Boolean);
     const hasHiddenPart = urlParts.some(part => part.startsWith('.'));
     const baseName = path.basename(filePath).toLowerCase();
-    const isSensitiveFile = baseName === 'package.json' || baseName === 'package-lock.json';
+    const ext = path.extname(filePath).toLowerCase();
+    const blockedExtensions = ['.xlsx', '.xls', '.json', '.env', '.md', '.lock', '.yml', '.yaml', '.sql', '.sh', '.bat'];
+    const isSensitiveFile = baseName === 'server.js' || baseName === 'package.json' || baseName === 'package-lock.json' || blockedExtensions.includes(ext);
+    const isInsideRoot = filePath.startsWith(ROOT_DIR + path.sep) || filePath === ROOT_DIR;
 
-    if (!filePath.startsWith(ROOT_DIR) || hasHiddenPart || isSensitiveFile) {
+    if (!isInsideRoot || hasHiddenPart || isSensitiveFile) {
         res.writeHead(403, { 'Content-Type': 'text/html; charset=UTF-8' });
         res.end(`<h2>403 - Akses Ditolak (Security Alert)</h2>`);
         return;
@@ -85,8 +88,8 @@ const server = http.createServer((req, res) => {
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
                 "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net",
                 "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com",
-                "img-src 'self' data: blob: https://rvflmznbihunezzqhobm.supabase.co",
-                "connect-src 'self' https://rvflmznbihunezzqhobm.supabase.co",
+                "img-src 'self' data: blob: https://rvflmznbihunezzqhobm.supabase.co https://*.supabase.co",
+                "connect-src 'self' https://rvflmznbihunezzqhobm.supabase.co wss://rvflmznbihunezzqhobm.supabase.co",
                 "media-src 'self' blob:",
                 "frame-ancestors 'self'"
             ].join('; '),

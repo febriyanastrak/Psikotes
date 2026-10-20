@@ -1,0 +1,65 @@
+# =========================================================================
+# GITIGNORE CONFIGURATION
+# PT Altrak 1978 - Online Assessment Portal
+# =========================================================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+
+# IDE & Editor Files
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Temporary & Cache Files
+.temp/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.bak
+*.sw?
+.cache/
+
+# Local assessment dumps / exported candidate spreadsheets
+*.xlsx
+*.xls
+*.csv
+*.dump
+*.backup

@@ -12,7 +12,7 @@ function sanitizeInput(str) {
     if (!str || typeof str !== 'string') return '';
     return str
         .replace(/<[^>]*>/g, '') // Hapus tag HTML
-        .replace(/[<>"'`]/g, '')  // Hapus karakter injeksi
+        .replace(/[<>"`;\\]/g, '') // Hapus karakter injeksi XSS, pertahankan apostrof (') dan tanda hubung (-) untuk nama pelamar wajar
         .trim();
 }
 
@@ -127,12 +127,15 @@ function showLoginFieldError(inputId, errorElementId, message) {
 }
 
 /**
- * Memproses pendaftaran peserta dengan validasi & sanitasi input ketat
- * serta verifikasi token ujian sekali pakai ke Supabase
+ * Memproses pendaftaran peserta secara terpusat (Unified Candidate Authentication)
+ * Mencakup validasi & sanitasi input ketat, verifikasi token via RPC,
+ * pembersihan sesi lama, registrasi kandidat ke Supabase, dan pengalihan ke Dashboard
  * @param {Event} e Event submit form
  */
-async function handleRequestOTP(e) {
-    e.preventDefault();
+async function handleUnifiedCandidateLogin(e) {
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+    }
     clearLoginValidationErrors();
 
     const consentCheck = document.getElementById('checkboxConsent');
@@ -146,11 +149,13 @@ async function handleRequestOTP(e) {
         if (consentContainer) {
             consentContainer.classList.add('border-red-500', 'bg-red-50/40');
         }
-        customAlert(
-            "Persetujuan Wajib",
-            "Harap membaca dan mencentang Pernyataan Persetujuan & Pakta Integritas sebelum melanjutkan ke portal asesmen.",
-            "error"
-        );
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Persetujuan Wajib",
+                "Harap membaca dan mencentang Pernyataan Persetujuan & Pakta Integritas sebelum melanjutkan ke portal asesmen.",
+                "error"
+            );
+        }
         return;
     }
 
@@ -170,136 +175,256 @@ async function handleRequestOTP(e) {
     const cleanPenempatan = sanitizeInput(rawPenempatan);
     const cleanToken = sanitizeInput(rawToken).toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    // 1. Validasi Nama: Hanya huruf, spasi, titik, dan petik satu (3-80 karakter)
-    if (!cleanName || cleanName.length < 3 || !/^[a-zA-Z\s'.]{3,80}$/.test(cleanName)) {
+    // 1. Validasi Nama: Minimal 3 karakter
+    if (!cleanName || cleanName.length < 3) {
         showLoginFieldError(
             'inputName',
             'errorName',
             'Nama lengkap tidak valid. Minimal 3 karakter dan hanya boleh berisi huruf (contoh: Budi Santoso).'
         );
-        customAlert(
-            "Nama Lengkap Tidak Valid",
-            `Nama yang dimasukkan ("${cleanName || '-'}") tidak valid.\n\nHarap masukkan nama lengkap sesuai KTP minimal 3 karakter (hanya boleh mengandung huruf, spasi, dan titik).`,
-            "error"
-        );
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Nama Lengkap Tidak Valid",
+                `Nama yang dimasukkan ("${cleanName || '-'}") tidak valid.\n\nHarap masukkan nama lengkap sesuai KTP minimal 3 karakter.`,
+                "error"
+            );
+        }
         return;
     }
 
-    // 2. Validasi Email: Format RFC standar
-    if (!cleanEmail || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
+    // 2. Validasi Email
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
         showLoginFieldError(
             'inputEmail',
             'errorEmail',
             'Format email tidak valid. Masukkan alamat email aktif yang benar (contoh: nama@gmail.com).'
         );
-        customAlert(
-            "Alamat Email Tidak Valid",
-            `Alamat email yang Anda masukkan ("${cleanEmail || '-'}") tidak valid.\n\nHarap masukkan alamat email aktif yang benar (contoh: kandidat@gmail.com).`,
-            "error"
-        );
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Alamat Email Tidak Valid",
+                `Alamat email yang Anda masukkan ("${cleanEmail || '-'}") tidak valid.\n\nHarap masukkan alamat email aktif yang benar.`,
+                "error"
+            );
+        }
         return;
     }
 
     // 3. Validasi Nomor WhatsApp / Telepon Indonesia
     const normalizedPhone = cleanPhone.replace(/[\s\-\.]/g, '');
     const isIndoPhone = /^(?:\+62|62|08)[0-9]{8,13}$/.test(normalizedPhone);
-
-    if (!isIndoPhone) {
+    if (!isIndoPhone && normalizedPhone.length < 9) {
         showLoginFieldError(
             'inputPhone',
             'errorPhone',
             'Nomor telepon tidak valid! Nomor harus berformat Indonesia dan diawali 08 atau +62 (contoh: 08123456789).'
         );
-        customAlert(
-            "Nomor Telepon Tidak Valid",
-            `Nomor WhatsApp/HP yang Anda masukkan ("${cleanPhone || '-'}") tidak valid.\n\nNomor harus merupakan nomor aktif format Indonesia dengan 10-14 digit angka dan diawali dengan 08 atau +62 (contoh: 08123456789 atau +628123456789).`,
-            "error"
-        );
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Nomor Telepon Tidak Valid",
+                `Nomor WhatsApp/HP yang Anda masukkan ("${cleanPhone || '-'}") tidak valid.\n\nNomor harus merupakan nomor aktif format Indonesia dengan 10-14 digit angka.`,
+                "error"
+            );
+        }
         return;
     }
 
     // 4. Validasi Posisi yang Dilamar
     if (!cleanPosisi || cleanPosisi.length < 2) {
         showLoginFieldError('inputPosisi', 'errorPosisi', 'Posisi / jabatan yang dilamar wajib diisi.');
-        customAlert("Posisi Wajib Diisi", "Harap mengisi posisi atau jabatan yang Anda lamar.", "error");
+        if (typeof customAlert === 'function') {
+            customAlert("Posisi Wajib Diisi", "Harap mengisi posisi atau jabatan yang Anda lamar.", "error");
+        }
         return;
     }
 
     // 5. Validasi Domisili
     if (!cleanDomisili || cleanDomisili.length < 2) {
         showLoginFieldError('inputDomisili', 'errorDomisili', 'Lokasi domisili saat ini wajib diisi.');
-        customAlert("Domisili Wajib Diisi", "Harap mengisi kota lokasi domisili tempat tinggal Anda saat ini.", "error");
+        if (typeof customAlert === 'function') {
+            customAlert("Domisili Wajib Diisi", "Harap mengisi kota lokasi domisili tempat tinggal Anda saat ini.", "error");
+        }
         return;
     }
 
     // 6. Validasi Penempatan Kerja
     if (!cleanPenempatan || cleanPenempatan.length < 2) {
         showLoginFieldError('inputPenempatan', 'errorPenempatan', 'Pilih lokasi cabang penempatan kerja yang dilamar.');
-        customAlert("Penempatan Wajib Dipilih", "Harap memilih lokasi cabang penempatan kerja dari daftar yang tersedia.", "error");
+        if (typeof customAlert === 'function') {
+            customAlert("Penempatan Wajib Dipilih", "Harap memilih lokasi cabang penempatan kerja dari daftar yang tersedia.", "error");
+        }
         return;
     }
 
     // 7. Validasi Token Ujian (Wajib 5 Karakter)
     if (!cleanToken || cleanToken.length !== 5) {
         showLoginFieldError('inputToken', 'errorToken', 'Token akses ujian wajib 5 karakter huruf/angka (contoh: gk7g8).');
-        customAlert("Token Tidak Valid", "Token akses ujian wajib terdiri dari tepat 5 karakter huruf dan angka resmi dari panitia HRD PT Altrak 1978.", "error");
+        if (typeof customAlert === 'function') {
+            customAlert("Token Tidak Valid", "Token akses ujian wajib terdiri dari tepat 5 karakter huruf dan angka resmi dari panitia HRD PT Altrak 1978.", "error");
+        }
         return;
     }
 
-    // 8. Verifikasi & Klaim Token Sekali Pakai ke Supabase Database
+    // 8. Verifikasi & Klaim Token Sekali Pakai ke Supabase Database (Fails-Closed Security)
     const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient)
         ? supabaseClient
-        : ((typeof window !== 'undefined' && window.supabase) ? window.supabase : null);
+        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
 
-    if (sbClient && typeof sbClient.rpc === 'function') {
-        const btn = document.getElementById('btnSubmitLogin');
-        const btnText = document.getElementById('btnSubmitLoginText');
-        const originalBtnHtml = btnText ? btnText.innerHTML : 'Mulai Tes';
-        if (btn) btn.disabled = true;
-        if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memvalidasi Token...';
+    const btn = document.getElementById('btnSubmitLogin');
+    const btnText = document.getElementById('btnSubmitLoginText');
+    const originalBtnHtml = btnText ? btnText.innerHTML : 'Mulai Tes';
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memvalidasi Token...';
 
-        try {
+    if (!sbClient || typeof sbClient.rpc !== 'function') {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = originalBtnHtml;
+        showLoginFieldError('inputToken', 'errorToken', 'Koneksi ke database server tidak tersedia. Harap periksa jaringan internet Anda.');
+        if (typeof customAlert === 'function') {
+            customAlert("Koneksi Terputus", "Koneksi ke server ujian tidak tersedia. Harap periksa jaringan internet Anda.", "error");
+        }
+        return;
+    }
+
+    let idPesertaBaru = null;
+    let sessionSecretBaru = null;
+
+    try {
+        // PRIORITAS 1: Gunakan RPC daftar_kandidat secara atomic (Security Hardening Fase 3)
+        // Memvalidasi token, menandai terpakai, dan membuat baris baru dengan UUID & session_secret
+        const { data: resDaftar, error: errDaftar } = await sbClient.rpc('daftar_kandidat', {
+            p_token: cleanToken,
+            p_nama: cleanName,
+            p_email: cleanEmail,
+            p_phone: normalizedPhone,
+            p_posisi: cleanPosisi,
+            p_domisili: cleanDomisili,
+            p_penempatan: cleanPenempatan
+        });
+
+        if (!errDaftar && resDaftar) {
+            if (resDaftar.success === false) {
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.innerHTML = originalBtnHtml;
+                const pesanTolak = resDaftar.pesan || 'Token ujian tidak valid atau sudah pernah digunakan.';
+                showLoginFieldError('inputToken', 'errorToken', pesanTolak);
+                if (typeof customAlert === 'function') {
+                    customAlert("Akses Ditolak", pesanTolak, "error");
+                } else {
+                    alert(pesanTolak);
+                }
+                return;
+            } else if (resDaftar.success === true && resDaftar.id) {
+                idPesertaBaru = resDaftar.id;
+                sessionSecretBaru = resDaftar.session_secret;
+            }
+        } else {
+            // FALLBACK: Jika RPC daftar_kandidat belum tersedia, gunakan klaim_token_ujian
+            console.warn('[daftar_kandidat RPC Fallback]', errDaftar ? (errDaftar.message || errDaftar) : 'No response');
             const { data: resKlaim, error: errKlaim } = await sbClient.rpc('klaim_token_ujian', {
                 p_token: cleanToken,
                 p_nama: cleanName,
                 p_phone: normalizedPhone
             });
 
-            if (btn) btn.disabled = false;
-            if (btnText) btnText.innerHTML = originalBtnHtml;
-
-            if (!errKlaim && resKlaim) {
-                if (resKlaim.valid === false) {
-                    showLoginFieldError('inputToken', 'errorToken', resKlaim.pesan || 'Token ujian tidak valid atau sudah pernah digunakan.');
-                    if (typeof customAlert === 'function') {
-                        customAlert("Akses Ditolak", resKlaim.pesan || "Token ujian tidak valid atau sudah pernah digunakan.", "error");
-                    } else {
-                        alert(resKlaim.pesan || "Token ujian tidak valid atau sudah pernah digunakan.");
-                    }
-                    return;
+            if (errKlaim) {
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.innerHTML = originalBtnHtml;
+                const pesanErr = 'Gagal memverifikasi token ke server (' + (errKlaim.message || 'Error Server') + '). Harap hubungi panitia HRD.';
+                showLoginFieldError('inputToken', 'errorToken', pesanErr);
+                if (typeof customAlert === 'function') {
+                    customAlert("Verifikasi Gagal", pesanErr, "error");
                 }
-            } else if (errKlaim) {
-                console.warn('[Token RPC]', errKlaim.message || errKlaim);
+                return;
             }
-        } catch (eToken) {
-            if (btn) btn.disabled = false;
-            if (btnText) btnText.innerHTML = originalBtnHtml;
-            console.warn('[Token Exception]', eToken);
+
+            if (resKlaim && (resKlaim.valid === false || resKlaim.success === false)) {
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.innerHTML = originalBtnHtml;
+                const pesanTolak = resKlaim.pesan || 'Token ujian tidak valid atau sudah pernah digunakan.';
+                showLoginFieldError('inputToken', 'errorToken', pesanTolak);
+                if (typeof customAlert === 'function') {
+                    customAlert("Akses Ditolak", pesanTolak, "error");
+                } else {
+                    alert(pesanTolak);
+                }
+                return;
+            }
+
+            // Buat baris baru secara mandiri (SELALU INSERT BARIS BARU, JANGAN PERNAH MENIMPA DATA LAMA)
+            const genId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : null;
+            const genSecret = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).substring(2, 15);
+            try {
+                const { data: insData, error: insErr } = await sbClient
+                    .from('kandidat_psikotes')
+                    .insert([{
+                        id: genId,
+                        nama_lengkap: cleanName,
+                        email: cleanEmail,
+                        no_wa: normalizedPhone,
+                        posisi_dilamar: cleanPosisi,
+                        posisi: cleanPosisi,
+                        domisili: cleanDomisili,
+                        penempatan: cleanPenempatan,
+                        token: cleanToken,
+                        session_secret: genSecret
+                    }])
+                    .select();
+
+                if (!insErr && insData && insData.length > 0 && insData[0].id) {
+                    idPesertaBaru = insData[0].id;
+                    sessionSecretBaru = insData[0].session_secret || genSecret;
+                } else {
+                    idPesertaBaru = genId;
+                    sessionSecretBaru = genSecret;
+                }
+            } catch (eIns) {
+                console.warn('[Insert Candidate Fallback]', eIns);
+                idPesertaBaru = genId;
+                sessionSecretBaru = genSecret;
+            }
         }
+    } catch (eAuth) {
+        console.warn('[Candidate Auth Exception]', eAuth);
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = originalBtnHtml;
+        showLoginFieldError('inputToken', 'errorToken', 'Terjadi kesalahan sistem saat mendaftarkan sesi ujian. Harap periksa koneksi Anda dan coba lagi.');
+        if (typeof customAlert === 'function') {
+            customAlert("Kesalahan Validasi", "Terjadi kesalahan sistem saat memvalidasi token ujian. Harap periksa koneksi dan coba lagi.", "error");
+        }
+        return;
     }
 
-    // Simpan ke state terisolasi
-    state.user = {
-        name: cleanName,
-        email: cleanEmail,
-        phone: normalizedPhone,
-        posisi: cleanPosisi,
-        domisili: cleanDomisili,
-        penempatan: cleanPenempatan,
-        token: cleanToken,
-        startTime: ""
-    };
+    if (!idPesertaBaru) {
+        idPesertaBaru = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : 'kandidat-' + Date.now();
+    }
+    if (!sessionSecretBaru) {
+        sessionSecretBaru = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID().replace(/-/g, '')
+            : Math.random().toString(36).substring(2, 15);
+    }
 
+    if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menghubungkan ke Portal...';
+
+    // Simpan ke state terisolasi
+    if (typeof state !== 'undefined') {
+        state.user = {
+            id: idPesertaBaru,
+            name: cleanName,
+            email: cleanEmail,
+            phone: normalizedPhone,
+            posisi: cleanPosisi,
+            domisili: cleanDomisili,
+            penempatan: cleanPenempatan,
+            token: cleanToken,
+            session_secret: sessionSecretBaru,
+            startTime: new Date().toLocaleTimeString('id-ID')
+        };
+    }
+
+    localStorage.setItem('id_peserta', String(idPesertaBaru));
+    localStorage.setItem('session_secret', String(sessionSecretBaru));
     localStorage.setItem('nama_peserta', cleanName);
     localStorage.setItem('email_peserta', cleanEmail);
     localStorage.setItem('phone_peserta', normalizedPhone);
@@ -308,26 +433,72 @@ async function handleRequestOTP(e) {
     localStorage.setItem('penempatan_peserta', cleanPenempatan);
     localStorage.setItem('token_peserta', cleanToken);
 
-    const now = new Date();
-    state.user.startTime = now.toLocaleString('id-ID', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
+    // Bersihkan seluruh sesi tes sebelumnya dari browser
+    const keysToClear = [
+        'ist_selesai', 'papi_selesai', 'disc_selesai', 'pauli_selesai',
+        'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
+        'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
+        'hasil_papi', 'hasil_disc', 'hasil_pauli', 'hasil_ist',
+        'pauli_matrix', 'pauli_line', 'altrak_fase_aktif'
+    ];
+    keysToClear.forEach(k => localStorage.removeItem(k));
+    try { sessionStorage.removeItem('altrak_fase_aktif'); } catch (e) {}
+
+    // Reset visual kartu dashboard ke kondisi awal (Tes 1 aktif, 2-4 terkunci, 0/4)
+    if (typeof resetDashboardState === 'function') {
+        resetDashboardState();
+    }
+
+    const profil = {
+        name: cleanName,
+        id: idPesertaBaru,
+        email: cleanEmail,
+        position: cleanPosisi
+    };
+    localStorage.setItem('altrak_candidate_profile', JSON.stringify(profil));
 
     const navName = document.getElementById('nav-user-name');
-    if (navName && state.user.name) {
-        navName.textContent = state.user.name.split(' ')[0];
+    if (navName && cleanName) {
+        navName.textContent = cleanName.split(' ')[0];
     }
 
     const navInfo = document.getElementById('nav-user-info');
     if (navInfo) navInfo.classList.remove('hide-section');
 
+    // 4. Validasi Akses Kamera jika fitur proctoring aktif
+    const streamAktif = (typeof cameraStream !== 'undefined' && cameraStream && cameraStream.active) ||
+                        (typeof window.cameraStream !== 'undefined' && window.cameraStream && window.cameraStream.active);
+    if (!streamAktif && typeof tampilkanModalKamera === 'function') {
+        tampilkanModalKamera("Akses kamera wajib diizinkan untuk memulai rangkaian tes asesmen PT Altrak 1978.");
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = originalBtnHtml;
+        return;
+    }
+
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.innerHTML = originalBtnHtml;
+
     // Masuk ke Mode Layar Penuh (Fullscreen) dari awal login dan arahkan ke Dashboard Tes
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
-    showPage('page-dashboard');
-    updateDashboardProgress();
+
+    if (typeof pindahFase === 'function') {
+        pindahFase('view-dashboard');
+    } else if (typeof showPage === 'function') {
+        showPage('page-dashboard');
+    }
+
+    if (typeof updateDashboardProgress === 'function') {
+        updateDashboardProgress();
+    }
+}
+
+// Hubungkan semua alias ke fungsi terpusat pada lingkup window tanpa tabrakan leksikal
+if (typeof window !== 'undefined') {
+    window.handleCandidateLogin = handleUnifiedCandidateLogin;
+    window.handleLoginSPA = handleUnifiedCandidateLogin;
+    window.handleRequestOTP = handleUnifiedCandidateLogin;
 }
 
 // Pasang listener realtime input untuk membersihkan error saat peserta mengetik ulang
@@ -367,153 +538,15 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// --- AKSES TERPROTEKSI HRD (Shortcut Logo Dinonaktifkan) ---
+// --- AKSES PORTAL HRD ---
 
 /**
- * Logo Altrak: Akses shortcut dinonaktifkan demi pemisahan portal penuh
- */
-function handleLogoClick() {
-    // Dinonaktifkan: portal HRD dan peserta telah dipisahkan secara mandiri
-}
-
-/**
- * Membuka dashboard HRD terpadu langsung di halaman utama
+ * Mengarahkan akses ke Portal HRD mandiri
  */
 function openHrdDashboard() {
     window.location.href = 'hrd.html';
 }
 
-/**
- * Membuka modal login otorisasi HRD
- */
-function openHrdLoginModal() {
-    window.location.href = 'hrd.html';
-}
-
-/**
- * Memverifikasi kredensial HRD langsung melalui Supabase Auth
- */
-async function verifyHrdLogin() {
-    const pinInput = document.getElementById('inputHrdPin');
-    const pin = pinInput ? pinInput.value.trim() : '';
-
-    if (!pin) {
-        customAlert("Akses Ditolak", "Kata sandi HRD tidak boleh kosong.", "error");
-        if (pinInput) pinInput.focus();
-        return;
-    }
-
-    // Cek lock status sebelum menghubungi Supabase Auth
-    const lockStatus = checkHrdLockStatus();
-    if (lockStatus.isLocked) {
-        customAlert(
-            "Akses HRD Terkunci",
-            `Akses masih terkunci karena percobaan berulang. Silakan coba lagi dalam ${lockStatus.remainingMinutes} menit.`,
-            "error"
-        );
-        return;
-    }
-
-    // Verifikasi kredensial terhadap akun HRD di Supabase Auth
-    const loadingModal = document.getElementById('modal-loading');
-    if (loadingModal) loadingModal.classList.remove('hide-section');
-
-    try {
-        let authSuccess = false;
-
-        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-            ? supabaseClient
-            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.auth === 'object') ? window.supabase : null);
-
-        if (sb && sb.auth) {
-            const hrdAdminEmail = atob('ZmVicml5YW5kYWgzQGdtYWlsLmNvbQ=='); // Encoded untuk keamanan
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({
-                    email: hrdAdminEmail,
-                    password: pin
-                });
-                if (!error && data && data.session) {
-                    authSuccess = true;
-                } else if (error && (error.status === 429 || (error.message && error.message.toLowerCase().includes('rate limit')))) {
-                    const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
-                    localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
-                    setLockCookie(lockTime);
-                    if (loadingModal) loadingModal.classList.add('hide-section');
-                    closeModal('modal-hrd-login');
-                    return customAlert("Akses Terkunci", "Terlalu banyak percobaan pada server (Rate Limited). Akses dibekukan sementara demi keamanan.", "error");
-                }
-            } catch (e) {
-                console.warn('[HRD Auth] Verifikasi sandi gagal:', e);
-            }
-        }
-
-        if (loadingModal) loadingModal.classList.add('hide-section');
-
-        if (authSuccess) {
-            isHrdAuthenticated = true;
-            try {
-                localStorage.removeItem(HRD_ATTEMPTS_STORAGE_KEY);
-                localStorage.removeItem(HRD_LOCK_STORAGE_KEY);
-                clearLockCookie();
-            } catch (e) {}
-
-            if (pinInput) pinInput.value = "";
-            openHrdDashboard();
-            return;
-        }
-    } catch (err) {
-        if (loadingModal) loadingModal.classList.add('hide-section');
-        console.error('HRD Login Error:', err);
-    }
-
-    // Jika sandi tidak cocok, tambahkan attempt rate limiting
-    isHrdAuthenticated = false;
-    if (pinInput) pinInput.value = "";
-
-    let currentAttempts = parseInt(localStorage.getItem(HRD_ATTEMPTS_STORAGE_KEY) || '0', 10) + 1;
-    localStorage.setItem(HRD_ATTEMPTS_STORAGE_KEY, currentAttempts.toString());
-
-    if (currentAttempts >= MAX_HRD_ATTEMPTS) {
-        const lockTime = Date.now() + HRD_LOCK_DURATION_MS;
-        localStorage.setItem(HRD_LOCK_STORAGE_KEY, lockTime.toString());
-        setLockCookie(lockTime);
-        closeModal('modal-hrd-login');
-        customAlert(
-            "Akses HRD Terkunci",
-            "Terlalu banyak percobaan sandi yang salah (3x). Akses otorisasi HRD dikunci selama 15 menit demi keamanan.",
-            "error"
-        );
-    } else {
-        const sisaCoba = MAX_HRD_ATTEMPTS - currentAttempts;
-        customAlert(
-            "Sandi HRD Salah",
-            `Kata sandi yang Anda masukkan tidak sesuai. Sisa kesempatan mencoba: ${sisaCoba} kali.`,
-            "error"
-        );
-    }
-}
-
-/**
- * Logout sesi HRD dari Supabase dan kembali ke halaman login utama
- */
-async function logoutHrd() {
-    const loadingModal = document.getElementById('modal-loading');
-    if (loadingModal) loadingModal.classList.remove('hide-section');
-
-    try {
-        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-            ? supabaseClient
-            : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.auth === 'object') ? window.supabase : null);
-        if (sb && sb.auth) await sb.auth.signOut();
-    } catch (err) {
-        console.error('Logout error:', err);
-    }
-
-    isHrdAuthenticated = false;
-    cachedHrdData = [];
-    const tbody = document.getElementById('hrdTableBody');
-    if (tbody) tbody.innerHTML = '';
-
-    if (loadingModal) loadingModal.classList.add('hide-section');
-    showPage('page-login');
+if (typeof window !== 'undefined') {
+    window.openHrdDashboard = openHrdDashboard;
 }

@@ -1,7 +1,7 @@
 // ====================================================================
-// MODUL DATA PAPI KOSTICK (PETUNJUK, CONTOH SOAL, & 90 BUTIR SOAL)
+// MODUL DATA PAPI KOSTICK (PETUNJUK, CONTOH SOAL, & 90 SOAL)
 // Format aman tanpa label aspek untuk mencegah kecurangan via F12
-// Isi 90 butir soal disalin dari buku soal PAPI (SOAL_PAPI_FULL.pdf)
+// Isi 90 soal disalin dari buku soal PAPI (SOAL_PAPI_FULL.pdf)
 // ====================================================================
 
 // 1. PETUNJUK RESMI PENGERJAAN
@@ -33,7 +33,7 @@ window.PAPI_EXAMPLES = [
   }
 ];
 
-// 3. BANK 90 BUTIR SOAL UTAMA
+// 3. BANK 90 SOAL UTAMA
 window.PAPI_QUESTIONS = [
   { no: 1, a: "Saya seorang pekerja keras.", b: "Saya bukan seorang pemurung." },
   { no: 2, a: "Saya suka bekerja lebih baik dari yang lain.", b: "Saya suka menekuni pekerjaan yang saya lakukan sampai selesai." },
