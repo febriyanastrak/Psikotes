@@ -1303,16 +1303,21 @@
     </div>
 
     <!-- PREVIEW KAMERA PENGAWAS FLOATING (WEBCAM PROCTORING) - AKTIF PADA PAULI & IST SUBTES 09 -->
-    <div id="proctoring-camera-container" style="display: none !important; pointer-events: none !important;"
-        class="hide-section fixed bottom-4 right-4 z-50 bg-slate-900/95 backdrop-blur-md border border-[#003865]/60 rounded-2xl p-2.5 shadow-2xl transition-all duration-300 select-none">
-        <div class="flex items-center justify-between gap-2 px-1 mb-1.5">
+    <div id="proctoring-camera-container" style="display: none !important; pointer-events: none !important; touch-action: none;"
+        class="hide-section fixed bottom-4 right-4 z-50 bg-slate-900/95 backdrop-blur-md border border-[#003865]/60 rounded-2xl p-2.5 shadow-2xl select-none cursor-grab active:cursor-grabbing">
+        <div class="flex items-center justify-between gap-2 px-1 mb-1.5 pointer-events-none">
             <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
                 <span class="text-[10px] font-black text-white tracking-wider uppercase">Pengawasan Kamera</span>
             </div>
-            <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
+            <div class="flex items-center gap-1.5">
+                <span class="text-[9px] font-semibold text-slate-300 flex items-center gap-1 bg-slate-800/90 px-1.5 py-0.5 rounded border border-slate-700" title="Sentuh atau klik & geser untuk memindahkan posisi kamera">
+                    <i class="fa-solid fa-up-down-left-right text-[8px] text-amber-400"></i> Geser
+                </span>
+                <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
+            </div>
         </div>
-        <div class="relative w-36 h-28 sm:w-44 sm:h-32 bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
+        <div class="relative w-36 h-28 sm:w-44 sm:h-32 bg-slate-950 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center pointer-events-none">
             <video id="proctoringVideo" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
             <div id="cameraStatusFallback" class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-slate-950 text-slate-400 text-[10px]">
                 <i class="fa-solid fa-video text-base text-blue-400 mb-1 animate-pulse"></i>

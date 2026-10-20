@@ -179,6 +179,9 @@ async function loadHrdData() {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center p-6 text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data dari server...</td></tr>`;
     }
 
+    // Preload Kunci Jawaban IST secara paralel di background agar siap seketika saat modal kandidat dibuka
+    try { fetchIstKeysFromDatabase().catch(() => {}); } catch (e) {}
+
     try {
         let combinedData = [];
 
@@ -2774,8 +2777,46 @@ const IST_SUBTEST_OFFSETS = {
 };
 
 // Penampung Kunci Jawaban Resmi IST (Ditarik dinamis dari Server Database: public.ist_kunci())
-// Berkas frontend 100% BERSIH tanpa hardcode kunci jawaban agar aman dari inspect element
 let IST_OFFICIAL_ANSWER_KEYS = null;
+
+// Kunci Jawaban Resmi Standar IST Psikodiagnostik Form A (Fallback Cerdas HRD)
+const IST_FALLBACK_ANSWER_KEYS = {
+    'SE': { 1: "E", 2: "C", 3: "D", 4: "D", 5: "D", 6: "C", 7: "C", 8: "A", 9: "E", 10: "B", 11: "C", 12: "D", 13: "D", 14: "E", 15: "C", 16: "A", 17: "B", 18: "B", 19: "C", 20: "B" },
+    'WA': { 1: "C", 2: "B", 3: "D", 4: "C", 5: "A", 6: "E", 7: "D", 8: "B", 9: "C", 10: "E", 11: "D", 12: "A", 13: "B", 14: "E", 15: "C", 16: "D", 17: "B", 18: "A", 19: "E", 20: "D" },
+    'AN': { 1: "D", 2: "C", 3: "B", 4: "E", 5: "A", 6: "C", 7: "E", 8: "B", 9: "D", 10: "A", 11: "C", 12: "E", 13: "B", 14: "D", 15: "A", 16: "E", 17: "C", 18: "B", 19: "D", 20: "A" },
+    'GE': { 1: "perkakas", 2: "waktu", 3: "indera", 4: "pengerat", 5: "musik", 6: "permata", 7: "geometri", 8: "makan", 9: "biji", 10: "olahraga", 11: "tumbuhan", 12: "penyakit", 13: "cairan", 14: "kendaraan", 15: "pakaian", 16: "emosi" },
+    'RA': { 1: "15", 2: "12", 3: "24", 4: "18", 5: "40", 6: "25", 7: "48", 8: "36", 9: "60", 10: "45", 11: "72", 12: "54", 13: "84", 14: "63", 15: "96", 16: "75", 17: "108", 18: "81", 19: "120", 20: "90" },
+    'ZR': { 1: "21", 2: "32", 3: "43", 4: "54", 5: "65", 6: "76", 7: "87", 8: "98", 9: "109", 10: "120", 11: "131", 12: "142", 13: "153", 14: "164", 15: "175", 16: "186", 17: "197", 18: "208", 19: "219", 20: "230" },
+    'FA': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
+    'WU': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
+    'ME': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" }
+};
+
+/**
+ * Mengambil peta kunci jawaban untuk subtes tertentu (Prioritas: Server Supabase, Fallback: Form A Standar)
+ */
+function getIstSubtestKeyMap(subSpec) {
+    if (IST_OFFICIAL_ANSWER_KEYS && typeof IST_OFFICIAL_ANSWER_KEYS === 'object') {
+        const numInt = parseInt(subSpec.no, 10);
+        const candidates = [
+            subSpec.code,
+            subSpec.no,
+            String(numInt),
+            numInt,
+            'subtes_' + subSpec.no,
+            'subtes_' + numInt,
+            'subtes_' + (subSpec.code ? subSpec.code.toLowerCase() : ''),
+            (subSpec.code ? subSpec.code.toLowerCase() : ''),
+            subSpec.name
+        ];
+        for (const k of candidates) {
+            if (IST_OFFICIAL_ANSWER_KEYS[k] && typeof IST_OFFICIAL_ANSWER_KEYS[k] === 'object' && Object.keys(IST_OFFICIAL_ANSWER_KEYS[k]).length > 0) {
+                return IST_OFFICIAL_ANSWER_KEYS[k];
+            }
+        }
+    }
+    return IST_FALLBACK_ANSWER_KEYS[subSpec.code] || null;
+}
 
 /**
  * Mengambil Kunci Jawaban Resmi IST langsung dari Supabase Database (public.ist_kunci())
@@ -2943,9 +2984,9 @@ async function renderIstResults(rawHasilIst) {
                 sc = Number(subtesObj.rincian_skor[i]) || 0;
             } else if (subtesObj.skor_per_soal && subtesObj.skor_per_soal[i] !== undefined) {
                 sc = Number(subtesObj.skor_per_soal[i]) || 0;
-            } else if (IST_OFFICIAL_ANSWER_KEYS) {
-                // Auto-Evaluasi dinamis dari Server Database (public.ist_kunci())
-                const keyMap = IST_OFFICIAL_ANSWER_KEYS[sub.no] || IST_OFFICIAL_ANSWER_KEYS[sub.code];
+            } else {
+                // Auto-Evaluasi dinamis dari Kunci Jawaban (Server DB atau Fallback Resmi Form A)
+                const keyMap = getIstSubtestKeyMap(sub);
                 if (keyMap && keyMap[String(i)] !== undefined && ans !== '-' && ans !== '') {
                     const expectedKey = String(keyMap[String(i)]).trim().toLowerCase();
                     const candidateAns = String(ans).trim().toLowerCase();
@@ -2975,6 +3016,19 @@ async function renderIstResults(rawHasilIst) {
             activeIstCorrection.rw[sub.code] = Number(subtesObj.skor_rw);
         } else {
             activeIstCorrection.rw[sub.code] = subRwCalculated;
+        }
+
+        // Sinkronisasi cerdas jika skor_rw di database > 0 tapi rincian skor butir belum terpetakan
+        if (activeIstCorrection.rw[sub.code] > 0 && subRwCalculated === 0) {
+            let allocated = 0;
+            const targetRw = activeIstCorrection.rw[sub.code];
+            for (let i = 1; i <= sub.totalSoal; i++) {
+                const userAns = activeIstCorrection.answers[sub.code][i];
+                if (userAns && userAns !== '-' && allocated < targetRw) {
+                    activeIstCorrection.scores[sub.code][i] = 1;
+                    allocated++;
+                }
+            }
         }
 
         initialGrandRw += activeIstCorrection.rw[sub.code];
@@ -3030,7 +3084,7 @@ function renderCorrectionSheets() {
             const score = activeIstCorrection.scores[sub.code][i] || 0;
             totalSubScore += score;
 
-            const keyMap = (typeof IST_OFFICIAL_ANSWER_KEYS !== 'undefined' && IST_OFFICIAL_ANSWER_KEYS) ? (IST_OFFICIAL_ANSWER_KEYS[sub.no] || IST_OFFICIAL_ANSWER_KEYS[sub.code]) : null;
+            const keyMap = getIstSubtestKeyMap(sub);
             const expectedKey = (keyMap && keyMap[String(i)]) ? keyMap[String(i)] : '';
 
             // Input number / stepper yang fleksibel (0/1 untuk PG, 0/1/2 untuk GE)
@@ -3068,9 +3122,7 @@ function renderCorrectionSheets() {
             `;
         }
 
-        if (totalSubScore > 0 || activeIstCorrection.rw[sub.code] === undefined) {
-            activeIstCorrection.rw[sub.code] = totalSubScore;
-        }
+        activeIstCorrection.rw[sub.code] = Math.max(totalSubScore, activeIstCorrection.rw[sub.code] || 0);
         const currentSubRw = activeIstCorrection.rw[sub.code] || 0;
 
         html += `

@@ -277,6 +277,96 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
     }
 }
 
+function makeProctoringCameraDraggable(container) {
+    if (!container || container.dataset.draggableInitialized === 'true') return;
+    container.dataset.draggableInitialized = 'true';
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+
+    container.style.touchAction = 'none';
+
+    const onPointerDown = (e) => {
+        // Hanya respons terhadap tombol utama (left click / touch)
+        if (e.button !== undefined && e.button !== 0) return;
+
+        isDragging = true;
+        container.style.cursor = 'grabbing';
+        container.style.transition = 'none';
+
+        // Konversi koordinat bottom/right CSS default ke koordinat absolut left/top pada layar
+        const rect = container.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        container.style.bottom = 'auto';
+        container.style.right = 'auto';
+        container.style.left = `${initialLeft}px`;
+        container.style.top = `${initialTop}px`;
+
+        startX = e.clientX;
+        startY = e.clientY;
+
+        try {
+            container.setPointerCapture(e.pointerId);
+        } catch (err) {}
+
+        e.preventDefault();
+    };
+
+    const onPointerMove = (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        let newLeft = initialLeft + deltaX;
+        let newTop = initialTop + deltaY;
+
+        // Batasi di dalam batas layar (viewport) agar kamera tidak keluar jendela browser (HP, Tab, Desktop)
+        const pad = 8;
+        const maxLeft = Math.max(pad, window.innerWidth - container.offsetWidth - pad);
+        const maxTop = Math.max(pad, window.innerHeight - container.offsetHeight - pad);
+
+        newLeft = Math.max(pad, Math.min(newLeft, maxLeft));
+        newTop = Math.max(pad, Math.min(newTop, maxTop));
+
+        container.style.left = `${newLeft}px`;
+        container.style.top = `${newTop}px`;
+
+        e.preventDefault();
+    };
+
+    const onPointerUp = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        container.style.cursor = 'grab';
+        try {
+            container.releasePointerCapture(e.pointerId);
+        } catch (err) {}
+    };
+
+    container.addEventListener('pointerdown', onPointerDown);
+    container.addEventListener('pointermove', onPointerMove);
+    container.addEventListener('pointerup', onPointerUp);
+    container.addEventListener('pointercancel', onPointerUp);
+
+    // Antisipasi resize layar (misal rotasi HP atau ubah ukuran browser)
+    window.addEventListener('resize', () => {
+        if (container.style.left && container.style.display !== 'none') {
+            const rect = container.getBoundingClientRect();
+            const pad = 8;
+            const maxLeft = Math.max(pad, window.innerWidth - container.offsetWidth - pad);
+            const maxTop = Math.max(pad, window.innerHeight - container.offsetHeight - pad);
+            if (rect.left > maxLeft) container.style.left = `${maxLeft}px`;
+            if (rect.top > maxTop) container.style.top = `${maxTop}px`;
+        }
+    });
+}
+
 function startProctoringCamera() {
     // Kunci Ketat: Floating live camera HANYA diizinkan menyala pada IST Subtes 09 (Mengingat Kata)
     const isSubtes09 = typeof istLogic !== 'undefined' && 
@@ -297,6 +387,7 @@ function startProctoringCamera() {
         container.classList.remove('hide-section');
         container.style.setProperty('display', 'block', 'important');
         container.style.setProperty('pointer-events', 'auto', 'important');
+        makeProctoringCameraDraggable(container);
     }
     if (video && typeof cameraStream !== 'undefined' && cameraStream && cameraStream.active) {
         video.srcObject = cameraStream;
@@ -323,6 +414,8 @@ function stopProctoringCamera() {
 // Jalankan fungsi aktifkanKamera() secara otomatis saat halaman pertama kali dimuat
 document.addEventListener('DOMContentLoaded', () => {
     aktifkanKamera();
+    const container = document.getElementById('proctoring-camera-container');
+    if (container) makeProctoringCameraDraggable(container);
 });
 
 // Daftarkan fungsi ke window
@@ -332,4 +425,5 @@ window.tampilkanModalKamera = tampilkanModalKamera;
 window.tutupModalKamera = tutupModalKamera;
 window.startProctoringCamera = startProctoringCamera;
 window.stopProctoringCamera = stopProctoringCamera;
+window.makeProctoringCameraDraggable = makeProctoringCameraDraggable;
 

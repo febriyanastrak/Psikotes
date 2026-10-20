@@ -425,9 +425,9 @@ const istUI = {
                             </span>
                         </div>
 
-                        <!-- KOTAK PERINGATAN TEGAS PENGAWASAN KAMERA (TUGAS 2 POIN 1) -->
+                        <!-- KOTAK PERINGATAN TEGAS PENGAWASAN KAMERA & PANDUAN POSISI TANGAN -->
                         <div class="mb-6 p-4 sm:p-5 rounded-2xl bg-red-50 border-2 border-red-500 shadow-sm text-red-900">
-                            <div class="flex items-start gap-3.5">
+                            <div class="flex items-start gap-3.5 mb-3.5">
                                 <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shrink-0 mt-0.5 shadow-sm">
                                     <i class="fa-solid fa-video"></i>
                                 </div>
@@ -436,8 +436,25 @@ const istUI = {
                                         <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
                                         PERHATIAN - WAKTU MENGHAFAL 3 MENIT
                                     </h4>
-                                    <p class="text-xs sm:text-sm font-bold text-red-950 mt-1.5 leading-relaxed">
-                                        Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda WAJIB mengangkat dan meletakkan kedua tangan Anda di atas meja agar terlihat oleh kamera selama 3 menit penuh. Dilarang keras mencatat atau memfoto layar. Sistem akan memantau postur Anda. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
+                                    <p class="text-xs text-red-700 font-semibold mt-0.5">
+                                        Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-3.5 bg-white/90 rounded-xl border border-red-200 shadow-xs">
+                                <div class="shrink-0 text-center">
+                                    <img src="assets/ist/panduan-tangan-ist09.png" alt="Panduan Posisi Tangan Wajib" class="w-28 sm:w-36 h-auto rounded-lg shadow-sm border border-red-300 object-cover mx-auto" />
+                                    <span class="inline-flex items-center gap-1 mt-1.5 text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-xs">
+                                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Contoh Pose Wajib
+                                    </span>
+                                </div>
+                                <div class="text-xs sm:text-sm text-red-950 space-y-2">
+                                    <p class="font-bold leading-relaxed">
+                                        Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                                    </p>
+                                    <p class="font-medium text-red-900 leading-normal">
+                                        Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
                                     </p>
                                 </div>
                             </div>
