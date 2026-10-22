@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isTahap2Aktif = localStorage.getItem('altrak_tahap2_aktif') === 'true';
-    const isFaseTahap2 = activeFase && (activeFase.includes('tahap2') || activeFase.includes('msdt') || activeFase.includes('epps') || activeFase.includes('cfit') || activeFase.includes('mbti'));
+    const isFaseTahap2 = activeFase && (activeFase.includes('tahap2') || activeFase.includes('msdt') || activeFase.includes('cfit') || activeFase.includes('mbti'));
 
     // 2. Jika seluruh rangkaian tes reguler sudah selesai dan bukan sesi aktif Tahap 2: Kunci di view-selesai
     if (savedId && savedName && (isPauliSelesai || activeFase === 'view-selesai') && (!isTahap2Aktif || !isFaseTahap2)) {

@@ -167,7 +167,7 @@ function setDashCardState(num, stateName) {
  * Memperbarui progress bar keseluruhan pada dashboard
  */
 function updateDashboardProgress() {
-    const total = 4;
+    const total = 5;
     const done = document.querySelectorAll('#view-dashboard .dash-card.is-done, #page-dashboard .dash-card.is-done, .dash-card.is-done').length;
     const pct = (done / total) * 100;
     const fill = document.getElementById('dashProgressFill');
@@ -178,7 +178,7 @@ function updateDashboardProgress() {
 
 /**
  * Membuka kunci kartu tes berikutnya saat suatu tes selesai
- * Urutan: 1: IST -> 2: PAPI Kostick -> 3: DISC -> 4: Pauli
+ * Urutan: 1: IST -> 2: PAPI Kostick -> 3: DISC -> 4: EPPS -> 5: Pauli
  * @param {number} completedTestNum Nomor tes yang baru diselesaikan
  */
 function unlockDashboardCard(completedTestNum) {
@@ -198,7 +198,8 @@ function unlockDashboardCard(completedTestNum) {
         1: "Mulai Tes 1 (IST)",
         2: "Mulai Tes 2 (PAPI Kostick)",
         3: "Mulai Tes 3 (DISC)",
-        4: "Mulai Tes 4 (Pauli)"
+        4: "Mulai Tes 4 (EPPS)",
+        5: "Mulai Tes 5 (Pauli)"
     };
 
     if (btnNext && cardNext) {
@@ -213,7 +214,7 @@ function unlockDashboardCard(completedTestNum) {
 }
 
 /**
- * Mereset seluruh kartu dashboard ke kondisi awal (Tes 1 aktif, Tes 2-4 terkunci, progres 0/4)
+ * Mereset seluruh kartu dashboard ke kondisi awal (Tes 1 aktif, Tes 2-5 terkunci, progres 0/5)
  */
 function resetDashboardState() {
     // 1. Reset Kartu 1: IST (Aktif)
@@ -226,8 +227,8 @@ function resetDashboardState() {
         btn1.onclick = function() { handleStartModule(1); };
     }
 
-    // 2. Reset Kartu 2, 3, 4: Terkunci
-    [2, 3, 4].forEach(num => {
+    // 2. Reset Kartu 2, 3, 4, 5: Terkunci
+    [2, 3, 4, 5].forEach(num => {
         setDashCardState(num, 'locked');
         const btn = document.getElementById('btn-test-' + num);
         if (btn) {
@@ -242,7 +243,7 @@ function resetDashboardState() {
     const fill = document.getElementById('dashProgressFill');
     const label = document.getElementById('dashProgressLabel');
     if (fill) fill.style.width = '0%';
-    if (label) label.textContent = '0 / 4 modul';
+    if (label) label.textContent = '0 / 5 modul';
 }
 
 if (typeof window !== 'undefined') {

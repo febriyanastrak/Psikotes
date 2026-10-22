@@ -325,13 +325,13 @@
                     <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">DASHBOARD</h2>
                       <p class="text-blue-100/90 text-sm sm:text-base mt-2 max-w-lg leading-relaxed">
                         Selesaikan seluruh tahapan modul di bawah ini secara berurutan sesuai alur rekrutmen: 
-                        <strong>IST</strong>, <strong>PAPI Kostick</strong>, <strong>DISC</strong>, dan diakhiri dengan <strong>Tes Pauli</strong>.
+                        <strong>IST</strong>, <strong>PAPI Kostick</strong>, <strong>DISC</strong>, <strong>EPPS</strong>, dan diakhiri dengan <strong>Tes Pauli</strong>.
                     </p>
 
                     <div class="mt-7 sm:mt-9 max-w-sm">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-blue-200 tracking-wide uppercase">Progres Keseluruhan</span>
-                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 4 modul</span>
+                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 5 modul</span>
                         </div>
                         <div class="dash-progress-track">
                             <div id="dashProgressFill" class="dash-progress-fill"></div>
@@ -372,14 +372,24 @@
                         <button id="btn-test-3" disabled onclick="handleLockedModule(3)" class="dash-btn dash-btn-locked">Terkunci</button>
                     </div>
 
-                    <!-- Modul 4: Pauli (Terkunci, Terbuka Setelah DISC) -->
+                    <!-- Modul 4: EPPS (Terkunci, Terbuka Setelah DISC) -->
                     <div id="card-4" class="dash-card is-locked w-full">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="dash-badge"><i class="fa-solid fa-layer-group"></i></div>
+                            <span class="dash-tag tag-locked">Terkunci</span>
+                        </div>
+                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 4: EPPS</h3>
+                        <button id="btn-test-4" disabled onclick="handleLockedModule(4)" class="dash-btn dash-btn-locked">Terkunci</button>
+                    </div>
+
+                    <!-- Modul 5: Pauli (Terkunci, Terbuka Setelah EPPS) -->
+                    <div id="card-5" class="dash-card is-locked w-full md:col-span-2 md:max-w-md">
                         <div class="flex items-start justify-between gap-3 mb-4">
                             <div class="dash-badge"><i class="fa-solid fa-calculator"></i></div>
                             <span class="dash-tag tag-locked">Terkunci</span>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 4: Pauli</h3>
-                        <button id="btn-test-4" disabled onclick="handleLockedModule(4)" class="dash-btn dash-btn-locked">Terkunci</button>
+                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 5: Pauli</h3>
+                        <button id="btn-test-5" disabled onclick="handleLockedModule(5)" class="dash-btn dash-btn-locked">Terkunci</button>
                     </div>
                 </div>
             </div>
@@ -604,7 +614,7 @@
                     </div>
                     <div
                         class="border-t border-slate-200 pt-5 space-y-3.5 text-slate-700 text-sm sm:text-base leading-relaxed">
-                        <p>Jawaban Anda untuk seluruh modul tes (IST, PAPI Kostick, DISC, dan Pauli) telah <strong
+                        <p>Jawaban Anda untuk seluruh modul tes (IST, PAPI Kostick, DISC, EPPS, dan Pauli) telah <strong
                                 class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">berhasil
                                 tersimpan aman</strong> di sistem database server kami dan akan dievaluasi oleh tim rekrutmen profesional PT Altrak 1978.</p>
                         <p>Kami sangat menghargai waktu, kesungguhan, serta integritas Anda dalam mengikuti seluruh
@@ -710,8 +720,8 @@
                     </div>
                 </div>
 
-                <!-- 4 KARTU MODUL ASESMEN KEPEMIMPINAN -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- 3 KARTU MODUL ASESMEN KEPEMIMPINAN -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <!-- KARTU 1: MSDT -->
                     <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
                         <div>
@@ -742,37 +752,7 @@
                         </button>
                     </div>
 
-                    <!-- KARTU 2: EPPS -->
-                    <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center text-xl font-black border border-emerald-500/20">
-                                    <i class="fa-solid fa-layer-group"></i>
-                                </div>
-                                <span id="badge-status-epps" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                                    <i class="fa-solid fa-clock mr-1"></i> Siap Dikerjakan
-                                </span>
-                            </div>
-                            <h3 class="text-lg font-black text-[#003865] mb-1">
-                                2. EPPS (Edwards Personal Preference)
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed mb-4">
-                                Mengukur 15 dimensi kebutuhan motivasi kerja, dinamika kepribadian eksekutif, dan validitas konsistensi jawaban kandidat.
-                            </p>
-                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mb-5">
-                                <span><i class="fa-solid fa-list-check text-emerald-600 mr-1"></i> 225 Soal</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-chart-column text-emerald-600 mr-1"></i> 15 Skala Motivasi</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btn-modul-epps" onclick="bukaModulEPPS()"
-                            class="w-full py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Mulai Tes EPPS</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- KARTU 3: CFIT -->
+                    <!-- KARTU 2: CFIT -->
                     <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-4">
@@ -784,7 +764,7 @@
                                 </span>
                             </div>
                             <h3 class="text-lg font-black text-[#003865] mb-1">
-                                3. CFIT (Culture Fair Intelligence Test)
+                                2. CFIT (Culture Fair Intelligence Test)
                             </h3>
                             <p class="text-xs text-slate-600 leading-relaxed mb-4">
                                 Mengukur kecerdasan murni (Fluid Intelligence) dan kemampuan penalaran abstrak dalam memecahkan masalah baru tanpa bias budaya/bahasa.
@@ -802,7 +782,7 @@
                         </button>
                     </div>
 
-                    <!-- KARTU 4: MBTI -->
+                    <!-- KARTU 3: MBTI -->
                     <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-4">
@@ -814,7 +794,7 @@
                                 </span>
                             </div>
                             <h3 class="text-lg font-black text-[#003865] mb-1">
-                                4. MBTI (Myers-Briggs Type Indicator)
+                                3. MBTI (Myers-Briggs Type Indicator)
                             </h3>
                             <p class="text-xs text-slate-600 leading-relaxed mb-4">
                                 Pemetaan 16 tipe kepribadian, gaya pemusatan energi, pengolahan informasi, pola pikir logis, dan preferensi kerja manajerial.
@@ -1071,10 +1051,10 @@
 
                 <div class="space-y-2 text-xs text-slate-600 bg-amber-50/70 p-4 rounded-xl border border-amber-200">
                     <p class="font-bold text-amber-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-flag-checkered text-amber-600"></i> Tahap Menuju Tes Akhir:
+                        <i class="fa-solid fa-flag-checkered text-amber-600"></i> Tahap Menuju Modul Berikutnya:
                     </p>
                     <p class="leading-relaxed text-slate-700">
-                        Setelah menyelesaikan DISC, Anda akan membuka modul terakhir: <strong>Tes 4: Pauli</strong> (Tes Ketahanan &amp; Kecepatan Kerja Kraepelin).
+                        Setelah menyelesaikan DISC, Anda akan membuka modul berikutnya: <strong>Tes 4: EPPS</strong> (Edwards Personal Preference Schedule).
                     </p>
                 </div>
 
@@ -1085,6 +1065,76 @@
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-disc')"
+                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
+                        Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL MODUL 4: EPPS (EDWARDS PERSONAL PREFERENCE SCHEDULE)                -->
+    <!-- ========================================================================= -->
+    <div id="modal-module-epps"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto custom-scrollbar">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-[#b9d0e7] overflow-hidden my-auto">
+            <div class="bg-gradient-to-r from-[#071f38] via-[#003865] to-[#0a4980] p-6 text-white relative">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 flex items-center justify-center text-xl font-black">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-200">Modul 4</span>
+                            <h3 class="text-xl sm:text-2xl font-black leading-tight">Tes 4: EPPS (Edwards Personal Preference Schedule)</h3>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('modal-module-epps')" class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 sm:p-8 space-y-5 text-slate-700 text-sm">
+                <div class="bg-[#edf3f9] p-4 sm:p-5 rounded-2xl border border-[#b9d0e7]">
+                    <h4 class="font-bold text-[#003865] text-base mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-amber-500"></i> Deskripsi Tes EPPS
+                    </h4>
+                    <p class="leading-relaxed text-slate-600">
+                        Edwards Personal Preference Schedule (EPPS) mengukur 15 dimensi kebutuhan motivasi kerja, dinamika kepribadian, dan konsistensi respon dalam lingkungan profesional PT Altrak 1978:
+                    </p>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-medium text-slate-700">
+                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                            <i class="fa-solid fa-check text-emerald-600"></i> 225 Pasang Pernyataan (A vs B)
+                        </li>
+                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                            <i class="fa-solid fa-check text-emerald-600"></i> 15 Skala Motivasi &amp; Orientasi Kerja
+                        </li>
+                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                            <i class="fa-solid fa-check text-emerald-600"></i> Tidak Ada Jawaban Benar atau Salah
+                        </li>
+                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                            <i class="fa-solid fa-check text-emerald-600"></i> Evaluasi Konsistensi Jawaban
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="space-y-2 text-xs text-slate-600 bg-amber-50/70 p-4 rounded-xl border border-amber-200">
+                    <p class="font-bold text-amber-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-flag-checkered text-amber-600"></i> Tahap Menuju Modul Akhir:
+                    </p>
+                    <p class="leading-relaxed text-slate-700">
+                        Setelah menyelesaikan EPPS, Anda akan membuka modul penutup: <strong>Tes 5: Pauli</strong> (Tes Ketahanan &amp; Kecepatan Kerja Kraepelin).
+                    </p>
+                </div>
+
+                <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                    <button onclick="startEppsTest()"
+                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Mulai Tes EPPS</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <button onclick="closeModal('modal-module-epps')"
                         class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
                         Dashboard
                     </button>

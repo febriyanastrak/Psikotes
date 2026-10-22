@@ -82,9 +82,12 @@
     }
 
     /**
-     * Memulai sesi tes EPPS dari dashboard Tahap 2
+     * Memulai sesi tes EPPS (Modul 4 Tahap 1)
      */
     function startEppsTest() {
+        if (typeof closeModal === 'function') {
+            closeModal('modal-module-epps');
+        }
         if (typeof pindahFase === 'function') {
             pindahFase('view-epps');
         } else if (typeof showPage === 'function') {
@@ -659,11 +662,11 @@
                 localStorage.setItem('epps_payload', JSON.stringify(payload));
             } catch (e) {}
 
-            if (window.tahap2State) window.tahap2State.modulSelesai.epps = true;
-
-            // Perbarui visual badge di Dashboard Tahap 2
-            if (typeof updateTahap2DashboardUI === 'function') {
-                updateTahap2DashboardUI();
+            // Buka kunci modul 5 (Pauli) melalui completeModule(4)
+            if (typeof completeModule === 'function') {
+                completeModule(4);
+            } else if (typeof unlockDashboardCard === 'function') {
+                unlockDashboardCard(4);
             }
 
             const pesanWaktu = diffDetik > 3600 
@@ -673,16 +676,24 @@
             if (typeof customAlert === 'function') {
                 customAlert(
                     "Tes EPPS Berhasil Disimpan",
-                    `Seluruh 225 jawaban pilihan kepemimpinan Anda telah tersimpan aman di database server PT Altrak 1978. ${pesanWaktu}.`,
+                    `Seluruh 225 jawaban pilihan motivasi kerja Anda telah tersimpan aman di database server PT Altrak 1978. ${pesanWaktu}. Kartu Tes 5: Pauli sekarang telah terbuka pada Dashboard Asesmen.`,
                     "success",
                     false,
                     () => {
-                        bukaDashboardTahap2();
+                        if (typeof pindahFase === 'function') {
+                            pindahFase('view-dashboard');
+                        } else if (typeof showPage === 'function') {
+                            showPage('page-dashboard');
+                        }
                     }
                 );
             } else {
                 alert(`Tes EPPS Berhasil Disimpan! ${pesanWaktu}.`);
-                bukaDashboardTahap2();
+                if (typeof pindahFase === 'function') {
+                    pindahFase('view-dashboard');
+                } else if (typeof showPage === 'function') {
+                    showPage('page-dashboard');
+                }
             }
         };
 

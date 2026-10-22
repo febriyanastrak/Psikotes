@@ -82,7 +82,7 @@ window.checkDashboardFullscreen = checkDashboardFullscreen;
 
 /**
  * Menangani pembukaan modul tes dari dashboard
- * @param {number} testNum Nomor modul tes (1: IST, 2: PAPI, 3: DISC, 4: Pauli)
+ * @param {number} testNum Nomor modul tes (1: IST, 2: PAPI, 3: DISC, 4: EPPS, 5: Pauli)
  */
 function handleStartModule(testNum) {
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -108,6 +108,14 @@ function handleStartModule(testNum) {
             modal.style.display = 'flex';
         }
     } else if (testNum === 4) {
+        const modal = document.getElementById('modal-module-epps');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        } else if (typeof startEppsTest === 'function') {
+            startEppsTest();
+        }
+    } else if (testNum === 5) {
         showPauliTutorial();
     }
 }
@@ -136,7 +144,7 @@ function startISTTest() {
 }
 
 /**
- * Menyelesaikan modul instruksi (IST, PAPI, DISC) dan membuka kunci modul berikutnya
+ * Menyelesaikan modul instruksi (IST, PAPI, DISC, EPPS) dan membuka kunci modul berikutnya
  * @param {number} testNum Nomor modul tes yang diselesaikan
  */
 function completeModule(testNum) {
@@ -144,18 +152,22 @@ function completeModule(testNum) {
         localStorage.setItem('papi_selesai', 'true');
     } else if (testNum === 3) {
         localStorage.setItem('disc_selesai', 'true');
+    } else if (testNum === 4) {
+        localStorage.setItem('epps_selesai', 'true');
     }
 
     const modalIds = {
         1: 'modal-module-ist',
         2: 'modal-module-papi',
-        3: 'modal-module-disc'
+        3: 'modal-module-disc',
+        4: 'modal-module-epps'
     };
 
     const nextNames = {
         1: 'Tes 2: PAPI Kostick',
         2: 'Tes 3: DISC',
-        3: 'Tes 4: Pauli'
+        3: 'Tes 4: EPPS',
+        4: 'Tes 5: Pauli'
     };
 
     const currentModalId = modalIds[testNum];
@@ -186,12 +198,13 @@ function handleLockedModule(testNum) {
         1: "Tes 1: IST",
         2: "Tes 2: PAPI Kostick",
         3: "Tes 3: DISC",
-        4: "Tes 4: Pauli"
+        4: "Tes 4: EPPS",
+        5: "Tes 5: Pauli"
     };
     const modulName = modulNames[testNum] || `Tes ${testNum}`;
     customAlert(
         "Modul Masih Terkunci",
-        `Rangkaian asesmen PT Altrak 1978 harus dikerjakan secara berurutan:\n1. IST → 2. PAPI Kostick → 3. DISC → 4. Pauli.\n\nHarap selesaikan modul sebelumnya terlebih dahulu untuk membuka kunci ${modulName}.`,
+        `Rangkaian asesmen PT Altrak 1978 harus dikerjakan secara berurutan:\n1. IST → 2. PAPI Kostick → 3. DISC → 4. EPPS → 5. Pauli.\n\nHarap selesaikan modul sebelumnya terlebih dahulu untuk membuka kunci ${modulName}.`,
         'info'
     );
 }

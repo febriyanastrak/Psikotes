@@ -431,12 +431,12 @@ function viewCandidateChart(index) {
 
     // Cek apakah kandidat mengikuti asesmen manajerial tahap 2
     const hasDataTahap2 = !!(
-        row.hasil_msdt || row.hasil_epps || row.hasil_cfit || row.hasil_mbti || row.hasil_mcmi ||
+        row.hasil_msdt || row.hasil_cfit || row.hasil_mbti || row.hasil_mcmi ||
         row.token_tahap_2 || row.status_tahap_2
     );
 
     // Atur visibilitas tombol tab Tahap 2 secara dinamis
-    ['tabBtnMsdt', 'tabBtnEpps', 'tabBtnCfit', 'tabBtnMbti'].forEach(btnId => {
+    ['tabBtnMsdt', 'tabBtnCfit', 'tabBtnMbti'].forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
             btn.style.display = hasDataTahap2 ? 'inline-flex' : 'none';
@@ -451,9 +451,9 @@ function viewCandidateChart(index) {
     renderIstResults(row.hasil_ist);
     renderPapiResults(row.hasil_papi);
     renderDiscResults(row.hasil_disc);
+    renderEppsResults(row.hasil_epps);
     if (hasDataTahap2) {
         renderMsdtResults(row.hasil_msdt);
-        renderEppsResults(row.hasil_epps);
         renderCfitResults(row.hasil_cfit);
         renderMbtiResults(row.hasil_mbti || row.hasil_mcmi);
     }
@@ -989,9 +989,9 @@ let currentSelectedCandidate = null;
  */
 function switchHrdTab(tabId) {
     if (tabId === 'mcmi') tabId = 'mbti';
-    const tabs = ['pauli', 'ist', 'papi', 'disc', 'msdt', 'epps', 'cfit', 'mbti', 'foto'];
+    const tabs = ['pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'foto'];
     const hasDataTahap2 = currentSelectedCandidate && !!(
-        currentSelectedCandidate.hasil_msdt || currentSelectedCandidate.hasil_epps ||
+        currentSelectedCandidate.hasil_msdt ||
         currentSelectedCandidate.hasil_cfit || currentSelectedCandidate.hasil_mbti ||
         currentSelectedCandidate.hasil_mcmi ||
         currentSelectedCandidate.token_tahap_2 || currentSelectedCandidate.status_tahap_2
@@ -1005,7 +1005,7 @@ function switchHrdTab(tabId) {
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         const panel = document.getElementById('panelTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        const isTahap2Tab = ['msdt', 'epps', 'cfit', 'mbti'].includes(t);
+        const isTahap2Tab = ['msdt', 'cfit', 'mbti'].includes(t);
 
         if (btn) {
             if (isTahap2Tab && !hasDataTahap2) {

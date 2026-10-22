@@ -9,7 +9,6 @@ const tahap2State = {
     tokenTahap2: "",
     modulSelesai: {
         cfit: false,
-        epps: false,
         msdt: false,
         mbti: false
     }
@@ -166,18 +165,15 @@ function bukaDashboardTahap2() {
  */
 function updateDashboardTahap2Progress() {
     const cfitSelesai = localStorage.getItem('cfit_selesai') === 'true';
-    const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
     const msdtSelesai = localStorage.getItem('msdt_selesai') === 'true';
     const mbtiSelesai = localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
 
     tahap2State.modulSelesai.cfit = cfitSelesai;
-    tahap2State.modulSelesai.epps = eppsSelesai;
     tahap2State.modulSelesai.msdt = msdtSelesai;
     tahap2State.modulSelesai.mbti = mbtiSelesai;
 
     const modulConfig = [
         { key: 'msdt', isSelesai: msdtSelesai, badgeId: 'badge-status-msdt', btnId: 'btn-modul-msdt', label: 'MSDT' },
-        { key: 'epps', isSelesai: eppsSelesai, badgeId: 'badge-status-epps', btnId: 'btn-modul-epps', label: 'EPPS' },
         { key: 'cfit', isSelesai: cfitSelesai, badgeId: 'badge-status-cfit', btnId: 'btn-modul-cfit', label: 'CFIT' },
         { key: 'mbti', isSelesai: mbtiSelesai, badgeId: 'badge-status-mbti', btnId: 'btn-modul-mbti', label: 'MBTI' }
     ];
@@ -217,13 +213,11 @@ function updateDashboardTahap2Progress() {
  */
 async function konfirmasiSelesaiTahap2() {
     const cfitSelesai = localStorage.getItem('cfit_selesai') === 'true';
-    const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
     const msdtSelesai = localStorage.getItem('msdt_selesai') === 'true';
     const mbtiSelesai = localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
 
     const selesaiList = [];
     if (msdtSelesai) selesaiList.push("MSDT");
-    if (eppsSelesai) selesaiList.push("EPPS");
     if (cfitSelesai) selesaiList.push("CFIT");
     if (mbtiSelesai) selesaiList.push("MBTI");
 

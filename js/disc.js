@@ -627,14 +627,14 @@
                 localStorage.removeItem('disc_exam_end_time');
             } catch (eClear) {}
 
-            // 4. Buka kunci modul 4 (Pauli) melalui completeModule(3)
+            // 4. Buka kunci modul 4 (EPPS) melalui completeModule(3)
             if (typeof completeModule === 'function') {
                 completeModule(3);
             } else {
                 if (typeof customAlert === 'function') {
                     customAlert(
                         "Tes DISC Selesai",
-                        "Selamat! Tes 3 (DISC) telah berhasil diselesaikan. Modul 4 (Tes Pauli) sekarang telah terbuka.",
+                        "Selamat! Tes 3 (DISC) telah berhasil diselesaikan. Modul 4 (Tes EPPS) sekarang telah terbuka.",
                         "success",
                         false,
                         () => {

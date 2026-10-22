@@ -802,9 +802,9 @@ function prosesSimpanPauli(isTimeUp = false) {
         }
     }
 
-    // 7. Pauli adalah Tes ke-4 (Modul Terakhir) -> Tandai selesai di dashboard
+    // 7. Pauli adalah Tes ke-5 (Modul Terakhir) -> Tandai selesai di dashboard
     if (typeof unlockDashboardCard === 'function') {
-        unlockDashboardCard(4);
+        unlockDashboardCard(5);
     }
 
     // 8. Tutup semua modal pesan / loading yang mungkin terbuka

@@ -33,16 +33,20 @@
 
         const papiSelesai = localStorage.getItem('papi_selesai') === 'true';
         const discSelesai = localStorage.getItem('disc_selesai') === 'true';
+        const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
         const pauliSelesai = localStorage.getItem('pauli_selesai') === 'true';
 
         if (papiSelesai && typeof unlockDashboardCard === 'function') {
             unlockDashboardCard(2); // Buka kunci Tes 3: DISC
         }
         if (discSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(3); // Buka kunci Tes 4: Pauli
+            unlockDashboardCard(3); // Buka kunci Tes 4: EPPS
+        }
+        if (eppsSelesai && typeof unlockDashboardCard === 'function') {
+            unlockDashboardCard(4); // Buka kunci Tes 5: Pauli
         }
         if (pauliSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(4); // Selesai Keseluruhan
+            unlockDashboardCard(5); // Selesai Keseluruhan
         }
     }
 

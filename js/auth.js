@@ -435,10 +435,11 @@ async function handleUnifiedCandidateLogin(e) {
 
     // Bersihkan seluruh sesi tes sebelumnya dari browser
     const keysToClear = [
-        'ist_selesai', 'papi_selesai', 'disc_selesai', 'pauli_selesai',
+        'ist_selesai', 'papi_selesai', 'disc_selesai', 'epps_selesai', 'pauli_selesai',
         'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
         'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
-        'hasil_papi', 'hasil_disc', 'hasil_pauli', 'hasil_ist',
+        'epps_answers', 'epps_payload', 'epps_start_time',
+        'hasil_papi', 'hasil_disc', 'hasil_epps', 'hasil_pauli', 'hasil_ist',
         'pauli_matrix', 'pauli_line', 'altrak_fase_aktif'
     ];
     keysToClear.forEach(k => localStorage.removeItem(k));

@@ -27,7 +27,7 @@ const HRD_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 menit
 // =========================================================================
 (function() {
     if (typeof window === 'undefined' || !window.localStorage) return;
-    const CRITICAL_KEYS = ['ist_selesai', 'pauli_selesai', 'papi_selesai', 'disc_selesai'];
+    const CRITICAL_KEYS = ['ist_selesai', 'pauli_selesai', 'papi_selesai', 'disc_selesai', 'epps_selesai'];
     // Gunakan salt tetap stabil yang tidak berubah pada pergantian hari 00:00 UTC (07:00 WIB)
     const SECRET_SALT = 'Altrak_Assessment_2026_Enterprise_SecureHash_Permanent';
 
@@ -83,12 +83,13 @@ let state = {
         phone: "", 
         startTime: "" 
     },
-    // Urutan modul asesmen: 1: IST, 2: PAPI Kostick, 3: DISC, 4: Pauli
+    // Urutan modul asesmen: 1: IST, 2: PAPI Kostick, 3: DISC, 4: EPPS, 5: Pauli
     modules: {
         1: { id: 1, name: "IST", fullName: "Intelligenz Struktur Test", isCompleted: false },
         2: { id: 2, name: "PAPI Kostick", fullName: "Personality & Preference Inventory", isCompleted: false },
         3: { id: 3, name: "DISC", fullName: "Dominance, Influence, Steadiness, Conscientiousness", isCompleted: false },
-        4: { id: 4, name: "Pauli", fullName: "Tes Kraepelin - Pauli", isCompleted: false }
+        4: { id: 4, name: "EPPS", fullName: "Edwards Personal Preference Schedule", isCompleted: false },
+        5: { id: 5, name: "Pauli", fullName: "Tes Kraepelin - Pauli", isCompleted: false }
     },
     currentActiveModule: 1,
     pauli: {
