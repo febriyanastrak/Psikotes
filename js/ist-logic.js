@@ -503,7 +503,7 @@ const istLogic = {
     /**
      * Handler saat waktu ujian habis secara background
      */
-    waktuUjianHabis() {
+    async waktuUjianHabis() {
         const subtestData = this.getCurrentSubtestData();
         const subtestCode = String(this.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
@@ -544,7 +544,7 @@ const istLogic = {
         }
 
         // Simpan data jawaban secara diam-diam di background
-        const hasilSkor = this.hitungSkorIST();
+        const hasilSkor = await this.hitungSkorIST();
 
         // Tandai subtes selesai
         if (!this.completedSubtests.includes(subtestCode)) {
@@ -814,35 +814,62 @@ const istLogic = {
                 : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
 
             const idPesertaAktif = localStorage.getItem('id_peserta') || this.id_peserta;
-            if (sb && idPesertaAktif) {
-                // 1. Ambil data hasil_ist saat ini yang sudah berisi skor subtes dari fungsi SQL
-                const { data: rowKandidat } = await sb
-                    .from('kandidat_psikotes')
-                    .select('hasil_ist')
-                    .eq('id', idPesertaAktif)
-                    .single();
+            if (idPesertaAktif) {
+                // 1. Ambil data hasil_ist saat ini yang sudah berisi skor subtes dari fungsi SQL (jika ada)
+                let existingIst = {};
+                if (sb) {
+                    try {
+                        const { data: rowKandidat } = await sb
+                            .from('kandidat_psikotes')
+                            .select('hasil_ist')
+                            .eq('id', idPesertaAktif)
+                            .single();
+                        if (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object') {
+                            existingIst = rowKandidat.hasil_ist;
+                        }
+                    } catch (eSel) {}
+                }
 
-                const existingIst = (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object')
-                    ? rowKandidat.hasil_ist
+                // Ambil cadangan jawaban lengkap dari memori atau localStorage
+                let jawabanLengkap = (this.jawabanPeserta && Object.keys(this.jawabanPeserta).length > 0)
+                    ? { ...this.jawabanPeserta }
                     : {};
+                ['01','02','03','04','05','06','07','08','09'].forEach(sCode => {
+                    try {
+                        const subJawaban = JSON.parse(localStorage.getItem(`altrak_ist_jawaban_subtes_${sCode}`) || '{}');
+                        if (subJawaban && typeof subJawaban === 'object') {
+                            jawabanLengkap = { ...jawabanLengkap, ...subJawaban };
+                        }
+                    } catch (eSub) {}
+                });
 
                 // 2. Selipkan catatan pelanggaran & integritas dengan spread operator (skor SQL tetap 100% utuh)
                 const mergedIst = {
                     ...existingIst,
+                    ...dataIST,
+                    jawaban_peserta: { ...(existingIst.jawaban_peserta || {}), ...jawabanLengkap },
+                    subtest_selesai: (subtestList && subtestList.length > 0) ? subtestList : (existingIst.subtest_selesai || []),
                     pelanggaran_tab_switch: violations,
                     catatan_integritas: violations > 0
                         ? `[⚠️ Terdeteksi ${violations}x perpindahan tab/jendela]`
                         : 'Bersih (Tidak ada perpindahan tab)',
-                    foto_pengawasan: dataIST.foto_pengawasan || existingIst.foto_pengawasan || []
+                    foto_pengawasan: dataIST.foto_pengawasan || existingIst.foto_pengawasan || [],
+                    waktu_selesai: new Date().toISOString()
                 };
 
-                // 3. Simpan data gabungan kembali ke Supabase
-                await sb
-                    .from('kandidat_psikotes')
-                    .update({ hasil_ist: mergedIst })
-                    .eq('id', idPesertaAktif);
+                // 3. Simpan data gabungan kembali via updateHasilTes (aman dengan RLS & offline queue)
+                if (typeof updateHasilTes === 'function') {
+                    await updateHasilTes('hasil_ist', mergedIst);
+                } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                    await window.updateHasilTes('hasil_ist', mergedIst);
+                } else if (sb) {
+                    await sb
+                        .from('kandidat_psikotes')
+                        .update({ hasil_ist: mergedIst })
+                        .eq('id', idPesertaAktif);
+                }
 
-                console.log('[IST Logic] Safe Merge berhasil: Catatan integritas tersimpan, seluruh skor subtes SQL tetap utuh.');
+                console.log('[IST Logic] Safe Merge berhasil: Seluruh 176 lembar jawaban dan integritas tersimpan di Supabase.');
             }
         } catch (err) {
             console.warn('[IST Logic] Catatan Safe Merge Supabase:', err);

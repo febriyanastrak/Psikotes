@@ -144,6 +144,9 @@ function pindahFase(targetId) {
             try {
                 localStorage.removeItem('kandidat_foto_pengawasan');
             } catch (e) {}
+            if (typeof perbaruiStatusTombolTahap2 === 'function') {
+                perbaruiStatusTombolTahap2();
+            }
         }
     }
 

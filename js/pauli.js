@@ -899,17 +899,22 @@ async function sendToSupabase(payload = null, callback = null) {
                     waktu_selesai: waktuISO,
                     waktu_selesai_teks: payload["Waktu Selesai"]
                 };
-                const { error: errUp } = await sbClient
-                    .from('kandidat_psikotes')
-                    .update({
-                        hasil_pauli: JSON.stringify(dataPauli),
-                        waktu_selesai: waktuISO
-                    })
-                    .eq('id', idPeserta);
-                if (!errUp) {
-                    updatedKandidat = true;
+                if (typeof updateHasilTes === 'function') {
+                    const resUp = await updateHasilTes('hasil_pauli', dataPauli);
+                    if (resUp) updatedKandidat = true;
                 } else {
-                    console.warn('[Supabase Pauli] Catatan simpan waktu_selesai:', errUp.message || errUp);
+                    const { error: errUp } = await sbClient
+                        .from('kandidat_psikotes')
+                        .update({
+                            hasil_pauli: dataPauli,
+                            waktu_selesai: waktuISO
+                        })
+                        .eq('id', idPeserta);
+                    if (!errUp) {
+                        updatedKandidat = true;
+                    } else {
+                        console.warn('[Supabase Pauli] Catatan simpan waktu_selesai:', errUp.message || errUp);
+                    }
                 }
             }
 

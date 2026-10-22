@@ -122,15 +122,24 @@ async function handleVerifikasiTokenTahap2(e) {
     localStorage.setItem('token_tahap_2', rawToken);
     localStorage.setItem('altrak_tahap2_aktif', 'true');
 
-    // Catat token tahap 2 ke baris kandidat di Supabase
-    const idPeserta = localStorage.getItem('id_peserta');
-    if (sbClient && idPeserta) {
+    // Catat token tahap 2 ke baris kandidat di Supabase via updateHasilTes aman (RLS-compliant)
+    if (typeof updateHasilTes === 'function') {
         try {
-            await sbClient.from('kandidat_psikotes').update({
-                token_tahap_2: rawToken,
-                status_tahap_2: 'berlangsung'
-            }).eq('id', idPeserta);
-        } catch (eUp) {}
+            await updateHasilTes('token_tahap_2', rawToken);
+            await updateHasilTes('status_tahap_2', 'berlangsung');
+        } catch (eUp) {
+            console.warn('[Tahap 2 Token Save Warning]', eUp);
+        }
+    } else {
+        const idPeserta = localStorage.getItem('id_peserta');
+        if (sbClient && idPeserta) {
+            try {
+                await sbClient.from('kandidat_psikotes').update({
+                    token_tahap_2: rawToken,
+                    status_tahap_2: 'berlangsung'
+                }).eq('id', idPeserta);
+            } catch (eUp) {}
+        }
     }
 
     tutupModalTokenTahap2();
@@ -237,17 +246,26 @@ async function konfirmasiSelesaiTahap2() {
         if (btn) btn.disabled = true;
         if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengakhiri Sesi...';
 
-        const idPeserta = localStorage.getItem('id_peserta');
-        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
-
-        if (sbClient && idPeserta) {
+        const waktuSelesaiISO = new Date().toISOString();
+        if (typeof updateHasilTes === 'function') {
             try {
-                await sbClient.from('kandidat_psikotes').update({
-                    status_tahap_2: 'selesai',
-                    waktu_selesai_tahap2: new Date().toISOString()
-                }).eq('id', idPeserta);
+                await updateHasilTes('status_tahap_2', 'selesai');
+                await updateHasilTes('waktu_selesai_tahap2', waktuSelesaiISO);
             } catch (e) {
-                console.warn('[Finalize Tahap 2]', e);
+                console.warn('[Finalize Tahap 2 Warning]', e);
+            }
+        } else {
+            const idPeserta = localStorage.getItem('id_peserta');
+            const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            if (sbClient && idPeserta) {
+                try {
+                    await sbClient.from('kandidat_psikotes').update({
+                        status_tahap_2: 'selesai',
+                        waktu_selesai_tahap2: waktuSelesaiISO
+                    }).eq('id', idPeserta);
+                } catch (e) {
+                    console.warn('[Finalize Tahap 2]', e);
+                }
             }
         }
 
@@ -290,15 +308,25 @@ async function konfirmasiSelesaiTahap2() {
  * Menandai seluruh rangkaian asesmen kepemimpinan selesai 100%
  */
 async function selesaikanSeluruhTahap2() {
-    const idPeserta = localStorage.getItem('id_peserta');
-    const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
-    if (sbClient && idPeserta) {
+    const waktuISO = new Date().toISOString();
+    if (typeof updateHasilTes === 'function') {
         try {
-            await sbClient.from('kandidat_psikotes').update({
-                status_tahap_2: 'selesai',
-                waktu_selesai: new Date().toISOString()
-            }).eq('id', idPeserta);
-        } catch (e) {}
+            await updateHasilTes('status_tahap_2', 'selesai');
+            await updateHasilTes('waktu_selesai', waktuISO);
+        } catch (e) {
+            console.warn('[Selesaikan Seluruh Tahap 2 Warning]', e);
+        }
+    } else {
+        const idPeserta = localStorage.getItem('id_peserta');
+        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        if (sbClient && idPeserta) {
+            try {
+                await sbClient.from('kandidat_psikotes').update({
+                    status_tahap_2: 'selesai',
+                    waktu_selesai: waktuISO
+                }).eq('id', idPeserta);
+            } catch (e) {}
+        }
     }
 }
 

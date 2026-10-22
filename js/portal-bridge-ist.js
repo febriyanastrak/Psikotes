@@ -49,34 +49,67 @@
                     const idPesertaAktif = localStorage.getItem('id_peserta') || 'kandidat';
                     const violations = typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0;
 
-                    if (sb && idPesertaAktif && idPesertaAktif !== 'kandidat') {
-                        // 1. Ambil data hasil_ist yang ada saat ini dari Supabase
-                        const { data: rowKandidat } = await sb
-                            .from('kandidat_psikotes')
-                            .select('hasil_ist')
-                            .eq('id', idPesertaAktif)
-                            .single();
+                    if (idPesertaAktif && idPesertaAktif !== 'kandidat') {
+                        // 1. Ambil data hasil_ist yang ada saat ini dari Supabase (jika tersedia)
+                        let existingIst = {};
+                        if (sb) {
+                            try {
+                                const { data: rowKandidat } = await sb
+                                    .from('kandidat_psikotes')
+                                    .select('hasil_ist')
+                                    .eq('id', idPesertaAktif)
+                                    .single();
+                                if (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object') {
+                                    existingIst = rowKandidat.hasil_ist;
+                                }
+                            } catch (eSel) {}
+                        }
 
-                        const existingIst = (rowKandidat && rowKandidat.hasil_ist && typeof rowKandidat.hasil_ist === 'object')
-                            ? rowKandidat.hasil_ist
+                        // Ambil cadangan jawaban lengkap dari memori atau localStorage
+                        let jawabanLengkap = (istLogic && istLogic.jawabanPeserta && Object.keys(istLogic.jawabanPeserta).length > 0)
+                            ? { ...istLogic.jawabanPeserta }
                             : {};
+                        ['01','02','03','04','05','06','07','08','09'].forEach(sCode => {
+                            try {
+                                const subJawaban = JSON.parse(localStorage.getItem(`altrak_ist_jawaban_subtes_${sCode}`) || '{}');
+                                if (subJawaban && typeof subJawaban === 'object') {
+                                    jawabanLengkap = { ...jawabanLengkap, ...subJawaban };
+                                }
+                            } catch (eSub) {}
+                        });
 
-                        // 2. Selipkan catatan pelanggaran tanpa menghapus satu pun subtes hasil SQL
+                        let fotoList = [];
+                        try {
+                            fotoList = JSON.parse(localStorage.getItem('kandidat_foto_pengawasan') || '[]');
+                        } catch (eFoto) {}
+
+                        // 2. Gabungkan data: pertahankan skor subtes yang ada, sertakan seluruh lembar jawaban peserta & integritas
                         const mergedIst = {
                             ...existingIst,
+                            ...dataIST,
+                            jawaban_peserta: { ...(existingIst.jawaban_peserta || {}), ...jawabanLengkap },
+                            subtest_selesai: (subtestList && subtestList.length > 0) ? subtestList : (existingIst.subtest_selesai || []),
                             pelanggaran_tab_switch: violations,
                             catatan_integritas: violations > 0
                                 ? `[⚠️ Terdeteksi ${violations}x perpindahan tab/jendela]`
-                                : 'Bersih (Tidak ada perpindahan tab)'
+                                : 'Bersih (Tidak ada perpindahan tab)',
+                            foto_pengawasan: (fotoList && fotoList.length > 0) ? fotoList : (existingIst.foto_pengawasan || []),
+                            waktu_selesai: new Date().toISOString()
                         };
 
-                        // 3. Simpan kembali data gabungan
-                        await sb
-                            .from('kandidat_psikotes')
-                            .update({ hasil_ist: mergedIst })
-                            .eq('id', idPesertaAktif);
+                        // 3. Simpan kembali data gabungan via updateHasilTes (aman dengan RLS & offline queue)
+                        if (typeof updateHasilTes === 'function') {
+                            await updateHasilTes('hasil_ist', mergedIst);
+                        } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                            await window.updateHasilTes('hasil_ist', mergedIst);
+                        } else if (sb) {
+                            await sb
+                                .from('kandidat_psikotes')
+                                .update({ hasil_ist: mergedIst })
+                                .eq('id', idPesertaAktif);
+                        }
 
-                        console.log('[Portal Bridge IST] Safe Merge sukses: Catatan integritas tersimpan di Supabase.');
+                        console.log('[Portal Bridge IST] Safe Merge sukses: Seluruh 176 lembar jawaban dan integritas tersimpan di Supabase.');
                     }
                 } catch (err) {
                     console.warn('[Portal Bridge IST] Catatan penyimpanan Supabase:', err);

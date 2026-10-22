@@ -4348,49 +4348,53 @@ async function renderCandidatePhotos(candidate) {
                 }
             }
 
-            // 2. PRIORITAS 2: Backwards compatibility untuk foto legacy di folder lama (IST, PAULI, dll)
+            // 2. PRIORITAS 2: Ambil foto dari subfolder per modul tes (Format Opsi B: <folderName>/<candId>/<fileName> atau legacy <folderName>/<fileName>)
             const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC', 'MSDT', 'EPPS', 'CFIT', 'MBTI', 'MCMI'];
             for (const folderName of targetFolders) {
-                try {
-                    const { data: files, error } = await sbClient.storage.from('foto_kandidat').list(folderName, {
-                        limit: 100,
-                        sortBy: { column: 'name', order: 'asc' }
-                    });
-
-                    if (!error && files && files.length > 0) {
-                        const photoFiles = files.filter(f => 
-                            /\.(jpe?g|png|webp)$/i.test(f.name) && 
-                            (f.metadata ? f.metadata.size > 100 : true) &&
-                            isMatchCurrentCandidate(f.name)
-                        );
-
-                        photoFiles.forEach(f => {
-                            const filePath = `${folderName}/${f.name}`;
-                            const meta = parsePhotoMeta(f.name, folderName);
-                            if (meta.labelWaktu === '-' && f.created_at) {
-                                meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
-                            }
-
-                            const cleanBaseName = f.name.toLowerCase().trim();
-                            if (!seenFileNames.has(cleanBaseName)) {
-                                seenFileNames.add(cleanBaseName);
-                                if (meta.labelWaktu !== '-') seenTimestamps.add(meta.labelWaktu);
-
-                                rawPhotoEntries.push({
-                                    modul: meta.namaModul,
-                                    subtesStr: meta.namaSubtes,
-                                    subtesNo: meta.subtesNo,
-                                    fase: meta.namaFase,
-                                    labelWaktu: meta.labelWaktu,
-                                    path: filePath,
-                                    filePath: filePath,
-                                    fileName: f.name
-                                });
-                            }
+                const foldersToScan = candId ? [`${folderName}/${candId}`, folderName] : [folderName];
+                for (const pathScan of foldersToScan) {
+                    try {
+                        const { data: files, error } = await sbClient.storage.from('foto_kandidat').list(pathScan, {
+                            limit: 100,
+                            sortBy: { column: 'name', order: 'asc' }
                         });
+
+                        if (!error && files && files.length > 0) {
+                            const isCandidateSubfolder = pathScan.includes('/');
+                            const photoFiles = files.filter(f => 
+                                /\.(jpe?g|png|webp)$/i.test(f.name) && 
+                                (f.metadata ? f.metadata.size > 100 : true) &&
+                                (isCandidateSubfolder ? true : isMatchCurrentCandidate(f.name))
+                            );
+
+                            photoFiles.forEach(f => {
+                                const filePath = `${pathScan}/${f.name}`;
+                                const meta = parsePhotoMeta(f.name, folderName);
+                                if (meta.labelWaktu === '-' && f.created_at) {
+                                    meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
+                                }
+
+                                const cleanBaseName = f.name.toLowerCase().trim();
+                                if (!seenFileNames.has(cleanBaseName)) {
+                                    seenFileNames.add(cleanBaseName);
+                                    if (meta.labelWaktu !== '-') seenTimestamps.add(meta.labelWaktu);
+
+                                    rawPhotoEntries.push({
+                                        modul: meta.namaModul,
+                                        subtesStr: meta.namaSubtes,
+                                        subtesNo: meta.subtesNo,
+                                        fase: meta.namaFase,
+                                        labelWaktu: meta.labelWaktu,
+                                        path: filePath,
+                                        filePath: filePath,
+                                        fileName: f.name
+                                    });
+                                }
+                            });
+                        }
+                    } catch (errStorage) {
+                        console.warn(`Catatan pembacaan storage folder ${pathScan}:`, errStorage);
                     }
-                } catch (errStorage) {
-                    console.warn(`Catatan pembacaan storage legacy folder ${folderName}:`, errStorage);
                 }
             }
         }

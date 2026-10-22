@@ -23,9 +23,31 @@ function tampilkanHalamanSelesai() {
     if (namaEl && state.user && state.user.name) {
         namaEl.textContent = 'Selamat, ' + state.user.name + ' semoga sukses dalam proses seleksi!';
     }
+    if (typeof perbaruiStatusTombolTahap2 === 'function') {
+        perbaruiStatusTombolTahap2();
+    }
     showPage('page-selesai');
     window.scrollTo(0, 0);
 }
+
+/**
+ * Memperbarui tampilan tombol Tahap 2 di halaman selesai jika peserta telah menuntaskannya
+ */
+function perbaruiStatusTombolTahap2() {
+    const isTahap2Selesai = localStorage.getItem('altrak_tahap2_final_selesai') === 'true';
+    const container = document.getElementById('container-btn-tahap2');
+    if (!container) return;
+
+    if (isTahap2Selesai) {
+        container.innerHTML = `
+            <div class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 font-bold text-sm shadow-inner">
+                <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                <span>✓ Asesmen Tahap 2 (Manajerial) Telah Selesai & Terkunci</span>
+            </div>
+        `;
+    }
+}
+window.perbaruiStatusTombolTahap2 = perbaruiStatusTombolTahap2;
 
 /**
  * Memeriksa dan menampilkan modal gerbang Layar Penuh saat berada di Dashboard jika belum Fullscreen
@@ -601,6 +623,9 @@ document.addEventListener('click', (e) => {
 
 // Inisialisasi awal saat aplikasi selesai dimuat
 window.addEventListener('DOMContentLoaded', () => {
+    if (typeof perbaruiStatusTombolTahap2 === 'function') {
+        perbaruiStatusTombolTahap2();
+    }
     // Hanya buka login jika tidak ada sesi ujian aktif yang sedang dipulihkan oleh router SPA
     const savedId = localStorage.getItem('id_peserta');
     const savedName = localStorage.getItem('nama_peserta');

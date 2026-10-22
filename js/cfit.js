@@ -1167,8 +1167,7 @@
                 // 1. Coba nama fungsi resmi di Supabase: hitung_dan_simpan_cfit
                 let res = await sb.rpc('hitung_dan_simpan_cfit', {
                     p_id_peserta: String(idPeserta),
-                    p_jawaban: cfitState.answers,
-                    p_pelanggaran_tab: cfitState.pelanggaranTab || 0
+                    p_jawaban: cfitState.answers
                 });
 
                 // 2. Fallback jika nama fungsi terdaftar sebagai hitung_skor_cfit

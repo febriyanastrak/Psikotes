@@ -239,9 +239,9 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
             const waktuStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 
             // Format nama file: {folder}_{subtes}_{fase}_{waktuStr}_{randomUUID}.jpg
-            // Simpan di subfolder per ID kandidat: {safeCandidateId}/{fileName}
+            // Simpan di subfolder per ID kandidat di dalam folder tes: {folder}/{safeCandidateId}/{fileName}
             const fileName = `${folder}_${subtes}_${fase}_${waktuStr}_${randomSuffix}.jpg`;
-            const filePath = `${safeCandidateId}/${fileName}`;
+            const filePath = `${folder}/${safeCandidateId}/${fileName}`;
 
             // Simpan jejak metadata foto (hanya path & info tes, TANPA public URL & TANPA PII telepon/email)
             try {

@@ -28,7 +28,8 @@ const HRD_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 menit
 (function() {
     if (typeof window === 'undefined' || !window.localStorage) return;
     const CRITICAL_KEYS = ['ist_selesai', 'pauli_selesai', 'papi_selesai', 'disc_selesai'];
-    const SECRET_SALT = 'Altrak_Assessment_2026_SecureHash_' + Math.floor(Date.now() / 86400000);
+    // Gunakan salt tetap stabil yang tidak berubah pada pergantian hari 00:00 UTC (07:00 WIB)
+    const SECRET_SALT = 'Altrak_Assessment_2026_Enterprise_SecureHash_Permanent';
 
     function calcChecksum(k, v) {
         const raw = `${k}:${v}:${SECRET_SALT}`;
@@ -57,11 +58,14 @@ const HRD_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 menit
         if (CRITICAL_KEYS.includes(k)) {
             const expected = calcChecksum(k, val);
             const actual = _origGetItem('_sig_' + k);
-            if (actual !== expected) {
+            if (actual && actual !== expected) {
                 console.warn(`[Security Alert] Integritas data '${k}' tidak valid (diduga dimodifikasi). Reset status.`);
                 _origRemoveItem(k);
                 _origRemoveItem('_sig_' + k);
                 return null;
+            } else if (!actual && val) {
+                // Auto-migrasi: Jika signature belum ada dari sesi sebelumnya, buatkan signature aman
+                _origSetItem('_sig_' + k, expected);
             }
         }
     
