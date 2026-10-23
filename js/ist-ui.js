@@ -665,15 +665,17 @@ const istUI = {
                         </span>
                     </div>
 
-                    <!-- Gambar Opsi Patokan Jika Ada (Contoh Soal 08) -->
+                    <!-- Gambar Opsi Patokan Jika Ada (Contoh Soal 07 & 08) -->
                     ${item.gambarOpsi ? `
-                        <div class="mb-4 bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200">
-                            <div class="text-xs font-black text-[#003865] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                <i class="fa-solid fa-shapes text-amber-500"></i>
+                        <div class="mb-5 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="text-xs sm:text-sm font-black text-[#003865] uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-shapes text-amber-500 text-sm sm:text-base"></i>
                                 <span>${subtestData.id === 'soal_08' ? 'Pilihan Kubus Patokan (A, B, C, D, E):' : 'Pilihan Bentuk Patokan (A, B, C, D, E):'}</span>
                             </div>
-                            <div class="flex justify-center items-center overflow-x-auto">
-                                <img src="${item.gambarOpsi}" alt="Pilihan Patokan" class="max-w-full h-auto max-h-[105px] sm:max-h-[120px] object-contain select-none" draggable="false">
+                            <div class="flex justify-center items-center overflow-x-auto py-1">
+                                <img src="${item.gambarOpsi}" alt="Pilihan Patokan" 
+                                     class="w-full max-w-3xl h-auto ${subtestData.id === 'soal_07' ? 'max-h-[220px] sm:max-h-[260px]' : 'max-h-[150px] sm:max-h-[180px]'} object-contain select-none mx-auto transition-all" 
+                                     draggable="false">
                             </div>
                         </div>
                     ` : ''}
@@ -1401,10 +1403,10 @@ const istUI = {
                                 <span>${subtestData.id === 'soal_08' ? 'Pilihan Kubus Patokan (A, B, C, D, E)' : 'Pilihan Bentuk Patokan (A, B, C, D, E)'}</span>
                             </span>
                         </div>
-                        <div class="flex justify-center items-center overflow-x-auto">
+                        <div class="flex justify-center items-center overflow-x-auto py-1">
                             <img src="${soal.gambarOpsi}" alt="Pilihan Bentuk A-E" 
-                                 class="sticky-patokan-img select-none transition-all" 
-                                 style="max-height: 100px; width: 100%; object-fit: contain;"
+                                 class="sticky-patokan-img select-none transition-all w-full max-w-3xl mx-auto" 
+                                 style="max-height: 175px; width: 100%; object-fit: contain;" 
                                  draggable="false" loading="eager">
                         </div>
                     </div>

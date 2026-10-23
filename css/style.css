@@ -561,9 +561,15 @@ input[type="number"] {
 }
 
 .sticky-patokan-img {
-    max-height: 100px;
+    max-height: 175px;
     width: 100%;
     object-fit: contain;
+}
+
+@media (max-width: 640px) {
+    .sticky-patokan-img {
+        max-height: 120px;
+    }
 }
 
 /* =========================================================================
