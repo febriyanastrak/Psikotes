@@ -216,7 +216,7 @@ const istLogic = {
         if (!isPrevCompleted) {
             istUI.showModal({
                 title: "Urutan Pengerjaan Wajib",
-                message: `Rangkaian tes IST PT Altrak 1978 harus dikerjakan secara berurutan.\n\nHarap selesaikan Soal ${prevCode} terlebih dahulu untuk membuka akses Soal ${String(subtestNo).padStart(2, '0')}.`,
+                message: `Rangkaian tes Inteligent 1 PT Altrak 1978 harus dikerjakan secara berurutan.\n\nHarap selesaikan Soal ${prevCode} terlebih dahulu untuk membuka akses Soal ${String(subtestNo).padStart(2, '0')}.`,
                 type: "warning",
                 iconHtml: '<i class="fa-solid fa-lock text-amber-400"></i>',
                 okText: '<span>Mengerti</span>'
@@ -559,7 +559,7 @@ const istLogic = {
             message: `Waktu pengerjaan ${subtestName} telah habis.\n\nSeluruh lembar jawaban Anda telah dikunci dan berhasil tersimpan secara aman ke sistem database.`,
             type: "info",
             iconHtml: '<i class="fa-solid fa-clock text-blue-400"></i>',
-            okText: '<span>Lanjut ke Dashboard Soal IST</span> <i class="fa-solid fa-arrow-right"></i>',
+            okText: '<span>Lanjut ke Dashboard Soal Inteligent 1</span> <i class="fa-solid fa-arrow-right"></i>',
             onOk: () => {
                 this.tampilkanMenu9Subtes();
             }
@@ -905,7 +905,7 @@ const istLogic = {
         }
 
         // Teks pop-up pemberitahuan resmi sesuai instruksi
-        const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes 1 (IST). Kartu Tes 2: PAPI Kostick sekarang telah terbuka pada Dashboard Asesmen.";
+        const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes 1 (Inteligent 1). Kartu Tes 2: PAPI Kostick sekarang telah terbuka pada Dashboard Asesmen.";
 
         const navigasiKeDashboard = () => {
             if (typeof pindahFase === 'function') {
@@ -917,7 +917,7 @@ const istLogic = {
 
         if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
             istUI.showModal({
-                title: "Tes 1: IST Selesai",
+                title: "Tes 1: Inteligent 1 Selesai",
                 message: pesanSelesai,
                 type: "success",
                 iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
@@ -925,7 +925,7 @@ const istLogic = {
                 onOk: navigasiKeDashboard
             });
         } else if (typeof customAlert === 'function') {
-            customAlert("Tes 1: IST Selesai", pesanSelesai, "success", false, navigasiKeDashboard);
+            customAlert("Tes 1: Inteligent 1 Selesai", pesanSelesai, "success", false, navigasiKeDashboard);
         } else {
             alert(pesanSelesai);
             navigasiKeDashboard();
@@ -1141,7 +1141,7 @@ if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', (e) => {
         if ((istLogic.fase === 'UJIAN' || (istLogic.fase === 'CONTOH' && istLogic.currentSubtestNo === 9)) && !istLogic.isUjianTerkunci) {
             e.preventDefault();
-            e.returnValue = 'Tes IST sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!';
+            e.returnValue = 'Tes Inteligent 1 sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!';
             return e.returnValue;
         }
     });

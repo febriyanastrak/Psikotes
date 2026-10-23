@@ -243,7 +243,7 @@ const istUI = {
                         <div class="space-y-1.5">
                             <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-blue-200 border border-white/15">
                                 <i class="fa-solid fa-brain"></i>
-                                <span>TES IST</span>
+                                <span>TES INTELIGENT 1</span>
                             </div>
                             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">Daftar Bagian Soal</h2>
                             <p class="text-xs sm:text-sm text-blue-100/80 max-w-xl">
@@ -625,11 +625,10 @@ const istUI = {
                                 if (isPilihanGambar) {
                                     return `
                                         <div onclick="istLogic.simpanJawabanContoh('${contohNo}', '${optKey}'); istUI.renderFaseContoh(istLogic.sisaWaktuContohDetik);" 
-                                            class="flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-2xl border ${borderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865]">
-                                            <span class="w-8 h-8 rounded-xl ${badgeCls} flex items-center justify-center text-xs sm:text-sm font-black mb-1 transition-colors">
+                                            class="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl border ${borderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865] hover:scale-[1.03]">
+                                            <span class="w-8 h-8 rounded-xl ${badgeCls} flex items-center justify-center text-xs sm:text-sm font-black transition-colors">
                                                 ${optKey}
                                             </span>
-                                            <span class="text-xs font-bold text-slate-700 text-center">${optText || ('Bentuk ' + optKey)}</span>
                                             ${isKey ? '<span class="text-[10px] font-bold text-emerald-700 mt-1"><i class="fa-solid fa-check"></i> Kunci</span>' : ''}
                                         </div>
                                     `;
@@ -1284,9 +1283,9 @@ const istUI = {
 
                             return `
                                 <label for="${inputId}" 
-                                    class="radio-option-card flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-2xl border ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865]">
+                                    class="radio-option-card flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl border ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865] hover:scale-[1.03]">
                                     
-                                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1.5">
+                                    <div class="flex items-center gap-1.5 sm:gap-2">
                                         <input type="radio" 
                                             id="${inputId}" 
                                             name="ist_subtes_${subtestCode}_pilihan" 
@@ -1299,8 +1298,6 @@ const istUI = {
                                             ${optKey}
                                         </span>
                                     </div>
-
-                                    <span class="text-[11px] sm:text-xs font-semibold text-center text-slate-600">Bentuk ${optKey}</span>
                                 </label>
                             `;
                         }).join('')}

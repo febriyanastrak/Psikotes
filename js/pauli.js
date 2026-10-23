@@ -155,6 +155,10 @@ function startTrialPauliTest() {
     state.pauli.totalAnswered = 0;
     state.pauli.correct = 0;
     state.pauli.wrong = 0;
+    state.pauli.range1Correct = 0;
+    state.pauli.range1Wrong = 0;
+    state.pauli.range2Correct = 0;
+    state.pauli.range2Wrong = 0;
     state.pauli.timeLeft = trialDuration;
     state.pauli.startTimestamp = Date.now();
     state.pauli.isActive = true;
@@ -390,16 +394,17 @@ function handlePauliInput(num) {
         p.wrong = (p.wrong || 0) + 1;
     }
 
-    // Skoring per-range: catat benar/salah berdasarkan posisi dalam LEMBAR_PAULI_ASLI
-    const pos = p.index % PAULI_SCORE.TOTAL_LEN;
-    if (pos >= PAULI_SCORE.R1_START && pos < PAULI_SCORE.R1_END) {
-        if (isCorrect) p.range1Correct = (p.range1Correct || 0) + 1; else p.range1Wrong = (p.range1Wrong || 0) + 1;
+    // Skoring per-range resmi Pauli:
+    // Range 1 (Utama): Angka ke-601 s/d 1.000 (total 400 angka)
+    // Range 2 (Tambahan pengerjaan > 4.000): Angka ke-1.901 s/d 2.000 (total 100 angka)
+    const currentQ = p.index;
+    if (currentQ >= PAULI_SCORE.R1_START && currentQ <= PAULI_SCORE.R1_END) {
+        if (isCorrect) p.range1Correct = (p.range1Correct || 0) + 1;
+        else p.range1Wrong = (p.range1Wrong || 0) + 1;
     }
-    if (pos >= PAULI_SCORE.R2_START && pos < PAULI_SCORE.R2_END) {
-        if (isCorrect) p.range2Correct = (p.range2Correct || 0) + 1; else p.range2Wrong = (p.range2Wrong || 0) + 1;
-    }
-    if (pos >= PAULI_SCORE.R3_START && pos < PAULI_SCORE.R3_END) {
-        if (isCorrect) p.range3Correct = (p.range3Correct || 0) + 1; else p.range3Wrong = (p.range3Wrong || 0) + 1;
+    if (currentQ >= PAULI_SCORE.R2_START && currentQ <= PAULI_SCORE.R2_END) {
+        if (isCorrect) p.range2Correct = (p.range2Correct || 0) + 1;
+        else p.range2Wrong = (p.range2Wrong || 0) + 1;
     }
 
     p.totalAnswered = (p.totalAnswered || 0) + 1;
@@ -664,27 +669,27 @@ function prosesSimpanPauli(isTimeUp = false) {
         state.pauli.garisArray.push(0);
     }
 
-    // 3. Hitung skoring akhir berdasarkan range yang tepat
-    const finalIndex = state.pauli.index || 1;
+    // 3. Hitung skoring akhir resmi berdasarkan aturan baku tes Pauli:
+    //    - Jika total pengerjaan <= 4.000: hitung hanya kesalahan pada rentang angka 601 s/d 1.000
+    //    - Jika total pengerjaan > 4.000: hitung akumulasi kesalahan pada rentang 601 s/d 1.000 DAN 1.901 s/d 2.000
+    const totalDikerjakan = Number(state.pauli.totalAnswered || (state.pauli.index ? state.pauli.index - 1 : 0));
     let scoredCorrect, scoredWrong;
 
-    if (finalIndex < PAULI_SCORE.R2_END) {
-        // Peserta mengerjakan < 1000 angka dari posisi [5,5,6,9,4]
-        // Gunakan RANGE 1: [9,5,7,9,6,2,...,7,7,4,6,5,8,8,2] (posisi 0-619)
-        scoredCorrect = state.pauli.range1Correct;
-        scoredWrong = state.pauli.range1Wrong;
-    } else {
-        // Peserta mengerjakan >= 1000 angka dari posisi [5,5,6,9,4]
-        // Gunakan RANGE 2: [5,5,6,9,4,...+1000] (posisi 660-1659)
-        scoredCorrect = state.pauli.range2Correct;
-        scoredWrong = state.pauli.range2Wrong;
-
-        if (finalIndex >= PAULI_SCORE.R3_END) {
-            // Peserta menyelesaikan SEMUA angka tabel → tambah RANGE 3
-            // [3,8,5,7,4,...,6,8,9,3,6,6,5] (posisi 1839-1940)
-            scoredCorrect += (state.pauli.range3Correct || 0);
-            scoredWrong += (state.pauli.range3Wrong || 0);
+    if (totalDikerjakan <= PAULI_SCORE.TOTAL_LEN) {
+        // Total pengerjaan <= 4.000 angka
+        if (totalDikerjakan >= PAULI_SCORE.R1_START) {
+            // Sudah mencapai atau melewati rentang 601-1000
+            scoredWrong = Number(state.pauli.range1Wrong || 0);
+            scoredCorrect = Number(state.pauli.range1Correct || 0);
+        } else {
+            // Fallback aman jika peserta sangat lambat (< 601 soal)
+            scoredWrong = Number(state.pauli.wrong || 0);
+            scoredCorrect = Number(state.pauli.correct || 0);
         }
+    } else {
+        // Total pengerjaan > 4.000 angka: akumulasi rentang 601-1000 dan 1901-2000
+        scoredWrong = Number(state.pauli.range1Wrong || 0) + Number(state.pauli.range2Wrong || 0);
+        scoredCorrect = Number(state.pauli.range1Correct || 0) + Number(state.pauli.range2Correct || 0);
     }
 
     // Fallback jika belum masuk skoring range khusus

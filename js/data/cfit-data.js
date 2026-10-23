@@ -5,7 +5,7 @@
 // =========================================================================
 
 const CFIT_CONFIG = {
-    namaTes: "CFIT (Culture Fair Intelligence Test - Skala 3)",
+    namaTes: "Inteligent 2",
     deskripsi: "Mengukur kecerdasan murni (Fluid Intelligence) dan kemampuan penalaran abstrak tanpa bias budaya maupun bahasa.",
     subtes: [
         {

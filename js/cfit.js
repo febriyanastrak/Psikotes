@@ -242,7 +242,7 @@
                                     <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2
                                 </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
-                                    Culture Fair Intelligence Test (CFIT)
+                                    Inteligent 2
                                 </h1>
                                 <p class="text-xs sm:text-sm text-slate-200 mt-1">
                                     Pengukuran Fluid Intelligence &amp; Penalaran Abstrak (4 Subtes Berurutan)
@@ -268,7 +268,7 @@
                 ${totalSelesai >= 4 ? `
                 <div class="flex justify-end items-center pt-2">
                     <button type="button" onclick="window.cfitEngine.selesaiSeluruhCfit()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition flex items-center gap-2 shadow-md cursor-pointer">
-                        <i class="fa-solid fa-flag-checkered"></i> <span>Kirim &amp; Selesaikan Modul CFIT</span>
+                        <i class="fa-solid fa-flag-checkered"></i> <span>Kirim &amp; Selesaikan Modul Inteligent 2</span>
                     </button>
                 </div>
                 ` : ''}
@@ -488,14 +488,13 @@
 
             opsiButtonsHtml += `
                 <button type="button" onclick="window.cfitEngine.pilihJawabanContoh(${subtesNo}, ${contoh.no}, '${opt}', ${contohIdx})"
-                    class="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border-2 ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865]">
-                    <div class="flex items-center gap-1.5 mb-1">
-                        <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${badgeLetterCls} flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors">
+                    class="flex items-center justify-center p-3 sm:p-3.5 rounded-2xl border-2 ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865] hover:scale-[1.03]">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${badgeLetterCls} flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors">
                             ${opt}
                         </span>
                         ${isSelected ? (isKey ? '<i class="fa-solid fa-check text-xs text-emerald-600"></i>' : '<i class="fa-solid fa-xmark text-xs text-amber-500"></i>') : ''}
                     </div>
-                    <span class="text-[11px] sm:text-xs font-semibold text-center ${isSelected ? (isKey ? 'text-emerald-900 font-black' : 'text-amber-900 font-black') : 'text-slate-600'}">Pilihan ${opt}</span>
                 </button>
             `;
         });
@@ -794,14 +793,13 @@
 
             opsiButtonsHtml += `
                 <button type="button" onclick="window.cfitEngine.pilihJawabanUjian(${q.no}, '${opt}')"
-                    class="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border-2 ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865]">
-                    <div class="flex items-center gap-1.5 mb-1">
-                        <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${badgeLetterCls} flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors">
+                    class="flex items-center justify-center p-3 sm:p-3.5 rounded-2xl border-2 ${cardBorderCls} cursor-pointer transition-all select-none shadow-xs hover:border-[#003865] hover:scale-[1.03]">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${badgeLetterCls} flex items-center justify-center text-xs sm:text-sm font-black shrink-0 transition-colors">
                             ${opt}
                         </span>
                         ${isSelected ? '<i class="fa-solid fa-check text-xs text-amber-500"></i>' : ''}
                     </div>
-                    <span class="text-[11px] sm:text-xs font-semibold text-center ${isSelected ? 'text-[#003865] font-black' : 'text-slate-600'}">Pilihan ${opt}</span>
                 </button>
             `;
         });
@@ -1313,7 +1311,7 @@
                 </div>
                 <div>
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">MODUL SELESAI</span>
-                    <h2 class="text-2xl font-black text-slate-800 mt-2">Tes CFIT Telah Selesai</h2>
+                    <h2 class="text-2xl font-black text-slate-800 mt-2">Tes Inteligent 2 Telah Selesai</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
                         Seluruh jawaban 4 subtes Anda telah berhasil disimpan dan dikirim ke server asesmen PT Altrak 1978.
                     </p>
@@ -1365,7 +1363,7 @@
 
                 let msg = `Peringatan ke-${count}! Anda terdeteksi meninggalkan tab/jendela ujian. Harap tetap berada di halaman tes demi integritas asesmen PT Altrak 1978.`;
                 if (count >= cfitState.toleransiTab) {
-                    msg = `PERINGATAN TERAKHIR (${count}x)! Toleransi perpindahan tab telah terlampaui. Sesi tes CFIT Anda dihentikan dan jawaban dikirimkan secara otomatis ke server demi integritas tes.`;
+                    msg = `PERINGATAN TERAKHIR (${count}x)! Toleransi perpindahan tab telah terlampaui. Sesi tes Inteligent 2 Anda dihentikan dan jawaban dikirimkan secara otomatis ke server demi integritas tes.`;
                     alertModal(`Pelanggaran Integritas (${count}x)`, msg, () => {
                         selesaiSeluruhCfit();
                     });

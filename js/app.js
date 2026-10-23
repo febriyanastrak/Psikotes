@@ -195,7 +195,7 @@ function completeModule(testNum) {
  */
 function handleLockedModule(testNum) {
     const modulNames = {
-        1: "Tes 1: IST",
+        1: "Tes 1: Inteligent 1",
         2: "Tes 2: PAPI Kostick",
         3: "Tes 3: DISC",
         4: "Tes 4: EPPS",
@@ -204,7 +204,7 @@ function handleLockedModule(testNum) {
     const modulName = modulNames[testNum] || `Tes ${testNum}`;
     customAlert(
         "Modul Masih Terkunci",
-        `Rangkaian asesmen PT Altrak 1978 harus dikerjakan secara berurutan:\n1. IST → 2. PAPI Kostick → 3. DISC → 4. EPPS → 5. Pauli.\n\nHarap selesaikan modul sebelumnya terlebih dahulu untuk membuka kunci ${modulName}.`,
+        `Rangkaian asesmen PT Altrak 1978 harus dikerjakan secara berurutan:\n1. Inteligent 1 → 2. PAPI Kostick → 3. DISC → 4. EPPS → 5. Pauli.\n\nHarap selesaikan modul sebelumnya terlebih dahulu untuk membuka kunci ${modulName}.`,
         'info'
     );
 }

@@ -14,27 +14,19 @@ const LEMBAR_PAULI_ASLI = [
 ];
 
 // =========================================================================
-// KONSTANTA RANGE SKORING PAULI
-// Skoring benar/salah HANYA dihitung dari posisi-posisi tertentu:
-//
-// RANGE 1 (fallback): posisi 0..619   → [9,5,7,9,6,2,...,7,7,4,6,5,8,8,2]
-//   Dipakai jika peserta mengerjakan < 1000 angka dari posisi [5,5,6,9,4]
-//
-// RANGE 2 (utama) : posisi 660..1659  → [5,5,6,9,4,...+1000 angka]
-//   Dipakai jika peserta mengerjakan ≥ 1000 angka dari posisi [5,5,6,9,4]
-//
-// RANGE 3 (tambahan): posisi 1839..1940 → [3,8,5,7,4,...,6,8,9,3,6,6,5]
-//   Ditambahkan jika peserta menyelesaikan SEMUA angka di tabel (posisi ≥1941)
-//
-// Jika masih ada sisa waktu & angka habis → mulai ulang dari posisi 0
-// (otomatis tertangkap karena pos = index % LEMBAR_PAULI_ASLI.length)
+// KONSTANTA SKORING RESMI TES PAULI (STANDAR 4.000 ANGKA)
+// =========================================================================
+// 1. Lembar baku Pauli terdiri dari tepat 4.000 digit angka (0-9).
+// 2. Skoring kesalahan resmi (scoredWrong):
+//    - Range 1 (Utama): Angka ke-601 s/d 1.000 (total 400 soal).
+//      Digunakan jika total pengerjaan peserta <= 4.000 angka.
+//    - Range 2 (Tambahan): Angka ke-1.901 s/d 2.000 (total 100 soal).
+//      Diakumulasikan jika total pengerjaan peserta > 4.000 angka.
 // =========================================================================
 const PAULI_SCORE = {
-    TOTAL_LEN: 5000,  // panjang total LEMBAR_PAULI_ASLI
-    R1_START: 0,  // range 1 mulai dari [9,5,7,9,6,2]
-    R1_END: 1000,  // range 1 sampai akhir [7,7,4,6,5,8,8,2] (exclusive)
-    R2_START: 1000,  // range 2 mulai dari [5,5,6,9,4]
-    R2_END: 4000,  // range 2 = R2_START + 1000
-    R3_START: 4000,  // range 3 mulai dari [3,8,5,7,4]
-    R3_END: 5000   // range 3 sampai akhir [6,8,9,3,6,6,5] (exclusive)
+    TOTAL_LEN: 4000,  // panjang total LEMBAR_PAULI_ASLI
+    R1_START: 601,   // range 1 mulai dari angka ke-601
+    R1_END: 1000,    // range 1 sampai angka ke-1000 (inclusive, 400 angka)
+    R2_START: 1901,  // range 2 mulai dari angka ke-1901
+    R2_END: 2000     // range 2 sampai angka ke-2000 (inclusive, 100 angka)
 };

@@ -83,9 +83,9 @@ let state = {
         phone: "", 
         startTime: "" 
     },
-    // Urutan modul asesmen: 1: IST, 2: PAPI Kostick, 3: DISC, 4: EPPS, 5: Pauli
+    // Urutan modul asesmen: 1: Inteligent 1, 2: PAPI Kostick, 3: DISC, 4: EPPS, 5: Pauli
     modules: {
-        1: { id: 1, name: "IST", fullName: "Intelligenz Struktur Test", isCompleted: false },
+        1: { id: 1, name: "Inteligent 1", fullName: "Inteligent 1", isCompleted: false },
         2: { id: 2, name: "PAPI Kostick", fullName: "Personality & Preference Inventory", isCompleted: false },
         3: { id: 3, name: "DISC", fullName: "Dominance, Influence, Steadiness, Conscientiousness", isCompleted: false },
         4: { id: 4, name: "EPPS", fullName: "Edwards Personal Preference Schedule", isCompleted: false },
