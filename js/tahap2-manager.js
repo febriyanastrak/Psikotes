@@ -10,7 +10,8 @@ const tahap2State = {
     modulSelesai: {
         cfit: false,
         msdt: false,
-        mbti: false
+        mbti: false,
+        epps: false
     }
 };
 
@@ -167,15 +168,18 @@ function updateDashboardTahap2Progress() {
     const cfitSelesai = localStorage.getItem('cfit_selesai') === 'true';
     const msdtSelesai = localStorage.getItem('msdt_selesai') === 'true';
     const mbtiSelesai = localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
+    const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
 
     tahap2State.modulSelesai.cfit = cfitSelesai;
     tahap2State.modulSelesai.msdt = msdtSelesai;
     tahap2State.modulSelesai.mbti = mbtiSelesai;
+    tahap2State.modulSelesai.epps = eppsSelesai;
 
     const modulConfig = [
         { key: 'msdt', isSelesai: msdtSelesai, badgeId: 'badge-status-msdt', btnId: 'btn-modul-msdt', label: 'MSDT' },
         { key: 'cfit', isSelesai: cfitSelesai, badgeId: 'badge-status-cfit', btnId: 'btn-modul-cfit', label: 'CFIT' },
-        { key: 'mbti', isSelesai: mbtiSelesai, badgeId: 'badge-status-mbti', btnId: 'btn-modul-mbti', label: 'MBTI' }
+        { key: 'mbti', isSelesai: mbtiSelesai, badgeId: 'badge-status-mbti', btnId: 'btn-modul-mbti', label: 'MBTI' },
+        { key: 'epps', isSelesai: eppsSelesai, badgeId: 'badge-status-epps', btnId: 'btn-modul-epps', label: 'EPPS' }
     ];
 
     modulConfig.forEach(m => {
@@ -215,11 +219,13 @@ async function konfirmasiSelesaiTahap2() {
     const cfitSelesai = localStorage.getItem('cfit_selesai') === 'true';
     const msdtSelesai = localStorage.getItem('msdt_selesai') === 'true';
     const mbtiSelesai = localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
+    const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
 
     const selesaiList = [];
     if (msdtSelesai) selesaiList.push("MSDT");
     if (cfitSelesai) selesaiList.push("CFIT");
     if (mbtiSelesai) selesaiList.push("MBTI");
+    if (eppsSelesai && document.getElementById('btn-modul-epps')) selesaiList.push("EPPS");
 
     if (selesaiList.length === 0) {
         if (typeof customAlert === 'function') {

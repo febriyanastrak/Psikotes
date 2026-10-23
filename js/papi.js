@@ -985,6 +985,16 @@
                 }
             }
 
+            // Ambil cadangan jawaban dari localStorage jika memori lokal kosong
+            if (!papiAnswers || Object.keys(papiAnswers).length === 0) {
+                try {
+                    const savedPapi = JSON.parse(localStorage.getItem('papi_answers') || '{}');
+                    if (savedPapi && typeof savedPapi === 'object') {
+                        papiAnswers = { ...savedPapi };
+                    }
+                } catch (eSaved) {}
+            }
+
             // Hitung skor 20 dimensi secara otomatis (Safe Merge - Cegah Penimpaan Skor)
             const calculatedScores = hitungSkorPapi20Dimensi(papiAnswers);
 
@@ -992,19 +1002,28 @@
             const violations = (typeof tabSwitchViolations !== 'undefined') ? tabSwitchViolations : 0;
 
             // Simpan paket lengkap (jawaban + skor 20 dimensi + integritas + waktu) ke kolom hasil_papi lewat updateHasilTes
+            const papiPayload = {
+                jawaban: papiAnswers,
+                answers: papiAnswers,
+                p_jawaban: papiAnswers,
+                jawaban_peserta: papiAnswers,
+                scores: calculatedScores,
+                skor_dimensi: calculatedScores,
+                dimensi: calculatedScores,
+                pelanggaran_tab_switch: violations,
+                catatan_integritas: violations > 0 ? `Pernah ${violations}x ganti tab` : 'Bersih (0 Pelanggaran)',
+                selesai_pada: new Date().toISOString(),
+                waktu_selesai: new Date().toISOString()
+            };
+
             if (typeof updateHasilTes === 'function') {
-                await updateHasilTes('hasil_papi', {
-                    jawaban: papiAnswers,
-                    scores: calculatedScores,
-                    skor_dimensi: calculatedScores,
-                    pelanggaran_tab_switch: violations,
-                    catatan_integritas: violations > 0 ? `Pernah ${violations}x ganti tab` : 'Bersih (0 Pelanggaran)',
-                    selesai_pada: new Date().toISOString()
-                });
+                await updateHasilTes('hasil_papi', papiPayload);
+            } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                await window.updateHasilTes('hasil_papi', papiPayload);
             }
 
             localStorage.setItem('papi_terkirim', 'true');
-            localStorage.setItem('hasil_papi', JSON.stringify(papiAnswers));
+            localStorage.setItem('hasil_papi', JSON.stringify(papiPayload));
             localStorage.removeItem('papi_answers');
             papiAnswers = {};
 

@@ -65,17 +65,31 @@
                             } catch (eSel) {}
                         }
 
-                        // Ambil cadangan jawaban lengkap dari memori atau localStorage
-                        let jawabanLengkap = (istLogic && istLogic.jawabanPeserta && Object.keys(istLogic.jawabanPeserta).length > 0)
-                            ? { ...istLogic.jawabanPeserta }
-                            : {};
+                        // Ambil cadangan jawaban lengkap dari memori dan localStorage per subtes (01 - 09)
+                        const istSubMapping = {
+                            '01': 'SE', '02': 'WA', '03': 'AN', '04': 'GE',
+                            '05': 'RA', '06': 'ZR', '07': 'FA', '08': 'WU', '09': 'ME'
+                        };
+                        const subtesObjects = {};
+                        const structuredAnswers = {};
+
                         ['01','02','03','04','05','06','07','08','09'].forEach(sCode => {
+                            const subCode = istSubMapping[sCode];
+                            let subJawaban = {};
                             try {
-                                const subJawaban = JSON.parse(localStorage.getItem(`altrak_ist_jawaban_subtes_${sCode}`) || '{}');
-                                if (subJawaban && typeof subJawaban === 'object') {
-                                    jawabanLengkap = { ...jawabanLengkap, ...subJawaban };
-                                }
+                                subJawaban = JSON.parse(localStorage.getItem(`altrak_ist_jawaban_subtes_${sCode}`) || '{}');
                             } catch (eSub) {}
+                            if (istLogic && istLogic.currentSubtestNo === parseInt(sCode, 10) && istLogic.jawabanPeserta && Object.keys(istLogic.jawabanPeserta).length > 0) {
+                                subJawaban = { ...subJawaban, ...istLogic.jawabanPeserta };
+                            }
+                            const existingSub = (existingIst && (existingIst[`subtes_${sCode}`] || existingIst[subCode])) || {};
+                            subtesObjects[`subtes_${sCode}`] = {
+                                ...existingSub,
+                                jawaban_peserta: subJawaban,
+                                jawaban: subJawaban
+                            };
+                            structuredAnswers[subCode] = subJawaban;
+                            structuredAnswers[sCode] = subJawaban;
                         });
 
                         let fotoList = [];
@@ -87,7 +101,11 @@
                         const mergedIst = {
                             ...existingIst,
                             ...dataIST,
-                            jawaban_peserta: { ...(existingIst.jawaban_peserta || {}), ...jawabanLengkap },
+                            ...subtesObjects,
+                            jawaban_peserta: {
+                                ...(existingIst.jawaban_peserta || {}),
+                                ...structuredAnswers
+                            },
                             subtest_selesai: (subtestList && subtestList.length > 0) ? subtestList : (existingIst.subtest_selesai || []),
                             pelanggaran_tab_switch: violations,
                             catatan_integritas: violations > 0

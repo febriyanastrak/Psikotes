@@ -601,22 +601,31 @@
                 }
             }
 
-            // 2. Cadangan pengamanan (Zero Data Loss): jika RPC bermasalah, simpan via updateHasilTes
-            if (!rpcSuccess) {
-                try {
-                    const backupDisc = {
-                        status: 'selesai',
-                        modul: 'DISC Assessment',
-                        jawaban: payload,
-                        waktu_selesai: new Date().toISOString()
+            // 2. Standardisasi Kontrak Data: Pastikan jawaban mentah (1..24 P & K) dan hasil perhitungan tersimpan utuh
+            try {
+                let finalDiscPayload = {
+                    status: 'selesai',
+                    modul: 'DISC Assessment',
+                    jawaban: payload,
+                    answers: payload,
+                    waktu_selesai: new Date().toISOString()
+                };
+
+                if (rpcSuccess && discResultData && typeof discResultData === 'object') {
+                    finalDiscPayload = {
+                        ...discResultData,
+                        ...finalDiscPayload
                     };
-                    if (typeof updateHasilTes === 'function') {
-                        await updateHasilTes('hasil_disc', backupDisc);
-                    }
-                    console.log('[DISC] Cadangan hasil_disc tersimpan ke Supabase.');
-                } catch (eFallback) {
-                    console.warn('[DISC Fallback Error]:', eFallback);
                 }
+
+                if (typeof updateHasilTes === 'function') {
+                    await updateHasilTes('hasil_disc', finalDiscPayload);
+                } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                    await window.updateHasilTes('hasil_disc', finalDiscPayload);
+                }
+                console.log('[DISC] Paket data utuh hasil_disc (skor + rincian jawaban) tersimpan ke Supabase.');
+            } catch (eFallback) {
+                console.warn('[DISC Save Payload Error]:', eFallback);
             }
 
             // 3. Simpan status selesai ke localStorage & bersihkan timer

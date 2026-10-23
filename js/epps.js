@@ -632,8 +632,46 @@
                 ambilFotoEpps('Akhir', 'EPPS-Selesai');
             }
 
-            // Simpan HANYA jawaban mentah pilihan peserta (A dan B) ke database
-            // Seluruh matriks r, c, s, skor konsistensi, dan persentil dihitung secara privat di dashboard HRD
+            // Hitung skor 15 skala Edwards (r, c, s) & skor konsistensi (con) untuk data paket utuh
+            const redLineItems = [1, 26, 51, 7, 32, 57, 13, 38, 63, 19, 44, 69, 25, 50, 75];
+            const consistencyPairs = [
+                [1, 151], [26, 101], [51, 201],
+                [7, 157], [32, 107], [57, 207],
+                [13, 163], [38, 113], [63, 213],
+                [19, 169], [44, 119], [69, 219],
+                [25, 175], [50, 125], [75, 225]
+            ];
+            const eppsScaleCodes = ['ach', 'def', 'ord', 'exh', 'aut', 'aff', 'int', 'suc', 'dom', 'aba', 'nur', 'chg', 'end', 'het', 'agg'];
+            const rScores = {};
+            const cScores = {};
+            const sScores = {};
+            eppsScaleCodes.forEach(k => { rScores[k] = 0; cScores[k] = 0; sScores[k] = 0; });
+
+            const qList = (typeof EPPS_QUESTIONS !== 'undefined' && Array.isArray(EPPS_QUESTIONS)) ? EPPS_QUESTIONS : [];
+            qList.forEach(q => {
+                const ans = (eppsAnswers[q.no] || eppsAnswers[String(q.no)] || '').toString().trim().toUpperCase();
+                if (!redLineItems.includes(q.no)) {
+                    if (ans === 'A' && q.skalaA && rScores[q.skalaA] !== undefined) {
+                        rScores[q.skalaA]++;
+                    } else if (ans === 'B' && q.skalaB && cScores[q.skalaB] !== undefined) {
+                        cScores[q.skalaB]++;
+                    }
+                }
+            });
+            eppsScaleCodes.forEach(k => {
+                sScores[k] = (rScores[k] || 0) + (cScores[k] || 0);
+            });
+
+            let conScore = 0;
+            consistencyPairs.forEach(pair => {
+                const a1 = (eppsAnswers[pair[0]] || eppsAnswers[String(pair[0])] || '').toString().trim().toUpperCase();
+                const a2 = (eppsAnswers[pair[1]] || eppsAnswers[String(pair[1])] || '').toString().trim().toUpperCase();
+                if (a1 && a2 && a1 === a2) {
+                    conScore++;
+                }
+            });
+
+            // Simpan paket data lengkap (Ringkasan Skor + 225 Jawaban Mentah Peserta)
             const payload = {
                 status: 'selesai',
                 modul: 'EPPS (Edwards Personal Preference Schedule)',
@@ -644,13 +682,26 @@
                 is_overtime: diffDetik > 3600,
                 overtime_detik: Math.max(0, diffDetik - 3600),
                 pelanggaran_tab_switch: typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0,
-                jawaban: eppsAnswers
+                jawaban: eppsAnswers,
+                answers: eppsAnswers,
+                jawaban_peserta: eppsAnswers,
+                skor_skala: sScores,
+                skor_baris: rScores,
+                skor_kolom: cScores,
+                skor_konsistensi: conScore,
+                total_skor: 210
             };
 
             // Simpan ke Supabase via updateHasilTes
             if (typeof updateHasilTes === 'function') {
                 try {
                     await updateHasilTes('hasil_epps', payload);
+                } catch (e) {
+                    console.warn('[EPPS Save Warning]', e);
+                }
+            } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                try {
+                    await window.updateHasilTes('hasil_epps', payload);
                 } catch (e) {
                     console.warn('[EPPS Save Warning]', e);
                 }

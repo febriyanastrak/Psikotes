@@ -700,8 +700,109 @@
             const waktuMulaiISO = msdtStartTime || localStorage.getItem('msdt_start_time') || waktuSelesaiISO;
             const diffDetik = Math.max(1, Math.round((new Date(waktuSelesaiISO) - new Date(waktuMulaiISO)) / 1000));
 
-            // Simpan HANYA jawaban mentah pilihan peserta (A dan B) ke database
-            // Seluruh kalkulasi matriks Reddin & diagnosis gaya dihitung secara privat di dashboard HRD
+            // Hitung Rekapitulasi Matriks 8x8 dari Jawaban Mentah Peserta (Sesuai Rumus Resmi Reddin)
+            const countA = [0, 0, 0, 0, 0, 0, 0, 0];
+            const countB = [0, 0, 0, 0, 0, 0, 0, 0];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const no = r * 8 + c + 1;
+                    const ans = (msdtAnswers[no] || msdtAnswers[String(no)] || '').toString().trim().toUpperCase();
+                    if (ans === 'A') countA[r]++;
+                    if (ans === 'B') countB[c]++;
+                }
+            }
+
+            const koreksi = [+1, +2, +1, 0, +3, -1, 0, -4];
+            const colJumlah = [];
+            for (let c = 0; c < 8; c++) {
+                colJumlah.push(countA[c] + countB[c] + koreksi[c]);
+            }
+
+            const gayaMap = {
+                Ds: colJumlah[0],
+                Mi: colJumlah[1],
+                Au: colJumlah[2],
+                Co: colJumlah[3],
+                Bu: colJumlah[4],
+                Dv: colJumlah[5],
+                Ba: colJumlah[6],
+                E:  colJumlah[7]
+            };
+
+            const rawTO = gayaMap.Au + gayaMap.Co + gayaMap.Ba + gayaMap.E;
+            const rawRO = gayaMap.Mi + gayaMap.Co + gayaMap.Dv + gayaMap.E;
+            const rawE  = gayaMap.Bu + gayaMap.Dv + gayaMap.Ba + gayaMap.E;
+            const rawO  = gayaMap.Ds;
+
+            function konversiSkorKeIndeks(raw) {
+                if (raw <= 29) return 0.0;
+                if (raw >= 30 && raw <= 31) return 0.6;
+                if (raw >= 32 && raw <= 33) return 1.2;
+                if (raw >= 34 && raw <= 35) return 1.8;
+                if (raw >= 36 && raw <= 37) return 2.4;
+                if (raw >= 38 && raw <= 39) return 3.0;
+                if (raw >= 40 && raw <= 41) return 3.6;
+                return 4.0;
+            }
+
+            const indTO = konversiSkorKeIndeks(rawTO);
+            const indRO = konversiSkorKeIndeks(rawRO);
+            const indE  = konversiSkorKeIndeks(rawE);
+
+            let gayaKode = "EXECUTIVE";
+            if (indTO > 2.0) {
+                if (indRO > 2.0) {
+                    gayaKode = (indE > 2.0) ? "EXECUTIVE" : "COMPROMISER";
+                } else {
+                    gayaKode = (indE > 2.0) ? "BENEVOLENT_AUTOCRAT" : "AUTOCRAT";
+                }
+            } else {
+                if (indRO > 2.0) {
+                    gayaKode = (indE > 2.0) ? "DEVELOPER" : "MISSIONARY";
+                } else {
+                    gayaKode = (indE > 2.0) ? "BUREAUCRAT" : "DESERTER";
+                }
+            }
+
+            const gayaMetadata = {
+                EXECUTIVE: { nama: "Executive (Eksekutif)", tipe: "Efektif", deskripsi: "Mampu memotivasi tim kerja, menetapkan standar prestasi yang tinggi, memperlakukan bawahan secara adil, dan efektif mencapai target organisasi dengan menjaga hubungan tim yang harmonis." },
+                DEVELOPER: { nama: "Developer (Pembangun / Pembina)", tipe: "Efektif", deskripsi: "Menaruh kepercayaan penuh pada bawahan, fokus pada pengembangan potensi anggota tim, dan menciptakan iklim kerja kolaboratif yang sangat positif." },
+                BENEVOLENT_AUTOCRAT: { nama: "Benevolent Autocrat (Otokrat Bijak)", tipe: "Efektif", deskripsi: "Tegas, sangat berorientasi target dan hasil nyata tanpa memicu kebencian. Mampu mengambil keputusan cepat dan memastikan tugas selesai tepat waktu." },
+                BUREAUCRAT: { nama: "Bureaucrat (Birokrat / Tertib Aturan)", tipe: "Efektif", deskripsi: "Sangat taat pada SOP dan regulasi, teliti terhadap aturan dan prosedur, menjaga stabilitas sistem organisasi dan integritas proses kerja." },
+                COMPROMISER: { nama: "Compromiser (Kompromis)", tipe: "Kurang Efektif", deskripsi: "Terlalu mudah berkompromi di bawah tekanan, sering bimbang antara target kerja dan menyenangkan bawahan sehingga efektivitas kepemimpinan menurun." },
+                MISSIONARY: { nama: "Missionary (Misionaris / Penyenang)", tipe: "Kurang Efektif", deskripsi: "Terlalu mengutamakan keharmonisan hubungan pribadi sehingga enggan menegur bawahan dan sering mengorbankan pencapaian target organisasi." },
+                AUTOCRAT: { nama: "Autocrat (Otokrat)", tipe: "Kurang Efektif", deskripsi: "Terlalu mendominasi, menuntut kepatuhan mutlak, mengabaikan aspirasi bawahan, dan mengandalkan instruksi sepihak." },
+                DESERTER: { nama: "Deserter (Pelarian / Pasif)", tipe: "Kurang Efektif", deskripsi: "Cenderung lepas tangan dari tanggung jawab, pasif, enggan terlibat dalam dinamika tim, dan kurang peduli pada pencapaian target." }
+            };
+
+            const infoGaya = gayaMetadata[gayaKode] || gayaMetadata.EXECUTIVE;
+
+            const analisisMsdt = {
+                skor_8_gaya: gayaMap,
+                raw_to: rawTO,
+                raw_ro: rawRO,
+                raw_e: rawE,
+                raw_o: rawO,
+                indeks_to: indTO,
+                indeks_ro: indRO,
+                indeks_e: indE,
+                to: indTO,
+                ro: indRO,
+                e: indE,
+                gaya_utama: infoGaya.nama,
+                nama_gaya: infoGaya.nama,
+                tipe_efektivitas: infoGaya.tipe,
+                deskripsi_gaya: infoGaya.deskripsi,
+                evaluasi_waktu: {
+                    durasi_pengerjaan_detik: diffDetik,
+                    durasi_teks: formatDurasiWaktu(diffDetik),
+                    is_overtime: diffDetik > 1800,
+                    overtime_teks: diffDetik > 1800 ? `${Math.round((diffDetik - 1800) / 60)} Menit` : '0 Menit'
+                }
+            };
+
+            // Simpan paket data lengkap (Ringkasan Skor Analisis Reddin + 64 Jawaban Mentah Peserta)
             const payload = {
                 status: 'selesai',
                 modul: 'MSDT (Management Style Diagnostic Test)',
@@ -712,13 +813,23 @@
                 is_overtime: diffDetik > 1800,
                 overtime_detik: Math.max(0, diffDetik - 1800),
                 pelanggaran_tab_switch: typeof tabSwitchViolations !== 'undefined' ? tabSwitchViolations : 0,
-                jawaban: msdtAnswers
+                jawaban: msdtAnswers,
+                answers: msdtAnswers,
+                jawaban_peserta: msdtAnswers,
+                analisis: analisisMsdt,
+                ...analisisMsdt
             };
 
             // Simpan ke Supabase via updateHasilTes
             if (typeof updateHasilTes === 'function') {
                 try {
                     await updateHasilTes('hasil_msdt', payload);
+                } catch (e) {
+                    console.warn('[MSDT Save Warning]', e);
+                }
+            } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                try {
+                    await window.updateHasilTes('hasil_msdt', payload);
                 } catch (e) {
                     console.warn('[MSDT Save Warning]', e);
                 }

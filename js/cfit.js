@@ -1193,25 +1193,112 @@
             }
         }
 
-        // Cadangan offline / Fallback (Zero Data Loss) jika jaringan server terganggu
-        if (!rpcSuccess) {
-            const backupPayload = {
-                status: 'selesai',
-                modul: 'CFIT (Culture Fair Intelligence Test - Skala 3)',
-                answers: cfitState.answers,
-                pelanggaran_tab_switch: cfitState.pelanggaranTab || 0,
-                waktu_submit: new Date().toISOString()
-            };
-            try {
-                if (typeof window.updateHasilTes === 'function') {
-                    await window.updateHasilTes('hasil_cfit', backupPayload);
-                } else {
-                    localStorage.setItem('cadangan_hasil_cfit', JSON.stringify(backupPayload));
+        // Standardisasi Kontrak Data: Pastikan paket utuh (Ringkasan Skor + Rincian 50 Soal + Peta Jawaban) selalu tersimpan
+        let finalCfitPayload = {
+            status: 'selesai',
+            modul: 'CFIT (Culture Fair Intelligence Test - Skala 3)',
+            answers: cfitState.answers,
+            jawaban: cfitState.answers,
+            pelanggaran_tab_switch: cfitState.pelanggaranTab || 0,
+            waktu_submit: new Date().toISOString()
+        };
+
+        if (rpcSuccess && res && res.data && typeof res.data === 'object') {
+            finalCfitPayload = {
+                ...res.data,
+                ...finalCfitPayload,
+                analisis: {
+                    ...(res.data.analisis || res.data),
+                    answers: cfitState.answers
                 }
-            } catch (eFallback) {
-                console.warn("[CFIT Engine] Gagal menyimpan cadangan:", eFallback);
-                localStorage.setItem('cadangan_hasil_cfit', JSON.stringify(backupPayload));
+            };
+        } else {
+            // Evaluasi cadangan lokal jika RPC belum selesai / offline
+            const masterKeys = {
+                1: ["B", "C", "B", "D", "E", "B", "D", "B", "F", "C", "B", "B", "E"],
+                2: ["BE", "AE", "AD", "CE", "BE", "AD", "BE", "BE", "AD", "BD", "AE", "CD", "BC", "AB"],
+                3: ["E", "E", "E", "B", "C", "D", "E", "E", "A", "A", "F", "C", "C"],
+                4: ["B", "A", "D", "D", "A", "B", "C", "D", "A", "D"]
+            };
+            const subtesMeta = [
+                { no: 1, count: 13 },
+                { no: 2, count: 14 },
+                { no: 3, count: 13 },
+                { no: 4, count: 10 }
+            ];
+            const rincian = [];
+            let s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+            subtesMeta.forEach(meta => {
+                const subAns = (cfitState.answers && cfitState.answers[`subtes_${meta.no}`]) || {};
+                for (let q = 1; q <= meta.count; q++) {
+                    let userVal = subAns[q] || subAns[String(q)] || "-";
+                    if (Array.isArray(userVal)) {
+                        userVal = userVal.slice().sort().join('');
+                    } else if (typeof userVal === 'string') {
+                        userVal = userVal.trim().toUpperCase();
+                    }
+                    const correctKey = masterKeys[meta.no][q - 1];
+                    const isCorrect = (userVal === correctKey);
+                    const nilai = isCorrect ? 1 : 0;
+                    if (meta.no === 1 && isCorrect) s1++;
+                    if (meta.no === 2 && isCorrect) s2++;
+                    if (meta.no === 3 && isCorrect) s3++;
+                    if (meta.no === 4 && isCorrect) s4++;
+                    rincian.push({
+                        subtes: meta.no,
+                        no: q,
+                        jawaban: userVal,
+                        nilai: nilai
+                    });
+                }
+            });
+            const totalBenar = s1 + s2 + s3 + s4;
+            const CFIT_IQ_MAP = {
+                0: 62, 1: 64, 2: 66, 3: 68, 4: 70, 5: 72, 6: 74, 7: 76, 8: 78, 9: 80,
+                10: 82, 11: 84, 12: 86, 13: 88, 14: 90, 15: 92, 16: 94, 17: 96, 18: 98, 19: 100,
+                20: 102, 21: 104, 22: 106, 23: 108, 24: 110, 25: 112, 26: 114, 27: 116, 28: 118, 29: 120,
+                30: 122, 31: 124, 32: 126, 33: 128, 34: 130, 35: 132, 36: 134, 37: 136, 38: 138, 39: 140,
+                40: 142, 41: 144, 42: 146, 43: 148, 44: 150, 45: 152, 46: 154, 47: 156, 48: 158, 49: 160, 50: 162
+            };
+            const calcIq = CFIT_IQ_MAP[totalBenar] || 62;
+            let cat = "Average";
+            if (calcIq >= 130) cat = "Very Superior";
+            else if (calcIq >= 120) cat = "Superior";
+            else if (calcIq >= 110) cat = "High Average";
+            else if (calcIq >= 90) cat = "Average";
+            else if (calcIq >= 80) cat = "Low Average";
+            else cat = "Kurang (Borderline)";
+
+            const analisisFallback = {
+                total_benar: totalBenar,
+                raw_score: totalBenar,
+                skor_iq: calcIq,
+                iq_score: calcIq,
+                kategori_iq: cat,
+                kategori: cat,
+                rincian_subtes: { s1, s2, s3, s4 },
+                rincian_jawaban: rincian,
+                answers: cfitState.answers,
+                pelanggaran_tab_switch: cfitState.pelanggaranTab || 0
+            };
+            finalCfitPayload = {
+                ...finalCfitPayload,
+                ...analisisFallback,
+                analisis: analisisFallback
+            };
+        }
+
+        try {
+            if (typeof updateHasilTes === 'function') {
+                await updateHasilTes('hasil_cfit', finalCfitPayload);
+            } else if (typeof window !== 'undefined' && typeof window.updateHasilTes === 'function') {
+                await window.updateHasilTes('hasil_cfit', finalCfitPayload);
+            } else {
+                localStorage.setItem('cadangan_hasil_cfit', JSON.stringify(finalCfitPayload));
             }
+        } catch (eFallback) {
+            console.warn("[CFIT Engine] Gagal menyimpan payload:", eFallback);
+            localStorage.setItem('cadangan_hasil_cfit', JSON.stringify(finalCfitPayload));
         }
     }
 

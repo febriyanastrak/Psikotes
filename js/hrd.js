@@ -128,7 +128,14 @@ function renderHrdTable(dataList) {
 /**
  * Memfilter baris tabel HRD berdasarkan kata kunci pencarian (nama, email, nomor WA, atau ID)
  */
-function filterHrdTable() {
+let filterHrdDebounceTimer = null;
+function filterHrdTable(immediate = false) {
+    if (filterHrdDebounceTimer) {
+        clearTimeout(filterHrdDebounceTimer);
+        filterHrdDebounceTimer = null;
+    }
+
+    const _runFilter = () => {
     const searchInput = document.getElementById('hrdSearchInput');
     const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
     const mapped = cachedHrdData.map((row, index) => ({ row, originalIndex: index }));
@@ -152,7 +159,14 @@ function filterHrdTable() {
                token.includes(query) || id.includes(query);
     });
     
-    renderHrdTable(filtered);
+        renderHrdTable(filtered);
+    };
+
+    if (immediate) {
+        _runFilter();
+    } else {
+        filterHrdDebounceTimer = setTimeout(_runFilter, 200);
+    }
 }
 
 /**
@@ -302,25 +316,48 @@ async function loadHrdData() {
         // Helper mencocokkan apakah dua catatan adalah kandidat yang sama
         const isCandidateMatch = (a, b) => {
             if (!a || !b) return false;
+            // 1. Jika ID Supabase sama persis, pasti entri kandidat yang sama
             if (a.id && b.id && String(a.id) === String(b.id)) return true;
 
             const isRealEmail = (e) => e && e !== '-' && !e.includes('altrak1978.co.id') && e.includes('@');
             const emA = (a["Alamat Email"] || a.email || '').toString().trim().toLowerCase();
             const emB = (b["Alamat Email"] || b.email || '').toString().trim().toLowerCase();
-            if (isRealEmail(emA) && isRealEmail(emB) && emA === emB) return true;
+
+            // Proteksi: Jika kedua email terisi namun berbeda, PASTI kandidat berbeda
+            if (isRealEmail(emA) && isRealEmail(emB) && emA !== emB) return false;
 
             const waA = normalizeWaNumber(a["No WhatsApp"] || a.no_wa);
             const waB = normalizeWaNumber(b["No WhatsApp"] || b.no_wa);
-            if (waA && waB && waA.length >= 8 && waB.length >= 8) {
-                if (waA === waB || waA.slice(-8) === waB.slice(-8)) return true;
-            }
+            const hasWaA = waA.length >= 9;
+            const hasWaB = waB.length >= 9;
 
+            // Proteksi: Jika kedua nomor WA terisi namun berbeda, PASTI kandidat berbeda
+            if (hasWaA && hasWaB && waA !== waB) return false;
+
+            // 2. Jika email valid dan sama persis
+            if (isRealEmail(emA) && isRealEmail(emB) && emA === emB) return true;
+
+            // 3. Jika nomor WA valid dan sama persis
+            if (hasWaA && hasWaB && waA === waB) return true;
+
+            // 4. Jika memiliki token ujian unik yang sama persis
+            const tokA = (a["Token"] || a.token || '').toString().trim().toLowerCase();
+            const tokB = (b["Token"] || b.token || '').toString().trim().toLowerCase();
+            if (tokA && tokB && tokA !== '-' && tokA === tokB) return true;
+
+            // 5. Pencocokan nama: Hanya jika didukung kecocokan kontak atau catatan lama tanpa kontak
             const nmA = (a["Nama Lengkap"] || a.nama_lengkap || '').toString().trim().toLowerCase();
             const nmB = (b["Nama Lengkap"] || b.nama_lengkap || '').toString().trim().toLowerCase();
-            const isGenericName = (n) => !n || n === '-' || n === 'peserta' || n === 'peserta ujian';
+            const isGenericName = (n) => !n || n === '-' || n === 'peserta' || n === 'peserta ujian' || n === 'kandidat';
             if (!isGenericName(nmA) && !isGenericName(nmB) && nmA === nmB) {
-                if (isRealEmail(emA) && isRealEmail(emB) && emA !== emB) return false;
-                return true;
+                // Jangan gabung jika salah satu kontak berbeda
+                if ((isRealEmail(emA) && isRealEmail(emB) && emA !== emB) || (hasWaA && hasWaB && waA !== waB)) {
+                    return false;
+                }
+                // Gabung jika salah satu kontak sama persis
+                if ((isRealEmail(emA) && emA === emB) || (hasWaA && waA === waB)) {
+                    return true;
+                }
             }
 
             return false;
@@ -396,7 +433,7 @@ async function loadHrdData() {
         cachedHrdData = uniqueData;
         const searchInput = document.getElementById('hrdSearchInput');
         if (searchInput) searchInput.value = '';
-        filterHrdTable();
+        filterHrdTable(true);
     } catch (err) {
         console.error('Gagal mengambil data HRD:', err);
         if (tbody) {
