@@ -1,0 +1,28 @@
+# Version Control
+.git
+.gitignore
+
+# IDE & Editor
+.vscode
+.idea
+
+# Node & Package Logs
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database & Migrations
+supabase
+*.sql
+
+# Documentation & Temporary
+README*.md
+scratch
+*.tmp
+*.log
+
+# Docker Configuration Files
+Dockerfile
+docker-compose*.yml
+.dockerignore

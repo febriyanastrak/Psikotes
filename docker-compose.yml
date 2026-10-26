@@ -1,0 +1,18 @@
+services:
+  psikotes-altrak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: altrak-psikotes-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/index.html || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
