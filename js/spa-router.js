@@ -46,9 +46,9 @@ function pindahFase(targetId) {
         'hrd': 'view-hrd',
         'view-hrd': 'view-hrd',
 
-        'page-dashboard-tahap2': 'view-dashboard-tahap2',
-        'dashboard-tahap2': 'view-dashboard-tahap2',
-        'view-dashboard-tahap2': 'view-dashboard-tahap2',
+        'page-dashboard-tahap2': 'view-dashboard',
+        'dashboard-tahap2': 'view-dashboard',
+        'view-dashboard-tahap2': 'view-dashboard',
 
         'page-msdt': 'view-msdt',
         'msdt': 'view-msdt',
@@ -119,7 +119,9 @@ function pindahFase(targetId) {
         if (typeof stopProctoringCamera === 'function') {
             stopProctoringCamera();
         }
-        if (typeof terapkanPenguncianDashboard === 'function') {
+        if (typeof syncAllModuleCardStates === 'function') {
+            syncAllModuleCardStates();
+        } else if (typeof terapkanPenguncianDashboard === 'function') {
             terapkanPenguncianDashboard();
         }
         if (typeof updateDashboardProgress === 'function') {
@@ -215,12 +217,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const isTahap2Aktif = localStorage.getItem('altrak_tahap2_aktif') === 'true';
-    const isFaseTahap2 = activeFase && (activeFase.includes('tahap2') || activeFase.includes('msdt') || activeFase.includes('cfit') || activeFase.includes('mbti'));
+    // 2. Evaluasi apakah seluruh 8 modul telah selesai atau sesi ujian telah diakhiri secara eksplisit
+    let seluruhModulSelesai = false;
+    if (typeof ALL_ASSESSMENT_MODULES !== 'undefined' && typeof isModuleCompleted === 'function') {
+        seluruhModulSelesai = ALL_ASSESSMENT_MODULES.every(m => isModuleCompleted(m.id));
+    } else {
+        const istDone = localStorage.getItem('ist_selesai') === 'true';
+        const papiDone = localStorage.getItem('papi_selesai') === 'true';
+        const discDone = localStorage.getItem('disc_selesai') === 'true';
+        const eppsDone = localStorage.getItem('epps_selesai') === 'true';
+        const pauliDone = localStorage.getItem('pauli_selesai') === 'true';
+        const msdtDone = localStorage.getItem('msdt_selesai') === 'true';
+        const cfitDone = localStorage.getItem('cfit_selesai') === 'true';
+        const mbtiDone = localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
+        seluruhModulSelesai = istDone && papiDone && discDone && eppsDone && pauliDone && msdtDone && cfitDone && mbtiDone;
+    }
+    const isExplicitlySelesai = activeFase === 'view-selesai' || localStorage.getItem('altrak_asesmen_final_selesai') === 'true';
 
-    // 2. Jika seluruh rangkaian tes reguler sudah selesai dan bukan sesi aktif Tahap 2: Kunci di view-selesai
-    if (savedId && savedName && (isPauliSelesai || activeFase === 'view-selesai') && (!isTahap2Aktif || !isFaseTahap2)) {
-        console.log('[SPA Router] Seluruh rangkaian asesmen tahap 1 telah selesai. Menampilkan halaman selesai.');
+    if (savedId && savedName && (seluruhModulSelesai || isExplicitlySelesai)) {
+        console.log('[SPA Router] Seluruh rangkaian asesmen telah tuntas. Menampilkan halaman selesai.');
         pindahFase('view-selesai');
         setTimeout(() => {
             if (typeof tampilkanHalamanSelesai === 'function') {

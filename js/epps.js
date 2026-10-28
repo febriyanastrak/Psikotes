@@ -713,11 +713,12 @@
                 localStorage.setItem('epps_payload', JSON.stringify(payload));
             } catch (e) {}
 
-            // Buka kunci modul 5 (Pauli) melalui completeModule(4)
-            if (typeof completeModule === 'function') {
-                completeModule(4);
-            } else if (typeof unlockDashboardCard === 'function') {
+            // Tandai modul 4 (EPPS) selesai dan perbarui dashboard
+            if (typeof unlockDashboardCard === 'function') {
                 unlockDashboardCard(4);
+            }
+            if (typeof updateDashboardProgress === 'function') {
+                updateDashboardProgress();
             }
 
             const pesanWaktu = diffDetik > 3600 
@@ -727,7 +728,7 @@
             if (typeof customAlert === 'function') {
                 customAlert(
                     "Tes EPPS Berhasil Disimpan",
-                    `Seluruh 225 jawaban pilihan motivasi kerja Anda telah tersimpan aman di database server PT Altrak 1978. ${pesanWaktu}. Kartu Tes 5: Pauli sekarang telah terbuka pada Dashboard Asesmen.`,
+                    `Seluruh 225 jawaban pilihan motivasi kerja Anda telah tersimpan aman di database server PT Altrak 1978. ${pesanWaktu}. Anda dapat memilih modul tes lainnya pada Dashboard Asesmen.`,
                     "success",
                     false,
                     () => {

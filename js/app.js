@@ -82,7 +82,7 @@ window.checkDashboardFullscreen = checkDashboardFullscreen;
 
 /**
  * Menangani pembukaan modul tes dari dashboard
- * @param {number} testNum Nomor modul tes (1: IST, 2: PAPI, 3: DISC, 4: EPPS, 5: Pauli)
+ * @param {number} testNum Nomor modul tes (1 s.d 8)
  */
 function handleStartModule(testNum) {
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -94,18 +94,24 @@ function handleStartModule(testNum) {
         if (modal) {
             modal.classList.remove('hide-section');
             modal.style.display = 'flex';
+        } else if (typeof startISTTest === 'function') {
+            startISTTest();
         }
     } else if (testNum === 2) {
         const modal = document.getElementById('modal-module-papi');
         if (modal) {
             modal.classList.remove('hide-section');
             modal.style.display = 'flex';
+        } else if (typeof startPapiTest === 'function') {
+            startPapiTest();
         }
     } else if (testNum === 3) {
         const modal = document.getElementById('modal-module-disc');
         if (modal) {
             modal.classList.remove('hide-section');
             modal.style.display = 'flex';
+        } else if (typeof startDiscTest === 'function') {
+            startDiscTest();
         }
     } else if (testNum === 4) {
         const modal = document.getElementById('modal-module-epps');
@@ -116,7 +122,29 @@ function handleStartModule(testNum) {
             startEppsTest();
         }
     } else if (testNum === 5) {
-        showPauliTutorial();
+        if (typeof showPauliTutorial === 'function') {
+            showPauliTutorial();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-pauli-tutorial');
+        }
+    } else if (testNum === 6) {
+        if (typeof bukaModulMSDT === 'function') {
+            bukaModulMSDT();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-msdt');
+        }
+    } else if (testNum === 7) {
+        if (typeof bukaModulCFIT === 'function') {
+            bukaModulCFIT();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-cfit');
+        }
+    } else if (testNum === 8) {
+        if (typeof bukaModulMBTI === 'function') {
+            bukaModulMBTI();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-mbti');
+        }
     }
 }
 
@@ -144,16 +172,22 @@ function startISTTest() {
 }
 
 /**
- * Menyelesaikan modul instruksi (IST, PAPI, DISC, EPPS) dan membuka kunci modul berikutnya
+ * Menyelesaikan modul instruksi (IST, PAPI, DISC, EPPS, MSDT, CFIT, MBTI) dan memperbarui dashboard
  * @param {number} testNum Nomor modul tes yang diselesaikan
  */
 function completeModule(testNum) {
-    if (testNum === 2) {
-        localStorage.setItem('papi_selesai', 'true');
-    } else if (testNum === 3) {
-        localStorage.setItem('disc_selesai', 'true');
-    } else if (testNum === 4) {
-        localStorage.setItem('epps_selesai', 'true');
+    const flags = {
+        1: 'ist_selesai',
+        2: 'papi_selesai',
+        3: 'disc_selesai',
+        4: 'epps_selesai',
+        5: 'pauli_selesai',
+        6: 'msdt_selesai',
+        7: 'cfit_selesai',
+        8: 'mbti_selesai'
+    };
+    if (flags[testNum]) {
+        localStorage.setItem(flags[testNum], 'true');
     }
 
     const modalIds = {
@@ -163,49 +197,28 @@ function completeModule(testNum) {
         4: 'modal-module-epps'
     };
 
-    const nextNames = {
-        1: 'Tes 2: PAPI Kostick',
-        2: 'Tes 3: DISC',
-        3: 'Tes 4: EPPS',
-        4: 'Tes 5: Pauli'
-    };
-
     const currentModalId = modalIds[testNum];
     if (currentModalId) {
         closeModal(currentModalId);
     }
 
-    unlockDashboardCard(testNum);
+    if (typeof unlockDashboardCard === 'function') {
+        unlockDashboardCard(testNum);
+    }
 
     customAlert(
-        "Modul Diselesaikan",
-        `Selamat! Anda telah menyelesaikan instruksi Modul ${testNum}. Kartu ${nextNames[testNum]} sekarang telah terbuka pada Dashboard Asesmen.`,
+        "Modul Selesai",
+        `Selamat! Anda telah menyelesaikan Tes ${testNum}. Hasil jawaban Anda telah tersimpan aman di server PT Altrak 1978. Anda dapat memilih modul tes lainnya di Dashboard.`,
         "success",
         false,
         () => {
-            showPage('page-dashboard');
+            if (typeof pindahFase === 'function') {
+                pindahFase('view-dashboard');
+            } else if (typeof showPage === 'function') {
+                showPage('page-dashboard');
+            }
             window.scrollTo(0, 0);
         }
-    );
-}
-
-/**
- * Menangani klik tombol modul yang masih terkunci
- * @param {number} testNum Nomor modul tes
- */
-function handleLockedModule(testNum) {
-    const modulNames = {
-        1: "Tes 1: Inteligent 1",
-        2: "Tes 2: PAPI Kostick",
-        3: "Tes 3: DISC",
-        4: "Tes 4: EPPS",
-        5: "Tes 5: Pauli"
-    };
-    const modulName = modulNames[testNum] || `Tes ${testNum}`;
-    customAlert(
-        "Modul Masih Terkunci",
-        `Rangkaian asesmen PT Altrak 1978 harus dikerjakan secara berurutan:\n1. Inteligent 1 → 2. PAPI Kostick → 3. DISC → 4. EPPS → 5. Pauli.\n\nHarap selesaikan modul sebelumnya terlebih dahulu untuk membuka kunci ${modulName}.`,
-        'info'
     );
 }
 
@@ -664,3 +677,13 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     } catch (err) {}
 });
+
+if (typeof window !== 'undefined') {
+    window.handleStartModule = handleStartModule;
+    window.completeModule = completeModule;
+    window.tampilkanHalamanSelesai = tampilkanHalamanSelesai;
+    window.checkDashboardFullscreen = checkDashboardFullscreen;
+    window.startISTTest = startISTTest;
+    window.openConsentModal = openConsentModal;
+}
+

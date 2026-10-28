@@ -19,16 +19,7 @@ const tahap2State = {
  * Membuka Modal Input Token Tahap 2 dari halaman selesai
  */
 function bukaModalTokenTahap2() {
-    const modal = document.getElementById('modal-tahap2-token');
-    if (modal) {
-        modal.classList.remove('hide-section');
-        modal.style.display = 'flex';
-        const input = document.getElementById('inputTokenTahap2');
-        if (input) {
-            input.value = '';
-            input.focus();
-        }
-    }
+    bukaDashboardTahap2();
 }
 
 /**
@@ -150,11 +141,15 @@ async function handleVerifikasiTokenTahap2(e) {
  * Menampilkan Dashboard Asesmen Kepemimpinan Tahap 2
  */
 function bukaDashboardTahap2() {
-    console.log('[Tahap 2] Membuka Dashboard Asesmen Manajerial...');
+    console.log('[Tahap 2] Mengarahkan ke Dashboard Utama (Unifikasi Modul)...');
     if (typeof pindahFase === 'function') {
-        pindahFase('view-dashboard-tahap2');
+        pindahFase('view-dashboard');
+    } else if (typeof showPage === 'function') {
+        showPage('page-dashboard');
     }
-    updateDashboardTahap2Progress();
+    if (typeof syncAllModuleCardStates === 'function') {
+        syncAllModuleCardStates();
+    }
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
     }

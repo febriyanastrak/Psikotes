@@ -11,6 +11,10 @@
      * Menerapkan status penguncian berurutan pada kartu dashboard
      * Secara otomatis mendeteksi jika 9 subtes IST sudah selesai
      */
+    /**
+     * Menerapkan status kartu dashboard secara non-linear (bebas pilih)
+     * Sinkron dengan status pengerjaan seluruh 8 modul di localStorage
+     */
     function terapkanPenguncianDashboard() {
         let subtestsSelesai = [];
         try {
@@ -25,28 +29,13 @@
 
         if (isIstSelesai) {
             localStorage.setItem('ist_selesai', 'true');
-            if (typeof unlockDashboardCard === 'function') {
-                unlockDashboardCard(1); // Buka kunci Tes 2: PAPI Kostick
-            }
             localStorage.setItem('ist_terkirim_supabase', 'true');
         }
 
-        const papiSelesai = localStorage.getItem('papi_selesai') === 'true';
-        const discSelesai = localStorage.getItem('disc_selesai') === 'true';
-        const eppsSelesai = localStorage.getItem('epps_selesai') === 'true';
-        const pauliSelesai = localStorage.getItem('pauli_selesai') === 'true';
-
-        if (papiSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(2); // Buka kunci Tes 3: DISC
-        }
-        if (discSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(3); // Buka kunci Tes 4: EPPS
-        }
-        if (eppsSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(4); // Buka kunci Tes 5: Pauli
-        }
-        if (pauliSelesai && typeof unlockDashboardCard === 'function') {
-            unlockDashboardCard(5); // Selesai Keseluruhan
+        if (typeof syncAllModuleCardStates === 'function') {
+            syncAllModuleCardStates();
+        } else if (typeof unlockDashboardCard === 'function') {
+            unlockDashboardCard();
         }
     }
 

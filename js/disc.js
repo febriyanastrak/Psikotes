@@ -643,7 +643,7 @@
                 if (typeof customAlert === 'function') {
                     customAlert(
                         "Tes DISC Selesai",
-                        "Selamat! Tes 3 (DISC) telah berhasil diselesaikan. Modul 4 (Tes EPPS) sekarang telah terbuka.",
+                        "Selamat! Tes 3 (DISC) telah berhasil diselesaikan. Lembar jawaban Anda telah tersimpan aman di server PT Altrak 1978. Anda dapat memilih modul tes lainnya pada Dashboard Asesmen.",
                         "success",
                         false,
                         () => {

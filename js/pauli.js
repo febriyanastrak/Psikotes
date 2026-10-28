@@ -807,7 +807,11 @@ function prosesSimpanPauli(isTimeUp = false) {
         }
     }
 
-    // 7. Pauli adalah Tes ke-5 (Modul Terakhir) -> Tandai selesai di dashboard
+    // 7. Pauli selesai -> Tandai selesai di dashboard
+    try {
+        localStorage.setItem('pauli_selesai', 'true');
+    } catch (e) {}
+
     if (typeof unlockDashboardCard === 'function') {
         unlockDashboardCard(5);
     }
@@ -818,21 +822,45 @@ function prosesSimpanPauli(isTimeUp = false) {
         closeModal('modal-loading');
     }
 
-    // 9. Pastikan state user.name terisi untuk teks sambutan halaman selesai
+    // 9. Pastikan state user.name terisi untuk teks sambutan
     if (state.user && !state.user.name && candidateName) {
         state.user.name = candidateName;
     }
 
-    // Tandai asesmen telah selesai secara global
-    if (typeof window !== 'undefined') {
-        window._tesSelesai = true;
+    // 10. Evaluasi kelengkapan seluruh modul
+    let semuaModulSelesai = false;
+    if (typeof ALL_ASSESSMENT_MODULES !== 'undefined' && typeof isModuleCompleted === 'function') {
+        semuaModulSelesai = ALL_ASSESSMENT_MODULES.every(m => isModuleCompleted(m.id));
     }
 
-    // 10. Beralih LANGSUNG ke Halaman Selesai Asesmen seketika!
-    if (typeof tampilkanHalamanSelesai === 'function') {
-        tampilkanHalamanSelesai();
-    } else if (typeof showPage === 'function') {
-        showPage('page-selesai');
+    if (semuaModulSelesai) {
+        if (typeof window !== 'undefined') window._tesSelesai = true;
+        if (typeof tampilkanHalamanSelesai === 'function') {
+            tampilkanHalamanSelesai();
+        } else if (typeof showPage === 'function') {
+            showPage('page-selesai');
+        }
+    } else {
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Tes Pauli Selesai",
+                "Seluruh 20 garis interval tes Pauli Anda telah berhasil dihitung dan tersimpan aman di server PT Altrak 1978. Silakan lanjutkan pengerjaan modul lainnya pada Dashboard.",
+                "success",
+                false,
+                () => {
+                    if (typeof pindahFase === 'function') {
+                        pindahFase('view-dashboard');
+                    } else if (typeof showPage === 'function') {
+                        showPage('page-dashboard');
+                    }
+                    if (typeof syncAllModuleCardStates === 'function') {
+                        syncAllModuleCardStates();
+                    }
+                }
+            );
+        } else {
+            if (typeof pindahFase === 'function') pindahFase('view-dashboard');
+        }
     }
 
     if (document.fullscreenElement && document.exitFullscreen) {

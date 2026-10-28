@@ -323,15 +323,14 @@
                         <span>PT ALTRAK 1978</span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">DASHBOARD</h2>
-                      <p class="text-blue-100/90 text-sm sm:text-base mt-2 max-w-lg leading-relaxed">
-                        Selesaikan seluruh tahapan modul di bawah ini secara berurutan sesuai alur rekrutmen: 
-                        <strong>Inteligent 1</strong>, <strong>PAPI Kostick</strong>, <strong>DISC</strong>, <strong>EPPS</strong>, dan diakhiri dengan <strong>Tes Pauli</strong>.
+                      <p class="text-blue-100/90 text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
+                        Selesaikan seluruh modul asesmen di bawah ini. Anda dapat memilih dan mengerjakan modul tes manapun secara bebas tanpa batasan urutan.
                     </p>
 
                     <div class="mt-7 sm:mt-9 max-w-sm">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-blue-200 tracking-wide uppercase">Progres Keseluruhan</span>
-                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 5 modul</span>
+                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 8 modul</span>
                         </div>
                         <div class="dash-progress-track">
                             <div id="dashProgressFill" class="dash-progress-fill"></div>
@@ -340,56 +339,129 @@
                 </div>
             </div>
 
-            <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 -mt-9 sm:-mt-11 pb-16 relative z-10">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto place-items-center">
-                    <!-- Modul 1: IST (Aktif Pertama Kali) -->
-                    <div id="card-1" class="dash-card is-active w-full">
-                        <div class="flex items-start justify-between gap-3 mb-4">
-                            <div class="dash-badge"><i class="fa-solid fa-brain"></i></div>
-                            <span class="dash-tag tag-active">Sedang berlangsung</span>
+            <div class="max-w-6xl mx-auto w-full px-4 sm:px-8 -mt-9 sm:-mt-11 pb-16 relative z-10">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Modul 1: IST -->
+                    <div id="card-1" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-brain"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">1. Inteligent 1 (IST)</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Tes inteligensi komprehensif 9 subtes (verbal, numerik, dan spasial).</p>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 1: Inteligent 1</h3>
-                        <button id="btn-test-1" onclick="handleStartModule(1)" class="dash-btn dash-btn-active">Mulai Tes 1 (Inteligent 1)</button>
+                        <button id="btn-test-1" onclick="handleStartModule(1)" class="dash-btn dash-btn-active">Mulai Tes 1</button>
                     </div>
 
-                    <!-- Modul 2: PAPI Kostick (Terkunci, Terbuka Setelah IST) -->
-                    <div id="card-2" class="dash-card is-locked w-full">
-                        <div class="flex items-start justify-between gap-3 mb-4">
-                            <div class="dash-badge"><i class="fa-solid fa-compass"></i></div>
-                            <span class="dash-tag tag-locked">Terkunci</span>
+                    <!-- Modul 2: PAPI Kostick -->
+                    <div id="card-2" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-compass"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">2. PAPI Kostick</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Evaluasi 20 dimensi kebutuhan kerja dan preferensi kepemimpinan (90 Soal).</p>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 2: PAPI Kostick</h3>
-                        <button id="btn-test-2" disabled onclick="handleLockedModule(2)" class="dash-btn dash-btn-locked">Terkunci</button>
+                        <button id="btn-test-2" onclick="handleStartModule(2)" class="dash-btn dash-btn-active">Mulai Tes 2</button>
                     </div>
 
-                    <!-- Modul 3: DISC (Terkunci, Terbuka Setelah PAPI) -->
-                    <div id="card-3" class="dash-card is-locked w-full">
-                        <div class="flex items-start justify-between gap-3 mb-4">
-                            <div class="dash-badge"><i class="fa-solid fa-chart-pie"></i></div>
-                            <span class="dash-tag tag-locked">Terkunci</span>
+                    <!-- Modul 3: DISC -->
+                    <div id="card-3" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-chart-pie"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">3. DISC</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pemetaan profil perilaku Dominance, Influence, Steadiness, & Compliance (24 Soal).</p>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 3: DISC</h3>
-                        <button id="btn-test-3" disabled onclick="handleLockedModule(3)" class="dash-btn dash-btn-locked">Terkunci</button>
+                        <button id="btn-test-3" onclick="handleStartModule(3)" class="dash-btn dash-btn-active">Mulai Tes 3</button>
                     </div>
 
-                    <!-- Modul 4: EPPS (Terkunci, Terbuka Setelah DISC) -->
-                    <div id="card-4" class="dash-card is-locked w-full">
-                        <div class="flex items-start justify-between gap-3 mb-4">
-                            <div class="dash-badge"><i class="fa-solid fa-layer-group"></i></div>
-                            <span class="dash-tag tag-locked">Terkunci</span>
+                    <!-- Modul 4: EPPS -->
+                    <div id="card-4" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-layer-group"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">4. EPPS</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pengukuran 15 motivasi kerja, ketekunan, dan dorongan berprestasi (225 Soal).</p>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 4: EPPS</h3>
-                        <button id="btn-test-4" disabled onclick="handleLockedModule(4)" class="dash-btn dash-btn-locked">Terkunci</button>
+                        <button id="btn-test-4" onclick="handleStartModule(4)" class="dash-btn dash-btn-active">Mulai Tes 4</button>
                     </div>
 
-                    <!-- Modul 5: Pauli (Terkunci, Terbuka Setelah EPPS) -->
-                    <div id="card-5" class="dash-card is-locked w-full md:col-span-2 md:max-w-md">
-                        <div class="flex items-start justify-between gap-3 mb-4">
-                            <div class="dash-badge"><i class="fa-solid fa-calculator"></i></div>
-                            <span class="dash-tag tag-locked">Terkunci</span>
+                    <!-- Modul 5: Pauli -->
+                    <div id="card-5" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-calculator"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">5. Pauli (Tes Koran)</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Uji ketahanan kerja, konsentrasi, kecepatan, ketelitian, & stabilitas emosi (20 Interval).</p>
                         </div>
-                        <h3 class="font-bold text-lg sm:text-xl text-[#003865] mb-1">Tes 5: Pauli</h3>
-                        <button id="btn-test-5" disabled onclick="handleLockedModule(5)" class="dash-btn dash-btn-locked">Terkunci</button>
+                        <button id="btn-test-5" onclick="handleStartModule(5)" class="dash-btn dash-btn-active">Mulai Tes 5</button>
+                    </div>
+
+                    <!-- Modul 6: MSDT -->
+                    <div id="card-6" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-user-tie"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">6. MSDT</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Diagnosis 8 gaya kepemimpinan Reddin 3-D, efektivitas manajerial, TO & RO (64 Soal).</p>
+                        </div>
+                        <button id="btn-test-6" onclick="handleStartModule(6)" class="dash-btn dash-btn-active">Mulai Tes 6</button>
+                    </div>
+
+                    <!-- Modul 7: CFIT (Inteligent 2) -->
+                    <div id="card-7" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-shapes"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">7. Inteligent 2 (CFIT)</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pengukuran fluid intelligence dan penalaran abstrak bebas bias budaya (4 Subtes).</p>
+                        </div>
+                        <button id="btn-test-7" onclick="handleStartModule(7)" class="dash-btn dash-btn-active">Mulai Tes 7</button>
+                    </div>
+
+                    <!-- Modul 8: MBTI -->
+                    <div id="card-8" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge"><i class="fa-solid fa-arrows-split-up-and-left"></i></div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">8. MBTI</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pemetaan 16 tipe kepribadian, orientasi energi, & preferensi kerja manajerial (60 Soal).</p>
+                        </div>
+                        <button id="btn-test-8" onclick="handleStartModule(8)" class="dash-btn dash-btn-active">Mulai Tes 8</button>
+                    </div>
+                </div>
+
+                <!-- Card Finalisasi Selesai Seluruh Asesmen -->
+                <div id="dash-final-card" class="mt-8 bg-white/95 backdrop-blur rounded-3xl border border-[#b9d0e7] p-6 sm:p-8 shadow-md text-center max-w-2xl mx-auto space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <i class="fa-solid fa-flag-checkered text-emerald-600"></i>
+                        <span>Finalisasi Asesmen</span>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-black text-[#003865]">Sudah Menyelesaikan Seluruh Modul?</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Pastikan seluruh modul yang ditugaskan kepada Anda telah selesai dikerjakan dengan tanda centang hijau. Jika sudah selesai, klik tombol di bawah untuk mengakhiri sesi ujian dan mengunci seluruh lembar jawaban Anda.
+                    </p>
+                    <div class="pt-2">
+                        <button type="button" id="btnSelesaikanSemuaTes" onclick="konfirmasiSelesaiSeluruhAsesmen()"
+                            class="px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 mx-auto cursor-pointer">
+                            <i class="fa-solid fa-circle-check text-base"></i>
+                            <span>Selesaikan & Kunci Lembar Jawaban</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -659,22 +731,6 @@
                     </div>
                 </div>
 
-                <!-- CARD KHUSUS KANDIDAT MANAJERIAL / KEPEMIMPINAN (TAHAP 2) -->
-                <div id="card-tahap2-wrapper" class="mb-8 bg-gradient-to-br from-[#051627] via-[#003865] to-[#0a4980] p-6 sm:p-7 rounded-3xl shadow-2xl border-2 border-amber-400/40 relative overflow-hidden flex flex-col items-center justify-center">
-                    <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div id="container-btn-tahap2" class="w-full flex justify-center relative z-10">
-                        <button type="button" id="btnMulaiTahap2" onclick="bukaModalTokenTahap2()"
-                            class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#003865] font-black rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer text-base">
-                            <i class="fa-solid fa-key text-lg"></i>
-                            <span>Mulai Asesmen Tahap 2</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                    <p id="note-tahap2" class="text-[11px] text-amber-200/80 mt-3 text-center relative z-10">
-                        (Khusus bagi kandidat posisi Manajerial / Supervisor yang ditugaskan HR)
-                    </p>
-                </div>
-
                 <!-- Footer branding Altrak -->
                 <div class="flex items-center justify-center gap-3 text-slate-500 text-sm">
                     <img src="./assets/logo/logo%20altrak.jpeg" alt="PT Altrak 1978"
@@ -697,143 +753,6 @@
         <!-- FASE 9: MODUL DISC ASSESSMENT (SPA VIEW-DISC) -->
         <section id="view-disc" class="hide-section flex-grow flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative w-full bg-[#f8fafc] corporate-modern-bg">
             <div id="disc-app-container" class="w-full max-w-4xl mx-auto"></div>
-        </section>
-
-        <!-- FASE 10: DASHBOARD ASESMEN KEPEMIMPINAN TAHAP 2 (SPA VIEW-DASHBOARD-TAHAP2) -->
-        <section id="view-dashboard-tahap2" class="hide-section flex-grow w-full p-4 sm:p-8 bg-[#f4f7fb] min-h-screen">
-            <div class="max-w-6xl mx-auto space-y-6">
-                <!-- BANNER HEADER EKSEKUTIF -->
-                <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#0a4980] rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-blue-400/20 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
-                        <div class="space-y-2">
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-widest">
-                                <i class="fa-solid fa-crown text-amber-400"></i> Executive &amp; Leadership Battery
-                            </div>
-                            <h1 class="text-2xl sm:text-3xl font-black text-white leading-tight">
-                                Portal Asesmen Kepemimpinan Tahap 2
-                            </h1>
-                            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-2xl">
-                                Penilaian komprehensif gaya kepemimpinan, profil motivasi kerja, fluid cognitive intelligence, dan stabilitas mental eksekutif PT Altrak 1978.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3 KARTU MODUL ASESMEN KEPEMIMPINAN -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <!-- KARTU 1: MSDT -->
-                    <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-[#003865] flex items-center justify-center text-xl font-black border border-blue-500/20">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                </div>
-                                <span id="badge-status-msdt" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                                    <i class="fa-solid fa-clock mr-1"></i> Siap Dikerjakan
-                                </span>
-                            </div>
-                            <h3 class="text-lg font-black text-[#003865] mb-1">
-                                1. MSDT (Management Style Diagnostic)
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed mb-4">
-                                Memetakan 8 Gaya Kepemimpinan Reddin 3-D Model, Task Orientation (TO), Relationship Orientation (RO), serta tingkat efektivitas kepemimpinan manajerial.
-                            </p>
-                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mb-5">
-                                <span><i class="fa-solid fa-list-check text-blue-600 mr-1"></i> 64 Soal</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-arrows-split-up-and-left text-blue-600 mr-1"></i> Pilihan A vs B</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btn-modul-msdt" onclick="bukaModulMSDT()"
-                            class="w-full py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Mulai Tes MSDT</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- KARTU 2: CFIT -->
-                    <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-700 flex items-center justify-center text-xl font-black border border-amber-500/20">
-                                    <i class="fa-solid fa-shapes"></i>
-                                </div>
-                                <span id="badge-status-cfit" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                                    <i class="fa-solid fa-clock mr-1"></i> Siap Dikerjakan
-                                </span>
-                            </div>
-                            <h3 class="text-lg font-black text-[#003865] mb-1">
-                                2. Inteligent 2
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed mb-4">
-                                Mengukur kecerdasan murni (Fluid Intelligence) dan kemampuan penalaran abstrak dalam memecahkan masalah baru tanpa bias budaya/bahasa.
-                            </p>
-                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mb-5">
-                                <span><i class="fa-solid fa-cubes text-amber-600 mr-1"></i> 4 Subtes Penalaran</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-stopwatch text-amber-600 mr-1"></i> Berbatas Waktu</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btn-modul-cfit" onclick="bukaModulCFIT()"
-                            class="w-full py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Mulai Tes Inteligent 2</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- KARTU 3: MBTI -->
-                    <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-700 flex items-center justify-center text-xl font-black border border-indigo-500/20">
-                                    <i class="fa-solid fa-compass"></i>
-                                </div>
-                                <span id="badge-status-mbti" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                                    <i class="fa-solid fa-clock mr-1"></i> Siap Dikerjakan
-                                </span>
-                            </div>
-                            <h3 class="text-lg font-black text-[#003865] mb-1">
-                                3. MBTI (Myers-Briggs Type Indicator)
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed mb-4">
-                                Pemetaan 16 tipe kepribadian, gaya pemusatan energi, pengolahan informasi, pola pikir logis, dan preferensi kerja manajerial.
-                            </p>
-                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mb-5">
-                                <span><i class="fa-solid fa-list-check text-indigo-600 mr-1"></i> 60 Pernyataan</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-right-left text-indigo-600 mr-1"></i> Pilihan A vs B</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btn-modul-mbti" onclick="bukaModulMBTI()"
-                            class="w-full py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Mulai Tes MBTI</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- FOOTER TOMBOL SELESAI / FINALISASI ASESMEN TAHAP 2 -->
-                <div class="mt-8 bg-white rounded-3xl border border-[#b9d0e7] shadow-xl p-6 sm:p-8 text-center space-y-4">
-                    <div class="max-w-xl mx-auto space-y-2">
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-[#003865] border border-blue-200 uppercase tracking-wider">
-                            <i class="fa-solid fa-shield-halved text-[#003865]"></i> Finalisasi Asesmen Manajerial
-                        </div>
-                        <h3 class="text-lg sm:text-xl font-black text-[#003865]">Sudah Menyelesaikan Modul yang Ditugaskan?</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Jika Anda telah menyelesaikan tes kepemimpinan yang diminta oleh Tim Rekrutmen PT Altrak 1978, silakan klik tombol di bawah untuk mengakhiri sesi dan mengunci seluruh lembar jawaban Anda.
-                        </p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                        <button type="button" onclick="konfirmasiSelesaiTahap2()"
-                            id="btnFinalisasiTahap2"
-                            class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-flag-checkered text-base"></i>
-                            <span id="btnFinalisasiTahap2Text">Selesaikan Asesmen Tingkat 2</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- FASE 11: MODUL MSDT (SPA VIEW-MSDT) -->
@@ -1224,63 +1143,6 @@
                     <span>Saya Mengerti &amp; Menyetujui Persetujuan Ini</span>
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- MODAL INPUT TOKEN ASESMEN KEPEMIMPINAN TAHAP 2                            -->
-    <!-- ========================================================================= -->
-    <div id="modal-tahap2-token"
-        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto custom-scrollbar" style="display: none;">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-[#b9d0e7] overflow-hidden my-auto text-slate-800">
-            <div class="bg-gradient-to-r from-[#071f38] via-[#003865] to-[#0a4980] p-6 text-white relative">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center text-xl font-black">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
-                        <div>
-                            <span class="text-[10px] uppercase font-bold tracking-widest text-amber-300">Akses Manajerial</span>
-                            <h3 class="text-lg sm:text-xl font-black leading-tight">Asesmen Tahap 2</h3>
-                        </div>
-                    </div>
-                    <button type="button" onclick="tutupModalTokenTahap2()" class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center transition cursor-pointer">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            </div>
-
-            <form onsubmit="handleVerifikasiTokenTahap2(event)" class="p-6 sm:p-8 space-y-5">
-                <div class="bg-[#edf3f9] p-4 rounded-2xl border border-[#b9d0e7] text-xs text-slate-600 leading-relaxed">
-                    <p class="font-bold text-[#003865] mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved text-amber-500"></i> Token Khusus Posisi Pemimpin:
-                    </p>
-                    <p>
-                        Masukkan kode token otorisasi Asesmen Kepemimpinan Tahap 2 resmi yang telah diberikan oleh Tim HRD &amp; Rekrutmen PT Altrak 1978.
-                    </p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                        Token Asesmen Tahap 2
-                    </label>
-                    <input type="text" id="inputTokenTahap2" required maxlength="10" autocomplete="off"
-                        class="w-full text-center text-lg font-black tracking-widest uppercase py-3.5 px-4 rounded-xl border border-slate-300 focus:border-[#003865] focus:ring-2 focus:ring-[#003865]/20 outline-none transition font-mono bg-slate-50 focus:bg-white"
-                        placeholder="Contoh: LDR78">
-                </div>
-
-                <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button type="submit" id="btnSubmitTokenTahap2"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-key text-amber-400"></i>
-                        <span id="btnSubmitTokenTahap2Text">Verifikasi &amp; Mulai</span>
-                    </button>
-                    <button type="button" onclick="tutupModalTokenTahap2()"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Batal
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 

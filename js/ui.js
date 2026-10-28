@@ -141,8 +141,48 @@ function closeModal(id) {
 }
 
 /**
- * Mengubah status kartu modul tes di dashboard (active, done, locked)
- * @param {number} num Nomor tes (1 s.d 4)
+ * Konfigurasi 8 Modul Asesmen Psikotes PT Altrak 1978 (Sistem Non-Linear / Bebas Pilih)
+ */
+const ALL_ASSESSMENT_MODULES = [
+    { id: 1, key: 'ist', name: 'Inteligent 1 (IST)', flag: 'ist_selesai', btnText: 'Mulai Tes 1' },
+    { id: 2, key: 'papi', name: 'PAPI Kostick', flag: 'papi_selesai', btnText: 'Mulai Tes 2' },
+    { id: 3, key: 'disc', name: 'DISC Assessment', flag: 'disc_selesai', btnText: 'Mulai Tes 3' },
+    { id: 4, key: 'epps', name: 'EPPS', flag: 'epps_selesai', btnText: 'Mulai Tes 4' },
+    { id: 5, key: 'pauli', name: 'Pauli (Tes Koran)', flag: 'pauli_selesai', btnText: 'Mulai Tes 5' },
+    { id: 6, key: 'msdt', name: 'MSDT (Gaya Kepemimpinan)', flag: 'msdt_selesai', btnText: 'Mulai Tes 6' },
+    { id: 7, key: 'cfit', name: 'Inteligent 2 (CFIT)', flag: 'cfit_selesai', btnText: 'Mulai Tes 7' },
+    { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 8' }
+];
+
+/**
+ * Mengecek apakah modul tertentu sudah selesai dikerjakan
+ * @param {number} num Nomor modul (1 s.d 8)
+ * @returns {boolean}
+ */
+function isModuleCompleted(num) {
+    if (typeof localStorage === 'undefined') return false;
+    if (num === 1) {
+        let subtestsSelesai = [];
+        try {
+            subtestsSelesai = JSON.parse(localStorage.getItem('altrak_ist_completed_subtests') || '[]');
+        } catch (e) { subtestsSelesai = []; }
+        return localStorage.getItem('ist_selesai') === 'true' || 
+               (Array.isArray(subtestsSelesai) && subtestsSelesai.length >= 9) ||
+               (typeof istLogic !== 'undefined' && istLogic.completedSubtests && istLogic.completedSubtests.length >= 9);
+    }
+    if (num === 2) return localStorage.getItem('papi_selesai') === 'true';
+    if (num === 3) return localStorage.getItem('disc_selesai') === 'true';
+    if (num === 4) return localStorage.getItem('epps_selesai') === 'true';
+    if (num === 5) return localStorage.getItem('pauli_selesai') === 'true';
+    if (num === 6) return localStorage.getItem('msdt_selesai') === 'true';
+    if (num === 7) return localStorage.getItem('cfit_selesai') === 'true';
+    if (num === 8) return localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
+    return false;
+}
+
+/**
+ * Mengubah status visual kartu modul tes di dashboard (active, done, locked)
+ * @param {number} num Nomor tes (1 s.d 8)
  * @param {'active'|'done'|'locked'} stateName Status baru kartu
  */
 function setDashCardState(num, stateName) {
@@ -154,99 +194,139 @@ function setDashCardState(num, stateName) {
     const tag = card.querySelector('.dash-tag');
     if (!tag) return;
     const labels = {
-        active: ['Sedang berlangsung', 'tag-active'],
-        done: ['Selesai', 'tag-done'],
+        active: ['Siap Dikerjakan', 'tag-active'],
+        done: ['Selesai ✓', 'tag-done'],
         locked: ['Terkunci', 'tag-locked']
     };
     tag.classList.remove('tag-active', 'tag-done', 'tag-locked');
-    tag.textContent = labels[stateName][0];
-    tag.classList.add(labels[stateName][1]);
+    tag.textContent = (labels[stateName] || labels.active)[0];
+    tag.classList.add((labels[stateName] || labels.active)[1]);
 }
 
 /**
- * Memperbarui progress bar keseluruhan pada dashboard
+ * Memperbarui progress bar keseluruhan pada dashboard (skala 8 modul)
  */
 function updateDashboardProgress() {
-    const total = 5;
-    const done = document.querySelectorAll('#view-dashboard .dash-card.is-done, #page-dashboard .dash-card.is-done, .dash-card.is-done').length;
-    const pct = (done / total) * 100;
+    const total = ALL_ASSESSMENT_MODULES.length; // 8 modul
+    let done = 0;
+    ALL_ASSESSMENT_MODULES.forEach(m => {
+        if (isModuleCompleted(m.id)) done++;
+    });
+
+    const pct = Math.round((done / total) * 100);
     const fill = document.getElementById('dashProgressFill');
     const label = document.getElementById('dashProgressLabel');
     if (fill) fill.style.width = pct + '%';
-    if (label) label.textContent = done + ' / ' + total + ' modul';
+    if (label) label.textContent = `${done} / ${total} modul`;
+
+    const btnFinal = document.getElementById('btnSelesaikanSemuaTes');
+    if (btnFinal) {
+        if (done >= total) {
+            btnFinal.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> Selesaikan & Kunci Seluruh Hasil (100% Selesai)';
+        } else {
+            btnFinal.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i> Selesaikan & Kunci Lembar Jawaban (${done}/${total} Selesai)`;
+        }
+    }
+    return done;
 }
 
 /**
- * Membuka kunci kartu tes berikutnya saat suatu tes selesai
- * Urutan: 1: IST -> 2: PAPI Kostick -> 3: DISC -> 4: EPPS -> 5: Pauli
- * @param {number} completedTestNum Nomor tes yang baru diselesaikan
+ * Menyinkronkan seluruh 8 kartu modul di dashboard
+ * Modul yang belum selesai berstatus aktif (bebas dipilih)
+ * Modul yang sudah selesai berstatus selesai (terkunci dengan tanda centang)
  */
-function unlockDashboardCard(completedTestNum) {
-    const btnTadi = document.getElementById('btn-test-' + completedTestNum);
-    if (btnTadi) {
-        btnTadi.innerText = "Selesai ✓";
-        btnTadi.disabled = true;
-        btnTadi.className = "dash-btn dash-btn-done";
-    }
-    setDashCardState(completedTestNum, 'done');
+function syncAllModuleCardStates() {
+    ALL_ASSESSMENT_MODULES.forEach(m => {
+        const completed = isModuleCompleted(m.id);
+        const card = document.getElementById('card-' + m.id);
+        const btn = document.getElementById('btn-test-' + m.id);
 
-    const nextTestNum = completedTestNum + 1;
-    const btnNext = document.getElementById('btn-test-' + nextTestNum);
-    const cardNext = document.getElementById('card-' + nextTestNum);
-
-    const moduleButtonNames = {
-        1: "Mulai Tes 1 (IST)",
-        2: "Mulai Tes 2 (PAPI Kostick)",
-        3: "Mulai Tes 3 (DISC)",
-        4: "Mulai Tes 4 (EPPS)",
-        5: "Mulai Tes 5 (Pauli)"
-    };
-
-    if (btnNext && cardNext) {
-        setDashCardState(nextTestNum, 'active');
-        btnNext.innerText = moduleButtonNames[nextTestNum] || ("Mulai Tes " + nextTestNum);
-        btnNext.disabled = false;
-        btnNext.className = "dash-btn dash-btn-active";
-        btnNext.onclick = function() { handleStartModule(nextTestNum); };
-    }
+        if (completed) {
+            setDashCardState(m.id, 'done');
+            if (btn) {
+                btn.innerText = "Selesai ✓";
+                btn.disabled = true;
+                btn.className = "dash-btn dash-btn-done";
+            }
+        } else {
+            setDashCardState(m.id, 'active');
+            if (btn) {
+                btn.innerText = m.btnText || `Mulai Tes ${m.id}`;
+                btn.disabled = false;
+                btn.className = "dash-btn dash-btn-active";
+                btn.onclick = function() { handleStartModule(m.id); };
+            }
+        }
+    });
 
     updateDashboardProgress();
 }
 
 /**
- * Mereset seluruh kartu dashboard ke kondisi awal (Tes 1 aktif, Tes 2-5 terkunci, progres 0/5)
+ * Menandai modul selesai dan menyinkronkan dashboard
+ * @param {number} completedTestNum Nomor tes yang baru diselesaikan
  */
-function resetDashboardState() {
-    // 1. Reset Kartu 1: IST (Aktif)
-    setDashCardState(1, 'active');
-    const btn1 = document.getElementById('btn-test-1');
-    if (btn1) {
-        btn1.innerText = "Mulai Tes 1 (IST)";
-        btn1.disabled = false;
-        btn1.className = "dash-btn dash-btn-active";
-        btn1.onclick = function() { handleStartModule(1); };
-    }
-
-    // 2. Reset Kartu 2, 3, 4, 5: Terkunci
-    [2, 3, 4, 5].forEach(num => {
-        setDashCardState(num, 'locked');
-        const btn = document.getElementById('btn-test-' + num);
-        if (btn) {
-            btn.innerText = "Terkunci";
-            btn.disabled = true;
-            btn.className = "dash-btn dash-btn-locked";
-            btn.onclick = function() { handleLockedModule(num); };
+function unlockDashboardCard(completedTestNum) {
+    if (completedTestNum) {
+        setDashCardState(completedTestNum, 'done');
+        const btnTadi = document.getElementById('btn-test-' + completedTestNum);
+        if (btnTadi) {
+            btnTadi.innerText = "Selesai ✓";
+            btnTadi.disabled = true;
+            btnTadi.className = "dash-btn dash-btn-done";
         }
+    }
+    syncAllModuleCardStates();
+}
+
+/**
+ * Konfirmasi selesai seluruh rangkaian asesmen
+ */
+function konfirmasiSelesaiSeluruhAsesmen() {
+    const total = ALL_ASSESSMENT_MODULES.length;
+    let doneList = [];
+    let unDoneList = [];
+
+    ALL_ASSESSMENT_MODULES.forEach(m => {
+        if (isModuleCompleted(m.id)) doneList.push(m.name);
+        else unDoneList.push(m.name);
     });
 
-    // 3. Reset progress bar ke 0%
-    const fill = document.getElementById('dashProgressFill');
-    const label = document.getElementById('dashProgressLabel');
-    if (fill) fill.style.width = '0%';
-    if (label) label.textContent = '0 / 5 modul';
+    if (unDoneList.length > 0) {
+        const pesan = `Anda telah menyelesaikan ${doneList.length} dari ${total} modul asesmen.\n\nModul yang belum diselesaikan:\n- ${unDoneList.join('\n- ')}\n\nApakah Anda yakin ingin mengakhiri sesi dan mengunci seluruh lembar jawaban sekarang?`;
+        if (typeof customAlert === 'function') {
+            customAlert("Konfirmasi Akhiri Asesmen", pesan, "warning", true, () => {
+                tampilkanHalamanSelesai();
+            });
+        } else if (confirm(pesan)) {
+            tampilkanHalamanSelesai();
+        }
+    } else {
+        if (typeof customAlert === 'function') {
+            customAlert("Selamat!", "Seluruh 8 modul psikotes PT Altrak 1978 telah berhasil Anda selesaikan secara sempurna.", "success", false, () => {
+                tampilkanHalamanSelesai();
+            });
+        } else {
+            alert("Seluruh modul telah selesai!");
+            tampilkanHalamanSelesai();
+        }
+    }
+}
+
+/**
+ * Mereset dashboard
+ */
+function resetDashboardState() {
+    syncAllModuleCardStates();
 }
 
 if (typeof window !== 'undefined') {
+    window.ALL_ASSESSMENT_MODULES = ALL_ASSESSMENT_MODULES;
+    window.isModuleCompleted = isModuleCompleted;
+    window.syncAllModuleCardStates = syncAllModuleCardStates;
+    window.unlockDashboardCard = unlockDashboardCard;
+    window.updateDashboardProgress = updateDashboardProgress;
     window.resetDashboardState = resetDashboardState;
+    window.konfirmasiSelesaiSeluruhAsesmen = konfirmasiSelesaiSeluruhAsesmen;
 }
 

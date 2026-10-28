@@ -148,7 +148,7 @@
                 sessionStorage.setItem('kembali_dari_ist', 'true');
 
                 // Pop-up modal pemberitahuan resmi sesuai instruksi
-                const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes 1 (IST). Kartu Tes 2: PAPI Kostick sekarang telah terbuka pada Dashboard Asesmen.";
+                const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes 1 (IST). Lembar jawaban Anda telah tersimpan aman di server PT Altrak 1978. Anda dapat memilih modul tes lainnya pada Dashboard Asesmen.";
 
                 const aksiKembali = () => {
                     if (typeof pindahFase === 'function') {
