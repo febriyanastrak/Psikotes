@@ -390,7 +390,6 @@ const istSoal07 = {
         { 
             no: "01", 
             tipe: "pilihan_gambar",
-            gambarOpsi: "assets/ist/soal_07/soal 1 - 12.png",
             gambarSoal: "assets/ist/soal_07/contoh soal 07.png", 
             pertanyaan: "Berdasarkan gambar panduan di atas, jika potongan-potongan pada KOTAK CONTOH PERTAMA (paling kiri) disusun, bentuk manakah (A, B, C, D, atau E) yang dibangun?",
             pilihan: ["A", "B", "C", "D", "E"],
@@ -400,7 +399,6 @@ const istSoal07 = {
         { 
             no: "02", 
             tipe: "pilihan_gambar",
-            gambarOpsi: "assets/ist/soal_07/soal 1 - 12.png",
             gambarSoal: "assets/ist/soal_07/contoh soal 07.png", 
             pertanyaan: "Sekarang cermati KOTAK CONTOH KEDUA (nomor 2 dari kiri): jika potongan-potongannya digabungkan dan diputar, bentuk manakah yang dihasilkan?",
             pilihan: ["A", "B", "C", "D", "E"],

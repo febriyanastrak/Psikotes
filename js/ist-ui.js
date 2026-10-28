@@ -688,7 +688,9 @@ const istUI = {
                                 <span>${subtestData.id === 'soal_08' ? 'Contoh Soal Kubus (Kedudukan Kubus):' : 'Contoh Soal Bentuk:'}</span>
                             </div>
                             <div class="flex justify-center items-center overflow-x-auto">
-                                <img src="${item.gambarSoal}" alt="Contoh Soal" class="max-w-full h-auto max-h-[120px] sm:max-h-[140px] object-contain select-none" draggable="false">
+                                <img src="${item.gambarSoal}" alt="Contoh Soal" 
+                                     class="${subtestData.id === 'soal_07' ? 'w-full max-w-2xl max-h-[260px] sm:max-h-[320px]' : 'max-w-full max-h-[120px] sm:max-h-[140px]'} h-auto object-contain select-none transition-all" 
+                                     draggable="false">
                             </div>
                         </div>
                     ` : ''}
