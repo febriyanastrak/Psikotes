@@ -64,7 +64,11 @@ function pindahFase(targetId) {
 
         'page-mbti': 'view-mbti',
         'mbti': 'view-mbti',
-        'view-mbti': 'view-mbti'
+        'view-mbti': 'view-mbti',
+
+        'page-grafis': 'view-grafis',
+        'grafis': 'view-grafis',
+        'view-grafis': 'view-grafis'
     };
 
     const finalTargetId = mapId[targetId] || targetId;
@@ -81,7 +85,7 @@ function pindahFase(targetId) {
     const targetSection = document.getElementById(finalTargetId) || document.getElementById(targetId);
     if (targetSection) {
         targetSection.classList.remove('hide-section');
-        const displayType = (finalTargetId === 'view-dashboard' || finalTargetId === 'view-hrd' || finalTargetId === 'view-disc' || finalTargetId === 'view-dashboard-tahap2') ? 'block' : 'flex';
+        const displayType = (finalTargetId === 'view-dashboard' || finalTargetId === 'view-hrd' || finalTargetId === 'view-disc' || finalTargetId === 'view-dashboard-tahap2' || finalTargetId === 'view-grafis') ? 'block' : 'flex';
         targetSection.style.setProperty('display', displayType, 'important');
         targetSection.classList.add(displayType === 'block' ? 'fase-aktif-block' : 'fase-aktif');
 

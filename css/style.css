@@ -1027,4 +1027,109 @@ input[type="number"] {
         page-break-inside: avoid !important;
         display: block !important;
     }
+
+    /* =========================================================================
+       Pengaturan Lembar Cetak Portofolio Tes Grafis (DAP, Tree, HTP) - A4 Rapi
+       ========================================================================= */
+    #panelTabGrafis,
+    #panelTabGrafis > div {
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100% !important;
+    }
+
+    #hrdGrafisGridContainer {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Setiap kategori tes (DAP, Tree, HTP) adalah 1 blok utuh yang anti-terpotong */
+    .grafis-test-block {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        padding: 12px 14px !important;
+        margin-bottom: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    /* Ganti halaman otomatis: Tes 1 (DAP) di Hal 1, Tes 2 (Tree) di Hal 2, Tes 3 (HTP) di Hal 3 */
+    #grafisPrintPage_dap,
+    #grafisPrintPage_tree {
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+
+    #grafisPrintPage_htp {
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    /* Sub-grid 2 berkas gambar dalam mode cetak */
+    .grafis-test-block .grid {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .grafis-subcard {
+        flex: 1 1 0 !important;
+        max-width: 50% !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 8px !important;
+        background: #f8fafc !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Pembungkus gambar grafis */
+    .grafis-subcard .aspect-video {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        max-height: 120mm !important;
+        background: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: 1px solid #e2e8f0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Gambar hasil scan/foto */
+    .grafis-subcard img.grafis-img {
+        max-height: 110mm !important;
+        width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 0 auto !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Catatan Observasi & Kolom Tanda Tangan */
+    .grafis-print-notes {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 8px 10px !important;
+        margin-top: 8px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .grafis-print-signature {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-top: 10px !important;
+        padding-top: 8px !important;
+    }
 }

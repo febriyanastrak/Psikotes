@@ -330,7 +330,7 @@
                     <div class="mt-7 sm:mt-9 max-w-sm">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-blue-200 tracking-wide uppercase">Progres Keseluruhan</span>
-                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 8 modul</span>
+                            <span id="dashProgressLabel" class="text-xs font-black text-white">0 / 9 modul</span>
                         </div>
                         <div class="dash-progress-track">
                             <div id="dashProgressFill" class="dash-progress-fill"></div>
@@ -340,18 +340,33 @@
             </div>
 
             <div class="max-w-6xl mx-auto w-full px-4 sm:px-8 -mt-9 sm:-mt-11 pb-16 relative z-10">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <!-- Modul 1: IST -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- Modul 1: Tes Grafis -->
+                    <div id="card-grafis" class="dash-card is-active flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="dash-badge bg-amber-500/10 text-amber-600 border border-amber-300">
+                                    <i class="fa-solid fa-palette"></i>
+                                </div>
+                                <span class="dash-tag tag-active">Siap Dikerjakan</span>
+                            </div>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">1. Grafis</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Unggah 3 hasil karya gambar: Draw a Man/Person, Tree (Pohon), & House-Tree-Person (HTP).</p>
+                        </div>
+                        <button id="btn-test-grafis" onclick="handleStartModule('grafis')" class="dash-btn dash-btn-active">Mulai Tes 1</button>
+                    </div>
+
+                    <!-- Modul 2: IST -->
                     <div id="card-1" class="dash-card is-active flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="dash-badge"><i class="fa-solid fa-brain"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">1. Inteligent 1 (IST)</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">2. Inteligent 1 </h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Tes inteligensi komprehensif 9 subtes (verbal, numerik, dan spasial).</p>
                         </div>
-                        <button id="btn-test-1" onclick="handleStartModule(1)" class="dash-btn dash-btn-active">Mulai Tes 1</button>
+                        <button id="btn-test-1" onclick="handleStartModule(1)" class="dash-btn dash-btn-active">Mulai Tes 2</button>
                     </div>
 
                     <!-- Modul 2: PAPI Kostick -->
@@ -361,11 +376,12 @@
                                 <div class="dash-badge"><i class="fa-solid fa-compass"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">2. PAPI Kostick</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">3. PAPI Kostick</h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Evaluasi 20 dimensi kebutuhan kerja dan preferensi kepemimpinan (90 Soal).</p>
                         </div>
-                        <button id="btn-test-2" onclick="handleStartModule(2)" class="dash-btn dash-btn-active">Mulai Tes 2</button>
+                        <button id="btn-test-2" onclick="handleStartModule(2)" class="dash-btn dash-btn-active">Mulai Tes 3</button>
                     </div>
+                    
 
                     <!-- Modul 3: DISC -->
                     <div id="card-3" class="dash-card is-active flex flex-col justify-between">
@@ -374,10 +390,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-chart-pie"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">3. DISC</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">4. DISC</h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pemetaan profil perilaku Dominance, Influence, Steadiness, & Compliance (24 Soal).</p>
                         </div>
-                        <button id="btn-test-3" onclick="handleStartModule(3)" class="dash-btn dash-btn-active">Mulai Tes 3</button>
+                        <button id="btn-test-3" onclick="handleStartModule(3)" class="dash-btn dash-btn-active">Mulai Tes 4</button>
                     </div>
 
                     <!-- Modul 4: EPPS -->
@@ -387,10 +403,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-layer-group"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">4. EPPS</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">5. EPPS</h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pengukuran 15 motivasi kerja, ketekunan, dan dorongan berprestasi (225 Soal).</p>
                         </div>
-                        <button id="btn-test-4" onclick="handleStartModule(4)" class="dash-btn dash-btn-active">Mulai Tes 4</button>
+                        <button id="btn-test-4" onclick="handleStartModule(4)" class="dash-btn dash-btn-active">Mulai Tes 5</button>
                     </div>
 
                     <!-- Modul 5: Pauli -->
@@ -400,10 +416,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-calculator"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">5. Pauli (Tes Koran)</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">6. Pauli </h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Uji ketahanan kerja, konsentrasi, kecepatan, ketelitian, & stabilitas emosi (20 Interval).</p>
                         </div>
-                        <button id="btn-test-5" onclick="handleStartModule(5)" class="dash-btn dash-btn-active">Mulai Tes 5</button>
+                        <button id="btn-test-5" onclick="handleStartModule(5)" class="dash-btn dash-btn-active">Mulai Tes 6</button>
                     </div>
 
                     <!-- Modul 6: MSDT -->
@@ -413,10 +429,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-user-tie"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">6. MSDT</h3>
-                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Diagnosis 8 gaya kepemimpinan Reddin 3-D, efektivitas manajerial, TO & RO (64 Soal).</p>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">7. MSDT</h3>
+                            <p class="text-xs text-slate-500 mb-4 line-clamp-2">Diagnosis 7 gaya kepemimpinan Reddin 3-D, efektivitas manajerial, TO & RO (64 Soal).</p>
                         </div>
-                        <button id="btn-test-6" onclick="handleStartModule(6)" class="dash-btn dash-btn-active">Mulai Tes 6</button>
+                        <button id="btn-test-6" onclick="handleStartModule(6)" class="dash-btn dash-btn-active">Mulai Tes 7</button>
                     </div>
 
                     <!-- Modul 7: CFIT (Inteligent 2) -->
@@ -426,10 +442,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-shapes"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">7. Inteligent 2 (CFIT)</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">8. Inteligent 2</h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pengukuran fluid intelligence dan penalaran abstrak bebas bias budaya (4 Subtes).</p>
                         </div>
-                        <button id="btn-test-7" onclick="handleStartModule(7)" class="dash-btn dash-btn-active">Mulai Tes 7</button>
+                        <button id="btn-test-7" onclick="handleStartModule(7)" class="dash-btn dash-btn-active">Mulai Tes 8</button>
                     </div>
 
                     <!-- Modul 8: MBTI -->
@@ -439,10 +455,10 @@
                                 <div class="dash-badge"><i class="fa-solid fa-arrows-split-up-and-left"></i></div>
                                 <span class="dash-tag tag-active">Siap Dikerjakan</span>
                             </div>
-                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">8. MBTI</h3>
+                            <h3 class="font-bold text-base sm:text-lg text-[#003865] mb-1">9. MBTI</h3>
                             <p class="text-xs text-slate-500 mb-4 line-clamp-2">Pemetaan 16 tipe kepribadian, orientasi energi, & preferensi kerja manajerial (60 Soal).</p>
                         </div>
-                        <button id="btn-test-8" onclick="handleStartModule(8)" class="dash-btn dash-btn-active">Mulai Tes 8</button>
+                        <button id="btn-test-8" onclick="handleStartModule(8)" class="dash-btn dash-btn-active">Mulai Tes 9</button>
                     </div>
                 </div>
 
@@ -463,6 +479,361 @@
                             <span>Selesaikan & Kunci Lembar Jawaban</span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FASE: MODUL TES GRAFIS (SPA VIEW-GRAFIS) -->
+        <section id="view-grafis" class="hide-section flex-grow p-4 sm:p-6 corporate-modern-bg">
+            <div class="max-w-6xl mx-auto space-y-6">
+                <!-- Header Card -->
+                <div class="bg-white/95 backdrop-blur rounded-3xl border border-[#b9d0e7] p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center text-2xl shadow-md">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                                    Modul 1 (Wajib)
+                                </span>
+                                <span class="text-xs text-slate-400">• Estimasi 10 Menit</span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-[#003865] mt-0.5">Grafis </h2>
+                            <p class="text-xs text-slate-500">Draw a Person (DAP), Baum Test (Pohon), dan House-Tree-Person (HTP)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="pindahFase('view-dashboard')"
+                            class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Kembali ke Dashboard</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Banner Instruksi Resmi -->
+                <div class="bg-gradient-to-r from-amber-50 via-orange-50/50 to-white border-l-4 border-amber-500 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2">
+                    <div class="flex items-center gap-2 text-amber-900 font-black text-sm sm:text-base">
+                        <i class="fa-solid fa-circle-info text-amber-600 text-lg"></i>
+                        <span>Instruksi</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed pl-7">
+                        Unggah hasil gambar tangan Anda pada lembar kertas HVS putih polos yang telah disiapkan sebelumnya. Pastikan gambar terlihat jelas, tegak (tidak miring/terbalik), memiliki pencahayaan terang merata, serta tidak terpotong tepi. Format berkas yang didukung adalah <strong>JPG, JPEG, PNG, atau PDF</strong> dengan ukuran maksimal <strong>10 MB</strong> per berkas.
+                    </p>
+                    <div class="pl-7 pt-1 flex flex-wrap gap-4 text-[11px] text-slate-500 font-semibold">
+                        <span><i class="fa-solid fa-check text-emerald-600 mr-1"></i>Format: JPG, PNG, PDF</span>
+                        <span><i class="fa-solid fa-check text-emerald-600 mr-1"></i>Maksimal 10 MB/berkas</span>
+                        <span><i class="fa-solid fa-check text-emerald-600 mr-1"></i>Maksimal 2 Berkas/Tes (Total Maks. 6 Berkas)</span>
+                        <span><i class="fa-solid fa-check text-emerald-600 mr-1"></i>Minimal 1 Berkas per Kategori</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Pengunggahan -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
+                        <span class="flex items-center gap-1.5 text-[#003865]">
+                            <i class="fa-solid fa-cloud-arrow-up text-amber-500"></i>
+                            <span>Kelengkapan Berkas Tes Grafis</span>
+                        </span>
+                        <span id="grafis-progress-label" class="text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">0 dari 6 berkas terpilih (Minimal 1 per tes)</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div id="grafis-progress-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 3 Zona Upload Berkas (DAP, Tree, HTP) - Masing-masing Maksimal 2 Berkas (Total Maks 6) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- SLOT 1: Draw a Person (DAP) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
+                                    Tes 1: DAP
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                    Maks. 2 Berkas
+                                </span>
+                            </div>
+                            <h3 class="font-black text-[#003865] text-base mb-1">Draw a Person / Man (DAP)</h3>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                                Gambar manusia utuh lengkap deskripsi aktivitas. Dapat mengunggah 2 lembar (contoh: Pria &amp; Wanita).
+                            </p>
+
+                            <!-- SUB-SLOT 1: DAP LEMBAR 1 -->
+                            <div class="mb-4 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-blue-900 flex items-center gap-1">
+                                        <i class="fa-solid fa-file-image text-blue-600"></i> Lembar 1 (Utama)
+                                    </span>
+                                    <span id="status-badge-dap-1" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Belum Ada
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-dap-1" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-dap-1" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-blue-50/30 group">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-blue-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-700">Tarik atau <span class="text-blue-600 underline">pilih Berkas 1</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-dap-1" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-dap-1" class="w-full h-full object-cover" alt="Pratinjau DAP 1" />
+                                        <div id="preview-pdf-dap-1" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-dap-1" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-dap-1" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('dap', 1)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 1">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SLOT 2: DAP LEMBAR 2 -->
+                            <div class="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-slate-700 flex items-center gap-1">
+                                        <i class="fa-regular fa-file-image text-slate-500"></i> Lembar 2 (Tambahan/Lawan Jenis)
+                                    </span>
+                                    <span id="status-badge-dap-2" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Opsional
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-dap-2" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-dap-2" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-blue-50/30 group">
+                                    <i class="fa-solid fa-plus text-lg text-slate-400 group-hover:text-blue-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-700">Tarik atau <span class="text-blue-600 underline">pilih Berkas 2</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-dap-2" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-dap-2" class="w-full h-full object-cover" alt="Pratinjau DAP 2" />
+                                        <div id="preview-pdf-dap-2" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-dap-2" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-dap-2" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('dap', 2)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 2">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLOT 2: Baum Test (Tree / Pohon) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Tes 2: Pohon
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                    Maks. 2 Berkas
+                                </span>
+                            </div>
+                            <h3 class="font-black text-[#003865] text-base mb-1">Baum Test (Pohon / Tree)</h3>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                                Gambar pohon berkayu lengkap dengan nama pohon. Dapat mengunggah 2 lembar (contoh: Gambar &amp; Detail).
+                            </p>
+
+                            <!-- SUB-SLOT 1: TREE LEMBAR 1 -->
+                            <div class="mb-4 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-emerald-900 flex items-center gap-1">
+                                        <i class="fa-solid fa-tree text-emerald-600"></i> Lembar 1 (Utama)
+                                    </span>
+                                    <span id="status-badge-tree-1" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Belum Ada
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-tree-1" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-tree-1" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-emerald-50/30 group">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-emerald-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-emerald-700">Tarik atau <span class="text-emerald-600 underline">pilih Berkas 1</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-tree-1" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-tree-1" class="w-full h-full object-cover" alt="Pratinjau Pohon 1" />
+                                        <div id="preview-pdf-tree-1" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-tree-1" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-tree-1" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('tree', 1)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 1">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SLOT 2: TREE LEMBAR 2 -->
+                            <div class="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-slate-700 flex items-center gap-1">
+                                        <i class="fa-regular fa-file-image text-slate-500"></i> Lembar 2 (Tambahan/Detail)
+                                    </span>
+                                    <span id="status-badge-tree-2" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Opsional
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-tree-2" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-tree-2" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-emerald-50/30 group">
+                                    <i class="fa-solid fa-plus text-lg text-slate-400 group-hover:text-emerald-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-emerald-700">Tarik atau <span class="text-emerald-600 underline">pilih Berkas 2</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-tree-2" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-tree-2" class="w-full h-full object-cover" alt="Pratinjau Pohon 2" />
+                                        <div id="preview-pdf-tree-2" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-tree-2" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-tree-2" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('tree', 2)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 2">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLOT 3: House-Tree-Person (HTP) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
+                                    Tes 3: HTP
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                    Maks. 2 Berkas
+                                </span>
+                            </div>
+                            <h3 class="font-black text-[#003865] text-base mb-1">House-Tree-Person (HTP)</h3>
+                            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                                Gambar Rumah, Pohon, &amp; Orang dalam satu kesatuan. Dapat mengunggah 2 lembar (contoh: Gambar &amp; Cerita).
+                            </p>
+
+                            <!-- SUB-SLOT 1: HTP LEMBAR 1 -->
+                            <div class="mb-4 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-purple-900 flex items-center gap-1">
+                                        <i class="fa-solid fa-house-chimney-window text-purple-600"></i> Lembar 1 (Utama)
+                                    </span>
+                                    <span id="status-badge-htp-1" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Belum Ada
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-htp-1" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-htp-1" class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-purple-50/30 group">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-purple-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-purple-700">Tarik atau <span class="text-purple-600 underline">pilih Berkas 1</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-htp-1" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-htp-1" class="w-full h-full object-cover" alt="Pratinjau HTP 1" />
+                                        <div id="preview-pdf-htp-1" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-htp-1" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-htp-1" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('htp', 1)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 1">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SLOT 2: HTP LEMBAR 2 -->
+                            <div class="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="text-[11px] font-black text-slate-700 flex items-center gap-1">
+                                        <i class="fa-regular fa-file-image text-slate-500"></i> Lembar 2 (Tambahan/Cerita)
+                                    </span>
+                                    <span id="status-badge-htp-2" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        Opsional
+                                    </span>
+                                </div>
+                                <input type="file" id="file-input-htp-2" accept="image/jpeg,image/png,image/webp,application/pdf" class="hidden" />
+                                <div id="dropzone-htp-2" class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-xl p-4 text-center cursor-pointer transition bg-white hover:bg-purple-50/30 group">
+                                    <i class="fa-solid fa-plus text-lg text-slate-400 group-hover:text-purple-600 mb-1 transition"></i>
+                                    <p class="text-[11px] font-bold text-slate-700 group-hover:text-purple-700">Tarik atau <span class="text-purple-600 underline">pilih Berkas 2</span></p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, PDF (Maks. 10 MB)</p>
+                                </div>
+                                <div id="preview-container-htp-2" class="hidden space-y-2">
+                                    <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center">
+                                        <img id="preview-img-htp-2" class="w-full h-full object-cover" alt="Pratinjau HTP 2" />
+                                        <div id="preview-pdf-htp-2" class="hidden flex flex-col items-center justify-center p-2 text-center">
+                                            <i class="fa-solid fa-file-pdf text-red-500 text-3xl mb-1"></i>
+                                            <span class="text-[10px] font-bold text-slate-700">Dokumen PDF Terpilih</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden mr-2">
+                                            <p id="file-name-htp-2" class="font-bold text-slate-800 truncate text-[10px]">-</p>
+                                            <p id="file-size-htp-2" class="text-[9px] text-slate-500">-</p>
+                                        </div>
+                                        <button type="button" onclick="hapusBerkasSlot('htp', 2)" class="text-red-500 hover:text-red-700 text-xs font-bold p-1 hover:bg-red-50 rounded transition" title="Hapus Berkas 2">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Action Card -->
+                <div class="bg-white rounded-3xl border border-[#b9d0e7] p-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Pastikan Seluruh Berkas Sesuai Instruksi</p>
+                            <p class="text-[11px] text-slate-500">Setelah menekan tombol kunci di samping, lembar Tes Grafis Anda akan disimpan permanen ke server.</p>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-submit-grafis" onclick="simpanDanKunciGrafis()" disabled
+                        class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>Kunci &amp; Selesaikan Tes Grafis</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -836,7 +1207,7 @@
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startISTTest()"
                         class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Mulai Tes 1: Inteligent 1</span>
+                        <span>Mulai Tes 2: Inteligent 1</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-ist')"
@@ -1253,6 +1624,8 @@
     <script src="js/auth.js"></script>
     <script src="js/pauli.js"></script>
     <script src="js/app.js"></script>
+    <!-- MODUL TES GRAFIS (DAP, TREE, HTP) -->
+    <script src="js/grafis.js"></script>
     <!-- Custom Modal HTML / CSS IST -->
     <div id="ist-custom-modal" class="hidden"></div>
 

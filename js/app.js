@@ -89,7 +89,13 @@ function handleStartModule(testNum) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
 
-    if (testNum === 1) {
+    if (testNum === 'grafis' || testNum === 0) {
+        if (typeof bukaModulGrafis === 'function') {
+            bukaModulGrafis();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-grafis');
+        }
+    } else if (testNum === 1) {
         const modal = document.getElementById('modal-module-ist');
         if (modal) {
             modal.classList.remove('hide-section');
@@ -317,6 +323,12 @@ window._appSecurityLoaded = true;
 
 // Helper: Menentukan apakah ada tes aktif yang wajib diamankan (Pauli, IST, PAPI Kostick, DISC, MSDT, EPPS, CFIT, MBTI)
 function isTestActive() {
+    // Pengecualian resmi: Tes Grafis memerlukan akses ke dialog berkas / tab lain untuk upload
+    const grafisView = document.getElementById('view-grafis');
+    if (grafisView && !grafisView.classList.contains('hide-section') && grafisView.style.display !== 'none') {
+        return { active: false, testType: null, isGrafis: true };
+    }
+
     const isPauli = typeof state !== 'undefined' && state.pauli && state.pauli.isActive && !isTrialMode && !window._tesSelesai;
     if (isPauli) return { active: true, testType: 'Pauli' };
 
@@ -401,6 +413,12 @@ document.addEventListener('selectstart', (e) => {
 let lastViolationTimestamp = 0;
 
 function handleIntegrityViolation(reason) {
+    // 0. Pengecualian resmi: Peserta di modul Tes Grafis bebas membuka dialog upload / window lain
+    const grafisView = document.getElementById('view-grafis');
+    if (grafisView && !grafisView.classList.contains('hide-section') && grafisView.style.display !== 'none') {
+        return;
+    }
+
     const testStatus = isTestActive();
     if (!testStatus.active) {
         return;
@@ -599,6 +617,12 @@ window.addEventListener('focus', () => {
 
 // 3. Deteksi global saat peserta keluar dari mode Layar Penuh (Fullscreen) sejak Dashboard hingga selesai
 document.addEventListener('fullscreenchange', () => {
+    // Abaikan jika peserta sedang berada di modul Tes Grafis (misal saat dialog file browser terbuka)
+    const grafisView = document.getElementById('view-grafis');
+    if (grafisView && !grafisView.classList.contains('hide-section') && grafisView.style.display !== 'none') {
+        return;
+    }
+
     const selesaiView = document.getElementById('view-selesai') || document.getElementById('page-selesai');
     const isSelesaiVisible = selesaiView && !selesaiView.classList.contains('hide-section') && selesaiView.style.display !== 'none';
     if (window._tesSelesai || isSelesaiVisible) {

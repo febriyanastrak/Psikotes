@@ -56,22 +56,27 @@ function customAlert(title, message, type = 'info', isConfirm = false, onOk = nu
         if (type === 'error') {
             icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-red-500/10 text-red-400 border border-red-500/20";
             icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-            btnOk.className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition";
+            btnOk.className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition cursor-pointer";
         } else if (type === 'success') {
             icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-green-500/10 text-green-400 border border-green-500/20";
             icon.innerHTML = '<i class="fa-solid fa-check"></i>';
-            btnOk.className = "w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition";
+            btnOk.className = "w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition cursor-pointer";
+        } else if (type === 'warning') {
+            icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            icon.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i>';
+            btnOk.className = "w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 rounded-xl transition shadow-lg cursor-pointer";
         } else {
             icon.className = "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20";
             icon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
-            btnOk.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition";
+            btnOk.className = "w-full bg-[#003865] hover:bg-[#0a4980] text-white font-bold py-3 rounded-xl transition cursor-pointer";
         }
     }
 
     if (btnCancel && btnOk) {
         if (isConfirm) {
             btnCancel.classList.remove('hide-section');
-            btnOk.innerText = "Ya, Lanjutkan";
+            btnCancel.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition cursor-pointer";
+            btnOk.innerText = type === 'warning' ? "Ya, Kunci & Kirim" : "Ya, Lanjutkan";
         } else {
             btnCancel.classList.add('hide-section');
             btnOk.innerText = "Mengerti";
@@ -141,26 +146,28 @@ function closeModal(id) {
 }
 
 /**
- * Konfigurasi 8 Modul Asesmen Psikotes PT Altrak 1978 (Sistem Non-Linear / Bebas Pilih)
+ * Konfigurasi 9 Modul Asesmen Psikotes PT Altrak 1978 (Sistem Non-Linear / Bebas Pilih)
  */
 const ALL_ASSESSMENT_MODULES = [
-    { id: 1, key: 'ist', name: 'Inteligent 1 (IST)', flag: 'ist_selesai', btnText: 'Mulai Tes 1' },
-    { id: 2, key: 'papi', name: 'PAPI Kostick', flag: 'papi_selesai', btnText: 'Mulai Tes 2' },
-    { id: 3, key: 'disc', name: 'DISC Assessment', flag: 'disc_selesai', btnText: 'Mulai Tes 3' },
-    { id: 4, key: 'epps', name: 'EPPS', flag: 'epps_selesai', btnText: 'Mulai Tes 4' },
-    { id: 5, key: 'pauli', name: 'Pauli (Tes Koran)', flag: 'pauli_selesai', btnText: 'Mulai Tes 5' },
-    { id: 6, key: 'msdt', name: 'MSDT (Gaya Kepemimpinan)', flag: 'msdt_selesai', btnText: 'Mulai Tes 6' },
-    { id: 7, key: 'cfit', name: 'Inteligent 2 (CFIT)', flag: 'cfit_selesai', btnText: 'Mulai Tes 7' },
-    { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 8' }
+    { id: 'grafis', key: 'grafis', name: 'Tes Grafis (DAP, Tree, HTP)', flag: 'grafis_selesai', btnText: 'Mulai Tes 1' },
+    { id: 1, key: 'ist', name: 'Inteligent 1 (IST)', flag: 'ist_selesai', btnText: 'Mulai Tes 2' },
+    { id: 2, key: 'papi', name: 'PAPI Kostick', flag: 'papi_selesai', btnText: 'Mulai Tes 3' },
+    { id: 3, key: 'disc', name: 'DISC Assessment', flag: 'disc_selesai', btnText: 'Mulai Tes 4' },
+    { id: 4, key: 'epps', name: 'EPPS', flag: 'epps_selesai', btnText: 'Mulai Tes 5' },
+    { id: 5, key: 'pauli', name: 'Pauli (Tes Koran)', flag: 'pauli_selesai', btnText: 'Mulai Tes 6' },
+    { id: 6, key: 'msdt', name: 'MSDT (Gaya Kepemimpinan)', flag: 'msdt_selesai', btnText: 'Mulai Tes 7' },
+    { id: 7, key: 'cfit', name: 'Inteligent 2 (CFIT)', flag: 'cfit_selesai', btnText: 'Mulai Tes 8' },
+    { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 9' }
 ];
 
 /**
  * Mengecek apakah modul tertentu sudah selesai dikerjakan
- * @param {number} num Nomor modul (1 s.d 8)
+ * @param {number|string} num Nomor modul (grafis atau 1 s.d 8)
  * @returns {boolean}
  */
 function isModuleCompleted(num) {
     if (typeof localStorage === 'undefined') return false;
+    if (num === 'grafis' || num === 0) return localStorage.getItem('grafis_selesai') === 'true';
     if (num === 1) {
         let subtestsSelesai = [];
         try {
@@ -182,11 +189,12 @@ function isModuleCompleted(num) {
 
 /**
  * Mengubah status visual kartu modul tes di dashboard (active, done, locked)
- * @param {number} num Nomor tes (1 s.d 8)
+ * @param {number|string} num Nomor tes (grafis atau 1 s.d 8)
  * @param {'active'|'done'|'locked'} stateName Status baru kartu
  */
 function setDashCardState(num, stateName) {
-    const card = document.getElementById('card-' + num);
+    const cardId = (num === 'grafis' || num === 0) ? 'card-grafis' : ('card-' + num);
+    const card = document.getElementById(cardId);
     if (!card) return;
     card.classList.remove('is-active', 'is-done', 'is-locked');
     card.classList.add('is-' + stateName);
@@ -204,10 +212,10 @@ function setDashCardState(num, stateName) {
 }
 
 /**
- * Memperbarui progress bar keseluruhan pada dashboard (skala 8 modul)
+ * Memperbarui progress bar keseluruhan pada dashboard (skala 9 modul)
  */
 function updateDashboardProgress() {
-    const total = ALL_ASSESSMENT_MODULES.length; // 8 modul
+    const total = ALL_ASSESSMENT_MODULES.length; // 9 modul
     let done = 0;
     ALL_ASSESSMENT_MODULES.forEach(m => {
         if (isModuleCompleted(m.id)) done++;
@@ -231,15 +239,17 @@ function updateDashboardProgress() {
 }
 
 /**
- * Menyinkronkan seluruh 8 kartu modul di dashboard
+ * Menyinkronkan seluruh 9 kartu modul di dashboard
  * Modul yang belum selesai berstatus aktif (bebas dipilih)
  * Modul yang sudah selesai berstatus selesai (terkunci dengan tanda centang)
  */
 function syncAllModuleCardStates() {
     ALL_ASSESSMENT_MODULES.forEach(m => {
         const completed = isModuleCompleted(m.id);
-        const card = document.getElementById('card-' + m.id);
-        const btn = document.getElementById('btn-test-' + m.id);
+        const cardId = (m.id === 'grafis') ? 'card-grafis' : ('card-' + m.id);
+        const btnId = (m.id === 'grafis') ? 'btn-test-grafis' : ('btn-test-' + m.id);
+        const card = document.getElementById(cardId);
+        const btn = document.getElementById(btnId);
 
         if (completed) {
             setDashCardState(m.id, 'done');
@@ -264,12 +274,13 @@ function syncAllModuleCardStates() {
 
 /**
  * Menandai modul selesai dan menyinkronkan dashboard
- * @param {number} completedTestNum Nomor tes yang baru diselesaikan
+ * @param {number|string} completedTestNum Nomor tes yang baru diselesaikan
  */
 function unlockDashboardCard(completedTestNum) {
     if (completedTestNum) {
         setDashCardState(completedTestNum, 'done');
-        const btnTadi = document.getElementById('btn-test-' + completedTestNum);
+        const btnId = (completedTestNum === 'grafis') ? 'btn-test-grafis' : ('btn-test-' + completedTestNum);
+        const btnTadi = document.getElementById(btnId);
         if (btnTadi) {
             btnTadi.innerText = "Selesai ✓";
             btnTadi.disabled = true;
@@ -303,7 +314,7 @@ function konfirmasiSelesaiSeluruhAsesmen() {
         }
     } else {
         if (typeof customAlert === 'function') {
-            customAlert("Selamat!", "Seluruh 8 modul psikotes PT Altrak 1978 telah berhasil Anda selesaikan secara sempurna.", "success", false, () => {
+            customAlert("Selamat!", `Seluruh ${total} modul psikotes PT Altrak 1978 telah berhasil Anda selesaikan secara sempurna.`, "success", false, () => {
                 tampilkanHalamanSelesai();
             });
         } else {

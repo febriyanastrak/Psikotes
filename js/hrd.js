@@ -485,6 +485,7 @@ function viewCandidateChart(index) {
     }
 
     // Render data ke masing-masing tab asesmen
+    renderGrafisResults(row.hasil_grafis, row);
     renderIstResults(row.hasil_ist);
     renderPapiResults(row.hasil_papi);
     renderDiscResults(row.hasil_disc);
@@ -953,7 +954,7 @@ function showHrdToast(message, type = 'success') {
 async function hapusSemuaData() {
     showModernHrdPrompt(
         "Konfirmasi Hapus Seluruh Data",
-        "PERINGATAN KRUSIAL:<br>Anda akan menghapus <strong>SEMUA data hasil tes peserta</strong> dan nomor urut akan direset ke 1. Tindakan ini permanen.<br><br>Ketik <strong class='text-red-400 font-mono tracking-widest bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20'>HAPUS</strong> untuk mengonfirmasi:",
+        "PERINGATAN KRUSIAL:<br>Anda akan menghapus <strong>SEMUA data hasil tes peserta</strong> dan nomor urut akan direset ke 1. Seluruh berkas gambar di penyimpanan juga akan dibersihkan. Tindakan ini permanen.<br><br>Ketik <strong class='text-red-400 font-mono tracking-widest bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20'>HAPUS</strong> untuk mengonfirmasi:",
         "HAPUS",
         async () => {
             const loadingEl = document.getElementById('modal-loading');
@@ -970,14 +971,137 @@ async function hapusSemuaData() {
                     return;
                 }
 
-                // 1. Jalankan pemanggilan fungsi RPC bawaan
+                // -------------------------------------------------------------------------
+                // 1. PEMBERSIHAN BERKAS FISIK SUPABASE STORAGE (BUCKET: foto_kandidat)
+                // -------------------------------------------------------------------------
+                if (sb.storage) {
+                    try {
+                        const filePathsToDelete = [];
+
+                        // A. Kumpulkan file dari kandidat yang sedang ada di cache memory
+                        if (Array.isArray(cachedHrdData) && cachedHrdData.length > 0) {
+                            for (const cand of cachedHrdData) {
+                                const candId = cand.id || cand.no_peserta || cand["No Peserta"];
+                                if (candId) {
+                                    try {
+                                        const { data: directFiles } = await sb.storage.from('foto_kandidat').list(String(candId), { limit: 100 });
+                                        if (Array.isArray(directFiles)) {
+                                            directFiles.forEach(f => {
+                                                if (f.name) filePathsToDelete.push(`${candId}/${f.name}`);
+                                            });
+                                        }
+                                    } catch (eDir) {}
+                                }
+
+                                if (cand.hasil_grafis) {
+                                    try {
+                                        const hg = typeof cand.hasil_grafis === 'string' ? JSON.parse(cand.hasil_grafis) : cand.hasil_grafis;
+                                        ['dap', 'tree', 'htp'].forEach(slot => {
+                                            const arr = typeof extractFilesFromCategory === 'function' 
+                                                ? extractFilesFromCategory(hg[slot]) 
+                                                : (Array.isArray(hg[slot]) ? hg[slot] : [hg[slot]]);
+                                            arr.filter(Boolean).forEach(item => {
+                                                let p = item.url || item.path || '';
+                                                if (p.includes('/foto_kandidat/')) {
+                                                    p = p.split('/foto_kandidat/').pop().split('?')[0];
+                                                }
+                                                p = decodeURIComponent(p).replace(/^\/+/, '');
+                                                if (p && !p.startsWith('data:') && !filePathsToDelete.includes(p)) {
+                                                    filePathsToDelete.push(p);
+                                                }
+                                            });
+                                        });
+                                    } catch (eParseGrafis) {}
+                                }
+                            }
+                        }
+
+                        // B. Scan mendalam seluruh isi folder 'grafis/' di storage
+                        try {
+                            const { data: grafisItems, error: errGrafis } = await sb.storage.from('foto_kandidat').list('grafis', { limit: 500 });
+                            if (!errGrafis && Array.isArray(grafisItems)) {
+                                for (const item of grafisItems) {
+                                    if (item.name) {
+                                        const subfolder = `grafis/${item.name}`;
+                                        try {
+                                            const { data: subFiles } = await sb.storage.from('foto_kandidat').list(subfolder, { limit: 200 });
+                                            if (Array.isArray(subFiles) && subFiles.length > 0) {
+                                                subFiles.forEach(f => {
+                                                    if (f.name) filePathsToDelete.push(`${subfolder}/${f.name}`);
+                                                });
+                                            } else {
+                                                filePathsToDelete.push(subfolder);
+                                            }
+                                        } catch (eSub) {
+                                            filePathsToDelete.push(subfolder);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (eGrafisScan) {
+                            console.warn('[HRD Storage] Peringatan saat menyisir folder grafis:', eGrafisScan);
+                        }
+
+                        // C. Scan folder foto pengawasan webcam (IST, PAULI, PAPI, DISC, MSDT, EPPS, CFIT, MBTI)
+                        const proctoringFolders = ['IST', 'PAULI', 'PAPI', 'DISC', 'MSDT', 'EPPS', 'CFIT', 'MBTI'];
+                        for (const pFolder of proctoringFolders) {
+                            try {
+                                const { data: pItems, error: pErr } = await sb.storage.from('foto_kandidat').list(pFolder, { limit: 200 });
+                                if (!pErr && Array.isArray(pItems)) {
+                                    for (const it of pItems) {
+                                        if (it.name) {
+                                            const sub = `${pFolder}/${it.name}`;
+                                            try {
+                                                const { data: sFiles } = await sb.storage.from('foto_kandidat').list(sub, { limit: 100 });
+                                                if (Array.isArray(sFiles) && sFiles.length > 0) {
+                                                    sFiles.forEach(f => {
+                                                        if (f.name) filePathsToDelete.push(`${sub}/${f.name}`);
+                                                    });
+                                                } else {
+                                                    filePathsToDelete.push(sub);
+                                                }
+                                            } catch (eSubProc) {
+                                                filePathsToDelete.push(sub);
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (eProcScan) {
+                                console.warn(`[HRD Storage] Peringatan scan folder ${pFolder}:`, eProcScan);
+                            }
+                        }
+
+                        // D. Hapus seluruh berkas yang terkumpul secara batch (maks 100 berkas per panggilan)
+                        const uniquePaths = Array.from(new Set(filePathsToDelete)).filter(Boolean);
+                        if (uniquePaths.length > 0) {
+                            console.log(`[HRD Storage] Menghapus ${uniquePaths.length} berkas foto dari storage foto_kandidat...`);
+                            const batchSize = 100;
+                            for (let i = 0; i < uniquePaths.length; i += batchSize) {
+                                const chunk = uniquePaths.slice(i, i + batchSize);
+                                try {
+                                    await sb.storage.from('foto_kandidat').remove(chunk);
+                                } catch (eRemoveChunk) {
+                                    console.warn('[HRD Storage] Peringatan saat menghapus batch berkas:', eRemoveChunk);
+                                }
+                            }
+                            console.log('[HRD Storage] Seluruh berkas foto berhasil dibersihkan.');
+                        }
+                    } catch (eStorageAll) {
+                        console.warn('[HRD Storage] Gagal membersihkan storage foto_kandidat:', eStorageAll);
+                    }
+                }
+
+                // -------------------------------------------------------------------------
+                // 2. PENGOSONGAN TABEL DATABASE POSTGRESQL
+                // -------------------------------------------------------------------------
+                // A. Jalankan pemanggilan fungsi RPC bawaan
                 try {
                     await sb.rpc('hapus_semua_data');
                 } catch (eRpc) {
                     console.warn("Catatan RPC hapus_semua_data:", eRpc);
                 }
 
-                // 2. Tambahan: Hapus data langsung dengan filter WHERE agar lolos dari proteksi database server
+                // B. Hapus data langsung dari tabel kandidat_psikotes
                 try {
                     await sb
                         .from('kandidat_psikotes')
@@ -987,7 +1111,7 @@ async function hapusSemuaData() {
                     console.warn("Hapus kandidat_psikotes:", e1);
                 }
 
-                // Hapus data dari tabel lama hasil_psikotes_kandidat jika ada
+                // C. Hapus data dari tabel lama hasil_psikotes_kandidat jika ada
                 try {
                     await sb
                         .from('hasil_psikotes_kandidat')
@@ -1001,7 +1125,7 @@ async function hapusSemuaData() {
                 cachedHrdData = [];
 
                 if (loadingEl) loadingEl.classList.add('hide-section');
-                customAlert("Berhasil Dikosongkan", "Semua riwayat hasil tes peserta telah berhasil dikosongkan.", "success");
+                customAlert("Berhasil Dikosongkan", "Semua riwayat hasil tes peserta dan berkas foto di storage berhasil dikosongkan.", "success");
                 await loadHrdData();
             } catch (err) {
                 if (loadingEl) loadingEl.classList.add('hide-section');
@@ -1026,7 +1150,7 @@ let currentSelectedCandidate = null;
  */
 function switchHrdTab(tabId) {
     if (tabId === 'mcmi') tabId = 'mbti';
-    const tabs = ['pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'foto'];
+    const tabs = ['grafis', 'pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'foto'];
     const hasDataTahap2 = currentSelectedCandidate && !!(
         currentSelectedCandidate.hasil_msdt ||
         currentSelectedCandidate.hasil_cfit || currentSelectedCandidate.hasil_mbti ||
@@ -1077,6 +1201,10 @@ function switchHrdTab(tabId) {
         setTimeout(() => {
             istProfileChartInstance.resize();
         }, 50);
+    }
+
+    if (tabId === 'grafis' && currentSelectedCandidate) {
+        renderGrafisResults(currentSelectedCandidate.hasil_grafis, currentSelectedCandidate);
     }
 
     if (tabId === 'foto' && currentSelectedCandidate) {
@@ -5501,7 +5629,521 @@ function closeModal(id) {
         modal.style.display = 'none';
     }
 }
+
+// =========================================================================
+// MODUL HASIL TES GRAFIS (DAP, BAUM/TREE, HTP)
+// =========================================================================
+let currentGrafisLightboxFile = null;
+
+/**
+ * Mengubah URL penyimpanan Supabase dari bucket private foto_kandidat menjadi Signed URL
+ * @param {string} rawUrl 
+ * @returns {Promise<string>}
+ */
+async function resolveGrafisUrl(rawUrl) {
+    if (!rawUrl) return '';
+    if (rawUrl.startsWith('data:') || rawUrl.includes('/object/sign/')) return rawUrl;
+
+    const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    if (!sbClient || !sbClient.storage) return rawUrl;
+
+    let storagePath = rawUrl;
+    if (storagePath.includes('/foto_kandidat/')) {
+        storagePath = storagePath.split('/foto_kandidat/').pop().split('?')[0];
+    }
+    storagePath = decodeURIComponent(storagePath).replace(/^\/+/, '');
+
+    try {
+        const { data, error } = await sbClient.storage.from('foto_kandidat').createSignedUrl(storagePath, 3600);
+        if (!error && data && data.signedUrl) {
+            if (data.signedUrl.startsWith('http')) {
+                return data.signedUrl;
+            } else {
+                const sbBase = window.SUPABASE_URL || 'https://rvflmznbihunezzqhobm.supabase.co';
+                return `${sbBase}/storage/v1${data.signedUrl}`;
+            }
+        }
+    } catch (e) {
+        console.warn('[HRD Grafis] Gagal mendapatkan signed URL:', e);
+    }
+    return rawUrl;
+}
+
+/**
+ * Helper untuk membaca daftar berkas per kategori (kompatibel dengan format array baru maupun single object lama)
+ * @param {any} categoryData
+ * @returns {Array<Object>}
+ */
+function extractFilesFromCategory(categoryData) {
+    if (!categoryData) return [];
+    if (Array.isArray(categoryData)) return categoryData.filter(Boolean);
+    if (categoryData.files && Array.isArray(categoryData.files)) return categoryData.files.filter(Boolean);
+    if (categoryData.url || categoryData.base64) return [categoryData];
+    return [];
+}
+
+/**
+ * Merender galeri hasil Tes Grafis (DAP, Baum/Tree, HTP) - Mendukung hingga 2 berkas per tes (Total maks 6 berkas)
+ * @param {Object|string|null} hasilGrafis Data hasil grafis (JSON atau Object)
+ * @param {Object} [candidate] Objek kandidat terkait
+ */
+async function renderGrafisResults(hasilGrafis, candidate) {
+    const cand = candidate || currentSelectedCandidate;
+    const grid = document.getElementById('hrdGrafisGridContainer');
+    const emptyNotice = document.getElementById('hrdGrafisEmptyNotice');
+    const tglEl = document.getElementById('grafisRptTanggal');
+    const totalEl = document.getElementById('grafisRptTotal');
+    const namaEl = document.getElementById('grafisRptNama');
+    const kontakEl = document.getElementById('grafisRptKontak');
+    const posisiEl = document.getElementById('grafisRptPosisi');
+    const waktuEl = document.getElementById('grafisRptWaktu');
+
+    if (cand) {
+        if (tglEl) tglEl.innerText = cand["Waktu Selesai"] || (cand.created_at ? new Date(cand.created_at).toLocaleString('id-ID') : '-');
+        if (namaEl) namaEl.innerText = cand["Nama Lengkap"] || cand.nama_lengkap || '-';
+        if (kontakEl) kontakEl.innerText = cand["No WhatsApp"] || cand.no_wa || cand["Alamat Email"] || cand.email || '-';
+        if (posisiEl) posisiEl.innerText = cand["Posisi"] || cand.posisi || cand.posisi_dilamar || '-';
+        if (waktuEl) waktuEl.innerText = cand["Waktu Mulai"] || (cand.created_at ? new Date(cand.created_at).toLocaleString('id-ID') : '-');
+    }
+
+    if (!grid) return;
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil berkas gambar dari server...</div>';
+
+    let data = null;
+    if (typeof hasilGrafis === 'string') {
+        try {
+            data = JSON.parse(hasilGrafis);
+        } catch (e) {
+            data = null;
+        }
+    } else if (hasilGrafis && typeof hasilGrafis === 'object') {
+        data = hasilGrafis;
+    }
+
+    // Fallback cadangan lokal jika dibuka dari browser tester lokal
+    if (!data && typeof localStorage !== 'undefined') {
+        try {
+            const cadangan = localStorage.getItem('cadangan_hasil_grafis');
+            if (cadangan) data = JSON.parse(cadangan);
+        } catch (e) {}
+    }
+
+    const slots = [
+        {
+            key: 'dap',
+            title: 'Draw a Person / Man (DAP)',
+            code: 'Tes 1: DAP',
+            color: 'blue',
+            desc: 'Gambar figur manusia utuh dari ujung kepala hingga kaki beserta deskripsi aktivitas.'
+        },
+        {
+            key: 'tree',
+            title: 'Baum Test (Pohon / Tree)',
+            code: 'Tes 2: Pohon',
+            color: 'emerald',
+            desc: 'Gambar pohon berkayu lengkap (akar, batang, dahan, daun) dan nama jenis pohon.'
+        },
+        {
+            key: 'htp',
+            title: 'House-Tree-Person (HTP)',
+            code: 'Tes 3: HTP',
+            color: 'purple',
+            desc: 'Gambar kesatuan Rumah (House), Pohon (Tree), dan Orang (Person) dalam satu lembar.'
+        }
+    ];
+
+    let totalFilesFound = 0;
+    const categoryFilesMap = {};
+
+    // 1. Ekstrak dan resolusi signed URL secara paralel untuk bucket private
+    await Promise.all(slots.map(async slot => {
+        const rawFiles = extractFilesFromCategory(data ? data[slot.key] : null);
+        categoryFilesMap[slot.key] = rawFiles;
+        totalFilesFound += rawFiles.length;
+
+        await Promise.all(rawFiles.map(async (item) => {
+            if (item && item.url) {
+                item.resolvedUrl = await resolveGrafisUrl(item.url);
+            }
+        }));
+    }));
+
+    let cardsHtml = '';
+
+    // 2. Render 3 Card Kategori Utama (Masing-masing berisi hingga 2 Sub-Slot Berkas)
+    slots.forEach((slot, slotIdx) => {
+        const files = categoryFilesMap[slot.key] || [];
+        const fileCount = files.length;
+        const printPageId = `grafisPrintPage_${slot.key}`;
+
+        // Header Kategori
+        cardsHtml += `
+            <div id="${printPageId}" class="grafis-test-block bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between mb-6">
+                <div>
+                    <!-- Header Card Web & Print -->
+                    <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-${slot.color}-50 text-${slot.color}-700 border border-${slot.color}-200">
+                                ${slot.code}
+                            </span>
+                            <span class="text-xs font-bold text-slate-800">${slot.title}</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${fileCount > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
+                            ${fileCount > 0 ? `${fileCount} dari 2 Berkas Terunggah` : 'Belum Ada Berkas'}
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-slate-500 mb-4">${slot.desc}</p>
+
+                    <!-- Sub-Grid 2 Berkas (Lembar 1 & Lembar 2) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        `;
+
+        // Render Lembar 1 dan Lembar 2
+        for (let subIdx = 1; subIdx <= 2; subIdx++) {
+            const item = files[subIdx - 1];
+            const hasItem = !!item;
+
+            if (hasItem) {
+                const fileUrl = item.resolvedUrl || item.url || item.base64;
+                const fileName = item.nama_file || `${slot.key.toUpperCase()}_Berkas_${subIdx}`;
+                const fileSize = item.ukuran || '';
+                const isPdf = (item.tipe === 'application/pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'));
+                const uploadTime = item.waktu_upload ? new Date(item.waktu_upload).toLocaleString('id-ID') : '-';
+                const subLabel = subIdx === 1 ? 'Lembar 1 (Utama)' : 'Lembar 2 (Tambahan)';
+
+                cardsHtml += `
+                    <div class="grafis-subcard bg-slate-50/80 border border-slate-200 rounded-xl p-3 flex flex-col justify-between shadow-2xs">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-2">
+                                <span class="flex items-center gap-1.5 text-[#003865]">
+                                    <i class="fa-regular fa-image text-${slot.color}-600"></i> ${subLabel}
+                                </span>
+                                <span class="text-[9px] px-2 py-0.2 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Tersedia ✓
+                                </span>
+                            </div>
+
+                            <!-- Preview Container -->
+                            <div class="relative rounded-lg overflow-hidden border border-slate-200 bg-white aspect-video flex items-center justify-center mb-2.5 group">
+                                ${isPdf ? `
+                                    <div class="flex flex-col items-center justify-center p-3 text-center cursor-pointer w-full h-full hover:bg-slate-50 transition" onclick="bukaLightboxGrafis('${slot.key}', ${subIdx})">
+                                        <i class="fa-solid fa-file-pdf text-red-500 text-4xl mb-1 group-hover:scale-105 transition-transform"></i>
+                                        <span class="text-[11px] font-bold text-slate-800 max-w-[180px] truncate">${escapeHtml(fileName)}</span>
+                                        <span class="text-[9px] text-slate-400 mt-0.5">Klik untuk Pratinjau PDF</span>
+                                    </div>
+                                ` : `
+                                    <img src="${fileUrl}" alt="${slot.title} - ${subLabel}"
+                                        class="grafis-img w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        onclick="bukaLightboxGrafis('${slot.key}', ${subIdx})"
+                                        onerror="this.onerror=null; this.classList.add('p-4', 'opacity-60'); this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\' fill=\\'%2394a3b8\\' viewBox=\\'0 0 24 24\\'><path d=\\'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z\\'/></svg>';" />
+                                    <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none no-print">
+                                        <span class="px-2.5 py-1 rounded-md bg-white/95 text-slate-900 text-[10px] font-bold shadow flex items-center gap-1">
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i> Perbesar
+                                        </span>
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Metadata Berkas -->
+                            <div class="bg-white rounded-lg p-2 border border-slate-200/80 mb-2.5 text-[10px] space-y-0.5">
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="text-slate-400">Nama:</span>
+                                    <span class="font-bold text-slate-800 truncate max-w-[130px]" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="text-slate-400">Ukuran:</span>
+                                    <span class="font-semibold text-slate-700">${fileSize || '-'}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="text-slate-400">Waktu:</span>
+                                    <span class="text-slate-500">${uploadTime}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Aksi Web (Disembunyikan saat cetak) -->
+                        <div class="flex items-center gap-2 pt-2 border-t border-slate-200 no-print">
+                            <button type="button" onclick="bukaLightboxGrafis('${slot.key}', ${subIdx})"
+                                class="flex-1 px-2.5 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-up-right-and-down-left-from-center text-[10px]"></i>
+                                <span>Zoom</span>
+                            </button>
+                            <button type="button" onclick="unduhBerkasGrafis('${slot.key}', ${subIdx})"
+                                class="flex-1 px-2.5 py-1.5 bg-[#003865] hover:bg-[#0a4980] text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-1 shadow-2xs cursor-pointer">
+                                <i class="fa-solid fa-download text-[10px]"></i>
+                                <span>Unduh</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Placeholder Kosong
+                const isRequiredSlot = subIdx === 1;
+                cardsHtml += `
+                    <div class="grafis-subcard bg-slate-50/50 border border-dashed border-slate-200 rounded-xl p-4 flex flex-col justify-center text-center items-center min-h-[220px]">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-2 text-base">
+                            <i class="fa-regular fa-image"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-600">Lembar ${subIdx} ${isRequiredSlot ? '(Utama)' : '(Opsional)'}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">${isRequiredSlot ? 'Tidak ada berkas yang diunggah' : 'Kandidat tidak mengunggah lembar tambahan'}</p>
+                    </div>
+                `;
+            }
+        }
+
+        cardsHtml += `
+                    </div>
+
+                    <!-- Kolom Catatan Observasi Psikologis (Executive Print Layout) -->
+                    <div class="grafis-print-notes mt-3 p-3 bg-slate-50/60 border border-slate-200 rounded-xl text-xs">
+                        <div class="flex items-center justify-between pb-1 mb-2 border-b border-slate-300">
+                            <span class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                                <i class="fa-solid fa-clipboard-check text-blue-600 mr-1"></i> Catatan Observasi Psikologis &amp; Interpretasi Klinis (${slot.code})
+                            </span>
+                            <span class="text-[10px] text-slate-400">Diisi oleh Assessor / Psikolog HRD</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-[11px] mb-2">
+                            <div>
+                                <span class="text-slate-500 font-semibold">Indikator Observasi:</span>
+                                <p class="text-slate-700 mt-0.5">• Proporsi, Tekanan Garis, &amp; Penempatan Spasial Kertas</p>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 font-semibold">Tingkat Keselarasan:</span>
+                                <p class="text-slate-700 mt-0.5">• Konsistensi Struktur Gambar &amp; Dinamika Karakter</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-dashed border-slate-300 pt-2 text-[10px] text-slate-400">
+                            Catatan HRD: ____________________________________________________________________________________________________
+                        </div>
+                    </div>
+        `;
+
+        // Kolom tanda tangan di halaman terakhir (HTP)
+        if (slot.key === 'htp') {
+            cardsHtml += `
+                <div class="grafis-print-signature mt-4 pt-3 border-t border-slate-300 flex justify-between items-end text-xs">
+                    <div>
+                        <p class="text-[10px] text-slate-500 font-medium">Dokumen ini merupakan hasil tes psikodiagnostik resmi.</p>
+                        <p class="text-[10px] text-slate-400">PT ALTRAK 1978 — Human Capital &amp; Talent Acquisition Department</p>
+                    </div>
+                    <div class="text-center w-52">
+                        <p class="text-[11px] text-slate-600 font-bold mb-10">Psikolog / Assessor Penguji,</p>
+                        <div class="border-b border-slate-800 w-full mb-1"></div>
+                        <p class="text-[10px] text-slate-500 font-semibold">( Tanda Tangan &amp; Nama Terang )</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        cardsHtml += `
+                </div>
+            </div>
+        `;
+    });
+
+    grid.innerHTML = cardsHtml;
+
+    if (totalEl) {
+        totalEl.innerText = `${totalFilesFound} dari 6 Berkas Terunggah`;
+        totalEl.className = totalFilesFound >= 3 ? 'font-bold text-emerald-600' : 'font-bold text-amber-600';
+    }
+
+    if (totalFilesFound === 0) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+    } else {
+        if (emptyNotice) emptyNotice.classList.add('hidden');
+    }
+}
+
+/**
+ * Membuka modal Lightbox fullscreen untuk berkas grafis tertentu
+ * @param {'dap'|'tree'|'htp'} slot
+ * @param {number} subIndex 1 atau 2
+ */
+async function bukaLightboxGrafis(slot, subIndex = 1) {
+    let data = null;
+    if (currentSelectedCandidate && currentSelectedCandidate.hasil_grafis) {
+        const raw = currentSelectedCandidate.hasil_grafis;
+        data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    }
+    if (!data && typeof localStorage !== 'undefined') {
+        try {
+            data = JSON.parse(localStorage.getItem('cadangan_hasil_grafis') || 'null');
+        } catch (e) {}
+    }
+
+    if (!data || !data[slot]) {
+        alert('Berkas tidak ditemukan.');
+        return;
+    }
+
+    const files = extractFilesFromCategory(data[slot]);
+    const item = files[subIndex - 1];
+
+    if (!item) {
+        alert(`Berkas ${slot.toUpperCase()} Lembar ${subIndex} tidak ditemukan.`);
+        return;
+    }
+
+    let fileUrl = item.resolvedUrl || item.url || item.base64;
+    fileUrl = await resolveGrafisUrl(fileUrl);
+    item.resolvedUrl = fileUrl;
+
+    const isPdf = (item.tipe === 'application/pdf') || (item.nama_file && item.nama_file.toLowerCase().endsWith('.pdf'));
+
+    const titles = {
+        dap: 'Draw a Person / Man (DAP)',
+        tree: 'Baum Test (Pohon / Tree)',
+        htp: 'House-Tree-Person (HTP)'
+    };
+
+    currentGrafisLightboxFile = {
+        slot: slot,
+        subIndex: subIndex,
+        url: fileUrl,
+        name: item.nama_file || `${slot.toUpperCase()}_Berkas_${subIndex}`,
+        isPdf: isPdf
+    };
+
+    const modal = document.getElementById('modalGrafisLightbox');
+    const titleEl = document.getElementById('lightboxTitle');
+    const subtitleEl = document.getElementById('lightboxSubtitle');
+    const imgEl = document.getElementById('lightboxImg');
+    const pdfEl = document.getElementById('lightboxPdf');
+
+    if (titleEl) titleEl.textContent = `${titles[slot] || 'Tes Grafis'} — Lembar ${subIndex}`;
+    if (subtitleEl) subtitleEl.textContent = `${item.nama_file || `${slot.toUpperCase()}_Berkas_${subIndex}`} • ${item.ukuran || ''}`;
+
+    if (isPdf) {
+        if (imgEl) imgEl.classList.add('hidden');
+        if (pdfEl) {
+            pdfEl.classList.remove('hidden');
+            pdfEl.src = fileUrl;
+        }
+    } else {
+        if (pdfEl) pdfEl.classList.add('hidden');
+        if (imgEl) {
+            imgEl.classList.remove('hidden');
+            imgEl.src = fileUrl;
+        }
+    }
+
+    if (modal) {
+        modal.classList.remove('hide-section');
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Menutup modal Lightbox grafis
+ */
+function tutupLightboxGrafis() {
+    const modal = document.getElementById('modalGrafisLightbox');
+    if (modal) {
+        modal.classList.add('hide-section');
+        modal.style.display = 'none';
+    }
+    const pdfEl = document.getElementById('lightboxPdf');
+    if (pdfEl) pdfEl.src = '';
+    currentGrafisLightboxFile = null;
+}
+
+/**
+ * Mengunduh berkas dari slot dan sub-indeks grafis tertentu
+ * Nama otomatis: DAP_1_[Nama].ext, DAP_2_[Nama].ext, POHON_1_..., HTP_1_...
+ * @param {'dap'|'tree'|'htp'} slot
+ * @param {number} subIndex 1 atau 2
+ */
+async function unduhBerkasGrafis(slot, subIndex = 1) {
+    let data = null;
+    if (currentSelectedCandidate && currentSelectedCandidate.hasil_grafis) {
+        const raw = currentSelectedCandidate.hasil_grafis;
+        data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    }
+    if (!data && typeof localStorage !== 'undefined') {
+        try {
+            data = JSON.parse(localStorage.getItem('cadangan_hasil_grafis') || 'null');
+        } catch (e) {}
+    }
+
+    if (!data || !data[slot]) {
+        alert('Berkas tidak ditemukan untuk diunduh.');
+        return;
+    }
+
+    const files = extractFilesFromCategory(data[slot]);
+    const item = files[subIndex - 1];
+
+    if (!item) {
+        alert(`Berkas ${slot.toUpperCase()} Lembar ${subIndex} tidak ditemukan.`);
+        return;
+    }
+
+    let fileUrl = item.resolvedUrl || item.url || item.base64;
+    fileUrl = await resolveGrafisUrl(fileUrl);
+    item.resolvedUrl = fileUrl;
+
+    const candName = (currentSelectedCandidate && (currentSelectedCandidate["Nama Lengkap"] || currentSelectedCandidate.nama_lengkap)) 
+        ? (currentSelectedCandidate["Nama Lengkap"] || currentSelectedCandidate.nama_lengkap) 
+        : 'Kandidat';
+    const cleanCandName = String(candName).trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    const ext = (item.nama_file && item.nama_file.includes('.')) 
+        ? item.nama_file.split('.').pop() 
+        : (item.tipe === 'application/pdf' ? 'pdf' : 'jpg');
+    
+    const slotCodeMap = {
+        dap: 'DAP',
+        tree: 'POHON',
+        htp: 'HTP'
+    };
+    const prefix = slotCodeMap[slot] || slot.toUpperCase();
+    const downloadFileName = `${prefix}_${subIndex}_${cleanCandName}.${ext}`;
+
+    try {
+        if (fileUrl.startsWith('data:')) {
+            // Unduh langsung DataURL
+            const a = document.createElement('a');
+            a.href = fileUrl;
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            // Unduh via Fetch Blob untuk menjaga nama file
+            const resp = await fetch(fileUrl);
+            const blob = await resp.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+        }
+    } catch (e) {
+        console.warn('[HRD Grafis] Gagal mengunduh blob, fallback ke window.open:', e);
+        window.open(fileUrl, '_blank');
+    }
+}
+
+/**
+ * Mengunduh berkas yang sedang aktif di Lightbox
+ */
+function unduhBerkasLightbox() {
+    if (currentGrafisLightboxFile && currentGrafisLightboxFile.slot) {
+        unduhBerkasGrafis(currentGrafisLightboxFile.slot, currentGrafisLightboxFile.subIndex || 1);
+    }
+}
+
 if (typeof window !== 'undefined') {
     window.closeModal = closeModal;
+    window.renderGrafisResults = renderGrafisResults;
+    window.bukaLightboxGrafis = bukaLightboxGrafis;
+    window.tutupLightboxGrafis = tutupLightboxGrafis;
+    window.unduhBerkasGrafis = unduhBerkasGrafis;
+    window.unduhBerkasLightbox = unduhBerkasLightbox;
 }
+
 
