@@ -36,7 +36,9 @@
             if (!identifier && typeof localStorage !== 'undefined') {
                 identifier = localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || '';
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[PAPI] Identifikasi kandidat warning:', e);
+        }
         window.jepretDanUpload(identifier, 'PAPI', subtesLabel, fase);
     }
 
@@ -787,7 +789,9 @@
         papiAnswers[noSoal] = choice;
         try {
             localStorage.setItem('papi_answers', JSON.stringify(papiAnswers));
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[PAPI] Gagal menyimpan cadangan jawaban lokal:', e);
+        }
 
         const questions = window.PAPI_QUESTIONS || [];
         const totalSoal = questions.length || 90;
@@ -992,7 +996,9 @@
                     if (savedPapi && typeof savedPapi === 'object') {
                         papiAnswers = { ...savedPapi };
                     }
-                } catch (eSaved) {}
+                } catch (eSaved) {
+                    console.warn('[PAPI] Gagal membaca cadangan jawaban dari storage:', eSaved);
+                }
             }
 
             // Hitung skor 20 dimensi secara otomatis (Safe Merge - Cegah Penimpaan Skor)

@@ -89,10 +89,13 @@ function pindahFase(targetId) {
         targetSection.style.setProperty('display', displayType, 'important');
         targetSection.classList.add(displayType === 'block' ? 'fase-aktif-block' : 'fase-aktif');
 
-        // Sinkronisasi background canvas agar tidak bocor putih saat modul corporate-modern-bg aktif
+        // Sinkronisasi background canvas agar tidak bocor putih saat modul corporate-modern-bg atau tema terang aktif
         if (targetSection.classList.contains('corporate-modern-bg')) {
             document.body.style.backgroundColor = '#071f38';
             document.documentElement.style.backgroundColor = '#071f38';
+        } else if (finalTargetId === 'view-ist' || finalTargetId === 'view-cfit' || finalTargetId === 'view-msdt' || finalTargetId === 'view-epps' || finalTargetId === 'view-mbti' || finalTargetId === 'view-pauli') {
+            document.body.style.backgroundColor = '#f8fafc';
+            document.documentElement.style.backgroundColor = '#f8fafc';
         } else {
             document.body.style.backgroundColor = '';
             document.documentElement.style.backgroundColor = '';
@@ -102,6 +105,17 @@ function pindahFase(targetId) {
     }
 
     // 3. Scroll ke posisi atas secara otomatis
+    
+        // Kontrol visibilitas navbar utama: sembunyikan saat modul tes fokus aktif (seperti Pauli)
+        const mainNav = document.getElementById('main-navbar') || document.querySelector('nav');
+        if (mainNav) {
+            if (finalTargetId === 'view-pauli') {
+                mainNav.style.display = 'none';
+            } else {
+                mainNav.style.display = '';
+            }
+        }
+
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Simpan fase aktif ke localStorage & sessionStorage untuk Auto-Restore menyeluruh saat reload
@@ -116,7 +130,9 @@ function pindahFase(targetId) {
             localStorage.removeItem('altrak_fase_aktif');
             sessionStorage.removeItem('altrak_fase_aktif');
         }
-    } catch (eStorage) {}
+    } catch (eStorage) {
+        console.warn('[SPA Router] Gagal menyimpan fase aktif ke storage:', eStorage);
+    }
 
     // 4. Jika menuju dashboard, perbarui status kartu dan progres secara otomatis
     if (finalTargetId === 'view-dashboard') {
@@ -125,8 +141,6 @@ function pindahFase(targetId) {
         }
         if (typeof syncAllModuleCardStates === 'function') {
             syncAllModuleCardStates();
-        } else if (typeof terapkanPenguncianDashboard === 'function') {
-            terapkanPenguncianDashboard();
         }
         if (typeof updateDashboardProgress === 'function') {
             updateDashboardProgress();
@@ -149,7 +163,9 @@ function pindahFase(targetId) {
             }
             try {
                 localStorage.removeItem('kandidat_foto_pengawasan');
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[SPA Router] Gagal membersihkan foto pengawasan:', e);
+            }
             if (typeof perbaruiStatusTombolTahap2 === 'function') {
                 perbaruiStatusTombolTahap2();
             }
@@ -204,7 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeFase = null;
     try {
         activeFase = localStorage.getItem('altrak_fase_aktif') || sessionStorage.getItem('altrak_fase_aktif');
-    } catch (e) {}
+    } catch (e) {
+        console.warn('[SPA Router] Gagal memulihkan fase aktif:', e);
+    }
 
     const isPauliSelesai = localStorage.getItem('pauli_selesai') === 'true';
 
@@ -289,8 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Dashboard Asesmen Reguler
             else if (activeFase === 'view-dashboard') {
-                if (typeof terapkanPenguncianDashboard === 'function') {
-                    terapkanPenguncianDashboard();
+                if (typeof syncAllModuleCardStates === 'function') {
+                    syncAllModuleCardStates();
                 }
                 if (typeof updateDashboardProgress === 'function') {
                     updateDashboardProgress();

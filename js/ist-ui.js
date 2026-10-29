@@ -514,7 +514,7 @@ const istUI = {
 
                         <!-- Render Gambar Panduan Utuh -->
                         <div class="my-4 flex justify-center bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                            <img src="${item.gambarSoal}" alt="Panduan Contoh ${subtestName}" class="max-w-full h-auto object-contain rounded-xl select-none" draggable="false">
+                            <img src="${encodeURI(item.gambarSoal)}" alt="Panduan Contoh ${subtestName}" class="max-w-full h-auto object-contain rounded-xl select-none" draggable="false">
                         </div>
 
                         <!-- Kotak Cara Mengerjakan (dari properti penjelasan) tepat di bawah gambar panduan -->
@@ -673,7 +673,7 @@ const istUI = {
                                 <span>${subtestData.id === 'soal_08' ? 'Pilihan Kubus Patokan (A, B, C, D, E):' : 'Pilihan Bentuk Patokan (A, B, C, D, E):'}</span>
                             </div>
                             <div class="flex justify-center items-center overflow-x-auto py-1">
-                                <img src="${item.gambarOpsi}" alt="Pilihan Patokan" 
+                                <img src="${encodeURI(item.gambarOpsi)}" alt="Pilihan Patokan" 
                                      class="w-full max-w-3xl h-auto ${subtestData.id === 'soal_07' ? 'max-h-[220px] sm:max-h-[260px]' : 'max-h-[150px] sm:max-h-[180px]'} object-contain select-none mx-auto transition-all" 
                                      draggable="false">
                             </div>
@@ -688,7 +688,7 @@ const istUI = {
                                 <span>${subtestData.id === 'soal_08' ? 'Contoh Soal Kubus (Kedudukan Kubus):' : 'Contoh Soal Bentuk:'}</span>
                             </div>
                             <div class="flex justify-center items-center overflow-x-auto">
-                                <img src="${item.gambarSoal}" alt="Contoh Soal" 
+                                <img src="${encodeURI(item.gambarSoal)}" alt="Contoh Soal" 
                                      class="${subtestData.id === 'soal_07' ? 'w-full max-w-2xl max-h-[260px] sm:max-h-[320px]' : 'max-w-full max-h-[120px] sm:max-h-[140px]'} h-auto object-contain select-none transition-all" 
                                      draggable="false">
                             </div>
@@ -1398,7 +1398,7 @@ const istUI = {
             soalHtml = `
                 <div>
                     <!-- 1. STICKY MASTER IMAGE: PILIHAN A, B, C, D, E (Menempel di atas saat di-scroll) -->
-                    <div class="sticky-patokan-card sticky top-0 z-50" style="position: sticky; top: 0; z-index: 50; background-color: #F8FAFC; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); padding: 10px; margin-bottom: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">
+                    <div class="sticky-patokan-card sticky top-16 z-30" style="position: sticky; top: 4.25rem; z-index: 30; background-color: #F8FAFC; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); padding: 10px; margin-bottom: 24px; border: 1px solid #E2E8F0; border-radius: 16px;">
                         <div class="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200/80">
                             <span class="inline-flex items-center gap-1.5 text-xs font-black text-[#003865] uppercase tracking-wider">
                                 <i class="fa-solid fa-shapes text-amber-500"></i>
@@ -1406,7 +1406,7 @@ const istUI = {
                             </span>
                         </div>
                         <div class="flex justify-center items-center overflow-x-auto py-1">
-                            <img src="${soal.gambarOpsi}" alt="Pilihan Bentuk A-E" 
+                            <img src="${encodeURI(soal.gambarOpsi)}" alt="Pilihan Bentuk A-E" 
                                  class="sticky-patokan-img select-none transition-all w-full max-w-3xl mx-auto" 
                                  style="max-height: 175px; width: 100%; object-fit: contain;" 
                                  draggable="false" loading="eager">
@@ -1432,7 +1432,7 @@ const istUI = {
                             <span>${subtestData.id === 'soal_08' ? 'Kubus Soal yang Ditanyakan:' : 'Potongan Bentuk yang Harus Disusun:'}</span>
                         </div>
                         <div class="flex justify-center items-center p-2.5 bg-white rounded-xl shadow-xs border border-slate-200/80">
-                            <img src="${soal.gambarSoal}" alt="Soal Nomor ${noUrut}" 
+                            <img src="${encodeURI(soal.gambarSoal)}" alt="Soal Nomor ${noUrut}" 
                                  class="max-w-full h-auto max-h-[140px] sm:max-h-[160px] object-contain select-none" 
                                  draggable="false" loading="eager">
                         </div>

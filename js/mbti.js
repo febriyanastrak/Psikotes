@@ -53,7 +53,9 @@
             if (!identifier && typeof localStorage !== 'undefined') {
                 identifier = localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || '';
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[MBTI] Gagal membaca user identity:', e);
+        }
         try {
             window.jepretDanUpload(identifier, 'MBTI', subtesLabel, fase);
         } catch (errCam) {
@@ -289,13 +291,17 @@
         mbtiHasStarted = true;
         try {
             localStorage.setItem('mbti_has_started', 'true');
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[MBTI] Gagal menyimpan flag started:', e);
+        }
 
         if (!mbtiStartTime) {
             mbtiStartTime = new Date().toISOString();
             try {
                 localStorage.setItem('mbti_start_time', mbtiStartTime);
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[MBTI] Gagal menyimpan start time:', e);
+            }
         }
 
         if (!fotoMbtiAwalTaken) {
@@ -378,7 +384,9 @@
                     setTimeout(() => notif.remove(), 500);
                 }
             }, 6000);
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[MBTI] Notifikasi waktu error:', e);
+        }
     }
 
     /**

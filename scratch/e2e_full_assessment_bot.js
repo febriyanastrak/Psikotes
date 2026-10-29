@@ -150,42 +150,86 @@ async function runE2EBot() {
         }
     }
 
-    // 3. SIMULASI MODUL 2: IST (9 SUBTES / 176 SOAL)
-    console.log(`3. PENGERJAAN MODUL 2: IST (9 SUBTES / 176 SOAL)`);
+    // 3. SIMULASI MODUL 2: IST (9 SUBTES / 176 SOAL LENGKAP DENGAN BUTIR JAWABAN)
+    console.log(`3. PENGERJAAN MODUL 2: IST (9 SUBTES / 176 SOAL LENGKAP)`);
+    const istAnswers = {
+        SE: { 1: "E", 2: "C", 3: "D", 4: "D", 5: "D", 6: "C", 7: "C", 8: "A", 9: "E", 10: "B", 11: "C", 12: "D", 13: "D", 14: "E", 15: "C", 16: "A", 17: "B", 18: "B", 19: "C", 20: "B" },
+        WA: { 1: "C", 2: "B", 3: "D", 4: "C", 5: "A", 6: "E", 7: "D", 8: "B", 9: "C", 10: "E", 11: "D", 12: "A", 13: "B", 14: "E", 15: "C", 16: "D", 17: "B", 18: "A", 19: "E", 20: "D" },
+        AN: { 1: "D", 2: "C", 3: "B", 4: "E", 5: "A", 6: "C", 7: "E", 8: "B", 9: "D", 10: "A", 11: "C", 12: "E", 13: "B", 14: "D", 15: "A", 16: "E", 17: "C", 18: "B", 19: "D", 20: "A" },
+        GE: { 1: "perkakas", 2: "waktu", 3: "indera", 4: "pengerat", 5: "musik", 6: "permata", 7: "geometri", 8: "makan", 9: "biji", 10: "olahraga", 11: "tumbuhan", 12: "penyakit", 13: "cairan", 14: "kendaraan", 15: "pakaian", 16: "emosi" },
+        RA: { 1: "15", 2: "12", 3: "24", 4: "18", 5: "40", 6: "25", 7: "48", 8: "36", 9: "60", 10: "45", 11: "72", 12: "54", 13: "84", 14: "63", 15: "96", 16: "75", 17: "108", 18: "81", 19: "120", 20: "90" },
+        ZR: { 1: "21", 2: "32", 3: "43", 4: "54", 5: "65", 6: "76", 7: "87", 8: "98", 9: "109", 10: "120", 11: "131", 12: "142", 13: "153", 14: "164", 15: "175", 16: "186", 17: "197", 18: "208", 19: "219", 20: "230" },
+        FA: { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
+        WU: { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
+        ME: { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" }
+    };
+
     const payloadIst = {
         total_benar: 135,
         total_soal: 176,
         iq: 122,
+        skor_iq: 122,
         kategori_iq: 'Superior',
+        jawaban_peserta: istAnswers,
+        jawaban: istAnswers,
         subtes: {
-            "01_SE": { rw: 17, sw: 118, name: "Satzergänzung" },
-            "02_WA": { rw: 16, sw: 115, name: "Wortauswahl" },
-            "03_AN": { rw: 15, sw: 114, name: "Analogien" },
-            "04_GE": { rw: 14, sw: 120, name: "Gemeinsamkeiten" },
-            "05_RA": { rw: 16, sw: 124, name: "Rechenaufgaben" },
-            "06_ZR": { rw: 17, sw: 126, name: "Zahlenreihen" },
-            "07_FA": { rw: 14, sw: 118, name: "Figurenauswahl" },
-            "08_WU": { rw: 13, sw: 116, name: "Würfelaufgaben" },
-            "09_ME": { rw: 13, sw: 117, name: "Merkaufgaben" }
+            "01_SE": { rw: 20, sw: 125, name: "Satzergänzung" },
+            "02_WA": { rw: 20, sw: 125, name: "Wortauswahl" },
+            "03_AN": { rw: 20, sw: 125, name: "Analogien" },
+            "04_GE": { rw: 16, sw: 125, name: "Gemeinsamkeiten" },
+            "05_RA": { rw: 20, sw: 125, name: "Rechenaufgaben" },
+            "06_ZR": { rw: 20, sw: 125, name: "Zahlenreihen" },
+            "07_FA": { rw: 20, sw: 125, name: "Figurenauswahl" },
+            "08_WU": { rw: 20, sw: 125, name: "Würfelaufgaben" },
+            "09_ME": { rw: 20, sw: 125, name: "Merkaufgaben" }
         },
+        subtes_01: { rw: 20, sw: 125, name: "Satzergänzung", jawaban_peserta: istAnswers.SE, jawaban: istAnswers.SE },
+        subtes_02: { rw: 20, sw: 125, name: "Wortauswahl", jawaban_peserta: istAnswers.WA, jawaban: istAnswers.WA },
+        subtes_03: { rw: 20, sw: 125, name: "Analogien", jawaban_peserta: istAnswers.AN, jawaban: istAnswers.AN },
+        subtes_04: { rw: 16, sw: 125, name: "Gemeinsamkeiten", jawaban_peserta: istAnswers.GE, jawaban: istAnswers.GE },
+        subtes_05: { rw: 20, sw: 125, name: "Rechenaufgaben", jawaban_peserta: istAnswers.RA, jawaban: istAnswers.RA },
+        subtes_06: { rw: 20, sw: 125, name: "Zahlenreihen", jawaban_peserta: istAnswers.ZR, jawaban: istAnswers.ZR },
+        subtes_07: { rw: 20, sw: 125, name: "Figurenauswahl", jawaban_peserta: istAnswers.FA, jawaban: istAnswers.FA },
+        subtes_08: { rw: 20, sw: 125, name: "Würfelaufgaben", jawaban_peserta: istAnswers.WU, jawaban: istAnswers.WU },
+        subtes_09: { rw: 20, sw: 125, name: "Merkaufgaben", jawaban_peserta: istAnswers.ME, jawaban: istAnswers.ME },
         waktu_selesai: new Date().toISOString()
     };
 
     // 4. SIMULASI MODUL 3: PAPI KOSTICK (90 SOAL, TOTAL SKOR 90)
-    console.log(`4. PENGERJAAN MODUL 3: PAPI KOSTICK (90 SOAL, 20 DIMENSI)`);
+    console.log(`4. PENGERJAAN MODUL 3: PAPI KOSTICK (90 SOAL LENGKAP DENGAN BUTIR)`);
+    const papiAnswers = {};
+    for (let i = 1; i <= 90; i++) {
+        papiAnswers[i] = (i % 2 === 0) ? 'B' : 'A';
+    }
     const payloadPapi = {
         total_skor: 90,
+        scores: {
+            G: 5, L: 6, I: 4, T: 5, V: 4, S: 5, R: 4, D: 5, C: 4, E: 4,
+            N: 5, A: 5, P: 4, X: 5, B: 4, O: 5, Z: 4, K: 4, F: 4, W: 4
+        },
         skor: {
             G: 5, L: 6, I: 4, T: 5, V: 4, S: 5, R: 4, D: 5, C: 4, E: 4,
             N: 5, A: 5, P: 4, X: 5, B: 4, O: 5, Z: 4, K: 4, F: 4, W: 4
         },
+        jawaban: papiAnswers,
+        answers: papiAnswers,
         pelanggaran_tab_switch: 0,
         waktu_selesai: new Date().toISOString()
     };
 
     // 5. SIMULASI MODUL 4: DISC (24 SOAL MOST & LEAST)
-    console.log(`5. PENGERJAAN MODUL 4: DISC (24 SOAL, GRAFIK 1-3)`);
+    console.log(`5. PENGERJAAN MODUL 4: DISC (24 SOAL LENGKAP DENGAN BUTIR)`);
+    const discAnswers = {};
+    const discOpts = ['D', 'I', 'S', 'C'];
+    for (let i = 1; i <= 24; i++) {
+        discAnswers[i] = {
+            most: discOpts[(i - 1) % 4],
+            least: discOpts[(i + 1) % 4]
+        };
+    }
     const payloadDisc = {
+        jawaban: discAnswers,
+        answers: discAnswers,
         most: { D: 9, I: 6, S: 5, C: 4 },
         least: { D: 2, I: 4, S: 8, C: 10 },
         change: { D: 7, I: 2, S: -3, C: -6 },
@@ -193,9 +237,15 @@ async function runE2EBot() {
         waktu_selesai: new Date().toISOString()
     };
 
-    // 6. SIMULASI MODUL 5: EPPS (225 SOAL, 15 SKALA MOTIVASI)
-    console.log(`6. PENGERJAAN MODUL 5: EPPS (225 SOAL, KONSISTENSI)`);
+    // 6. SIMULASI MODUL 5: EPPS (225 SOAL LENGKAP DENGAN BUTIR)
+    console.log(`6. PENGERJAAN MODUL 5: EPPS (225 SOAL LENGKAP DENGAN BUTIR)`);
+    const eppsAnswers = {};
+    for (let i = 1; i <= 225; i++) {
+        eppsAnswers[i] = (i % 3 === 0) ? 'B' : 'A';
+    }
     const payloadEpps = {
+        jawaban: eppsAnswers,
+        answers: eppsAnswers,
         skor: {
             ach: 17, def: 14, ord: 16, exh: 11, aut: 13,
             aff: 14, int: 16, suc: 10, dom: 18, aba: 11,
@@ -225,9 +275,15 @@ async function runE2EBot() {
         waktu_selesai: new Date().toISOString()
     };
 
-    // 8. SIMULASI MODUL 7: MSDT (64 SOAL, MATRIKS REDDIN 3-D)
-    console.log(`8. PENGERJAAN MODUL 7: MSDT (64 SOAL, 8 GAYA KEPEMIMPINAN)`);
+    // 8. SIMULASI MODUL 7: MSDT (64 SOAL LENGKAP DENGAN BUTIR)
+    console.log(`8. PENGERJAAN MODUL 7: MSDT (64 SOAL LENGKAP DENGAN BUTIR)`);
+    const msdtAnswers = {};
+    for (let i = 1; i <= 64; i++) {
+        msdtAnswers[i] = (i % 2 === 0) ? 'B' : 'A';
+    }
     const payloadMsdt = {
+        jawaban: msdtAnswers,
+        answers: msdtAnswers,
         to: 34,
         ro: 36,
         e: 35,
@@ -237,21 +293,63 @@ async function runE2EBot() {
         waktu_selesai: new Date().toISOString()
     };
 
-    // 9. SIMULASI MODUL 8: CFIT (50 SOAL / 4 SUBTES)
-    console.log(`9. PENGERJAAN MODUL 8: CFIT (4 SUBTES, FLUID IQ)`);
+    // 9. SIMULASI MODUL 8: CFIT (50 SOAL / 4 SUBTES LENGKAP DENGAN BUTIR)
+    console.log(`9. PENGERJAAN MODUL 8: CFIT (50 SOAL LENGKAP DENGAN BUTIR)`);
+    const cfitAnswers = {
+        subtes_1: { 1: "B", 2: "C", 3: "B", 4: "D", 5: "E", 6: "B", 7: "D", 8: "B", 9: "F", 10: "C", 11: "B", 12: "B", 13: "E" },
+        subtes_2: { 1: ["B","E"], 2: ["A","E"], 3: ["A","D"], 4: ["C","E"], 5: ["B","E"], 6: ["A","D"], 7: ["B","E"], 8: ["B","E"], 9: ["A","D"], 10: ["B","D"], 11: ["A","E"], 12: ["C","D"], 13: ["B","C"], 14: ["A","B"] },
+        subtes_3: { 1: "E", 2: "E", 3: "E", 4: "B", 5: "C", 6: "D", 7: "E", 8: "E", 9: "A", 10: "A", 11: "F", 12: "C", 13: "C" },
+        subtes_4: { 1: "B", 2: "A", 3: "D", 4: "D", 5: "A", 6: "B", 7: "C", 8: "D", 9: "A", 10: "D" }
+    };
+    const rincianCfit = [];
+    const masterCfit = {
+        1: ["B", "C", "B", "D", "E", "B", "D", "B", "F", "C", "B", "B", "E"],
+        2: ["BE", "AE", "AD", "CE", "BE", "AD", "BE", "BE", "AD", "BD", "AE", "CD", "BC", "AB"],
+        3: ["E", "E", "E", "B", "C", "D", "E", "E", "A", "A", "F", "C", "C"],
+        4: ["B", "A", "D", "D", "A", "B", "C", "D", "A", "D"]
+    };
+    [1, 2, 3, 4].forEach(sNo => {
+        const subAns = cfitAnswers[`subtes_${sNo}`];
+        const keys = masterCfit[sNo];
+        for (let q = 1; q <= keys.length; q++) {
+            let val = subAns[q];
+            if (Array.isArray(val)) val = val.slice().sort().join('');
+            rincianCfit.push({
+                subtes: sNo,
+                no: q,
+                jawaban: val,
+                nilai: 1
+            });
+        }
+    });
+
     const payloadCfit = {
         total_benar: 44,
         total_soal: 50,
+        skor_iq: 126,
+        iq_score: 126,
         iq: 126,
         kategori_iq: 'Superior',
-        subtes: { subtes1: 12, subtes2: 13, subtes3: 10, subtes4: 9 },
+        kategori: 'Superior',
+        subtes: { subtes1: 13, subtes2: 14, subtes3: 13, subtes4: 10 },
+        rincian_subtes: { s1: 13, s2: 14, s3: 13, s4: 10 },
+        rincian_jawaban: rincianCfit,
+        answers: cfitAnswers,
+        jawaban: cfitAnswers,
         waktu_selesai: new Date().toISOString()
     };
 
-    // 10. SIMULASI MODUL 9: MBTI (60 SOAL, 16 TIPE)
-    console.log(`10. PENGERJAAN MODUL 9: MBTI (60 SOAL, 16 TIPE)`);
+    // 10. SIMULASI MODUL 9: MBTI (60 SOAL LENGKAP DENGAN BUTIR)
+    console.log(`10. PENGERJAAN MODUL 9: MBTI (60 SOAL LENGKAP DENGAN BUTIR)`);
+    const mbtiAnswers = {};
+    for (let i = 1; i <= 60; i++) {
+        mbtiAnswers[i] = (i % 2 === 0) ? 'B' : 'A';
+    }
     const payloadMbti = {
         tipe: 'ENTJ',
+        tipe_kepribadian: 'ENTJ',
+        jawaban: mbtiAnswers,
+        answers: mbtiAnswers,
         skor: { E: 13, I: 2, N: 12, S: 3, T: 14, F: 1, J: 13, P: 2 },
         nama_tipe: 'The Commander',
         deskripsi: 'Pemimpin tegas, berorientasi strategi jangka panjang, dan pengambil keputusan objektif.',

@@ -533,7 +533,7 @@
                             <span class="text-[11px] text-slate-400 font-semibold hidden sm:inline">Perhatikan gambar secara saksama</span>
                         </div>
                         <div class="flex justify-center items-center p-3 sm:p-4 bg-[#fafcff] rounded-xl border border-slate-100 overflow-x-auto min-h-[140px] sm:min-h-[170px]">
-                            <img src="${encodeURI(contoh.gambarSoal)}" alt="Contoh Soal ${contoh.no}" class="w-full max-w-[740px] h-auto object-contain mx-auto select-none rounded" style="max-height: 230px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" draggable="false" onerror="this.onerror=null; this.src='assets/logo/logo%20altrak.jpeg';">
+                            <img src="${encodeURI(contoh.gambarSoal)}" alt="Contoh Soal ${contoh.no}" class="w-full max-w-[740px] h-auto object-contain mx-auto select-none rounded" style="max-height: 230px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" draggable="false">
                         </div>
                     </div>
 
@@ -915,7 +915,7 @@
                             <span class="text-[11px] text-slate-400 font-semibold hidden sm:inline">Perhatikan gambar secara saksama</span>
                         </div>
                         <div class="flex justify-center items-center p-3 sm:p-4 bg-[#fafcff] rounded-xl border border-slate-100 overflow-x-auto min-h-[150px] sm:min-h-[180px]">
-                            <img src="${encodeURI(q.gambarSoal)}" alt="Soal ${q.no}" class="w-full max-w-[740px] h-auto object-contain mx-auto rounded select-none" style="max-height: 230px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" draggable="false" onerror="this.onerror=null; this.src='assets/logo/logo%20altrak.jpeg';">
+                            <img src="${encodeURI(q.gambarSoal)}" alt="Soal ${q.no}" class="w-full max-w-[740px] h-auto object-contain mx-auto rounded select-none" style="max-height: 230px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" draggable="false">
                         </div>
                     </div>
 
@@ -1159,11 +1159,12 @@
             : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.rpc === 'function') ? window.supabase : null);
 
         let rpcSuccess = false;
+        let res = null;
 
         if (sb && typeof sb.rpc === 'function' && idPeserta) {
             try {
                 // 1. Coba nama fungsi resmi di Supabase: hitung_dan_simpan_cfit
-                let res = await sb.rpc('hitung_dan_simpan_cfit', {
+                res = await sb.rpc('hitung_dan_simpan_cfit', {
                     p_id_peserta: String(idPeserta),
                     p_jawaban: cfitState.answers
                 });

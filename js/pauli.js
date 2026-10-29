@@ -111,7 +111,9 @@ function _lockPauliKeypad(isLocked) {
                 });
             }
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('[Pauli] Gagal mengatur status disabled tombol:', e);
+    }
 }
 
 /**
@@ -810,7 +812,11 @@ function prosesSimpanPauli(isTimeUp = false) {
     // 7. Pauli selesai -> Tandai selesai di dashboard
     try {
         localStorage.setItem('pauli_selesai', 'true');
-    } catch (e) {}
+        localStorage.setItem('altrak_fase_aktif', 'view-dashboard');
+        sessionStorage.setItem('altrak_fase_aktif', 'view-dashboard');
+    } catch (e) {
+        console.warn('[Pauli] Gagal mencatat status pauli_selesai ke localStorage:', e);
+    }
 
     if (typeof unlockDashboardCard === 'function') {
         unlockDashboardCard(5);
@@ -863,11 +869,7 @@ function prosesSimpanPauli(isTimeUp = false) {
         }
     }
 
-    if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-    }
-
-    // 11. Kirim sinkronisasi ke server Supabase secara background (asinkron) tanpa memblokir UI
+        // 11. Kirim sinkronisasi ke server Supabase secara background (asinkron) tanpa memblokir UI
     sendToSupabase(payload);
 }
 

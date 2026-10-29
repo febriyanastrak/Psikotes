@@ -16,124 +16,9 @@ const tahap2State = {
 };
 
 /**
- * Membuka Modal Input Token Tahap 2 dari halaman selesai
+ * Mengarahkan ke Dashboard Utama (Unifikasi Modul Tahap 2)
  */
 function bukaModalTokenTahap2() {
-    bukaDashboardTahap2();
-}
-
-/**
- * Menutup Modal Input Token Tahap 2
- */
-function tutupModalTokenTahap2() {
-    const modal = document.getElementById('modal-tahap2-token');
-    if (modal) {
-        modal.classList.add('hide-section');
-        modal.style.display = 'none';
-    }
-}
-
-/**
- * Memverifikasi Token Tahap 2 ke Supabase Database
- * @param {Event} e Submit event
- */
-async function handleVerifikasiTokenTahap2(e) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-
-    const inputEl = document.getElementById('inputTokenTahap2');
-    const rawToken = inputEl ? inputEl.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-
-    if (!rawToken || rawToken.length < 4) {
-        if (typeof customAlert === 'function') {
-            customAlert("Token Wajib Diisi", "Masukkan kode token asesmen manajerial tahap 2 resmi dari panitia HRD PT Altrak 1978.", "error");
-        } else {
-            alert("Token wajib diisi minimal 4-5 karakter.");
-        }
-        return;
-    }
-
-    const btn = document.getElementById('btnSubmitTokenTahap2');
-    const btnText = document.getElementById('btnSubmitTokenTahap2Text');
-    const originalText = btnText ? btnText.innerHTML : 'Verifikasi & Mulai';
-    if (btn) btn.disabled = true;
-    if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memvalidasi Token...';
-
-    let tokenValid = false;
-    let pesanError = "Token tahap 2 tidak terdaftar di database panitia HRD PT Altrak 1978.";
-
-    const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
-    const namaPeserta = localStorage.getItem('nama_peserta') || 'Kandidat';
-    const phonePeserta = localStorage.getItem('phone_peserta') || '';
-
-    // 1. Verifikasi & Klaim Token Sekali Pakai via Supabase RPC (klaim_token_ujian)
-    if (sbClient && typeof sbClient.rpc === 'function') {
-        try {
-            const { data: resKlaim, error: errKlaim } = await sbClient.rpc('klaim_token_ujian', {
-                p_token: rawToken,
-                p_nama: namaPeserta,
-                p_phone: phonePeserta
-            });
-
-            if (errKlaim) {
-                tokenValid = false;
-                pesanError = "Token tahap 2 tidak valid atau tidak terdaftar di database HRD PT Altrak 1978.";
-            } else if (resKlaim && resKlaim.valid === true) {
-                tokenValid = true;
-            } else {
-                tokenValid = false;
-                pesanError = (resKlaim && resKlaim.pesan) 
-                    ? resKlaim.pesan 
-                    : "Token tahap 2 tidak valid atau sudah pernah digunakan.";
-            }
-        } catch (errRpc) {
-            console.warn('[Tahap 2 Token RPC]', errRpc);
-            tokenValid = false;
-            pesanError = "Gagal memverifikasi token ke server database.";
-        }
-    } else {
-        tokenValid = false;
-        pesanError = "Koneksi ke database server tidak tersedia.";
-    }
-
-    if (btn) btn.disabled = false;
-    if (btnText) btnText.innerHTML = originalText;
-
-    if (!tokenValid) {
-        if (typeof customAlert === 'function') {
-            customAlert("Akses Ditolak", pesanError || "Token tahap 2 tidak valid.", "error");
-        } else {
-            alert(pesanError || "Token tidak valid.");
-        }
-        return;
-    }
-
-    // Token Valid: Simpan ke memori dan alihkan ke Dashboard Tahap 2
-    tahap2State.isTahap2Active = true;
-    tahap2State.tokenTahap2 = rawToken;
-    localStorage.setItem('token_tahap_2', rawToken);
-    localStorage.setItem('altrak_tahap2_aktif', 'true');
-
-    // Catat token tahap 2 ke baris kandidat di Supabase via updateHasilTes aman (RLS-compliant)
-    if (typeof updateHasilTes === 'function') {
-        try {
-            await updateHasilTes('token_tahap_2', rawToken);
-            await updateHasilTes('status_tahap_2', 'berlangsung');
-        } catch (eUp) {
-            console.warn('[Tahap 2 Token Save Warning]', eUp);
-        }
-    } else {
-        const idPeserta = localStorage.getItem('id_peserta');
-        if (sbClient && idPeserta) {
-            try {
-                await sbClient.from('kandidat_psikotes').update({
-                    token_tahap_2: rawToken,
-                    status_tahap_2: 'berlangsung'
-                }).eq('id', idPeserta);
-            } catch (eUp) {}
-        }
-    }
-
-    tutupModalTokenTahap2();
     bukaDashboardTahap2();
 }
 
@@ -320,7 +205,9 @@ async function selesaikanSeluruhTahap2() {
                     status_tahap_2: 'selesai',
                     waktu_selesai: waktuISO
                 }).eq('id', idPeserta);
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[Tahap 2] Gagal update status_tahap_2:', e);
+            }
         }
     }
 }
@@ -412,8 +299,6 @@ function bukaModulMBTI() {
 if (typeof window !== 'undefined') {
     window.tahap2State = tahap2State;
     window.bukaModalTokenTahap2 = bukaModalTokenTahap2;
-    window.tutupModalTokenTahap2 = tutupModalTokenTahap2;
-    window.handleVerifikasiTokenTahap2 = handleVerifikasiTokenTahap2;
     window.bukaDashboardTahap2 = bukaDashboardTahap2;
     window.updateDashboardTahap2Progress = updateDashboardTahap2Progress;
     window.selesaikanSeluruhTahap2 = selesaikanSeluruhTahap2;

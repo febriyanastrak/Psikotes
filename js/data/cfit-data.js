@@ -154,19 +154,19 @@ const CFIT_EXAMPLES = {
 const CFIT_QUESTIONS = {
     // SUBTES 1: 13 Soal (Opsi A - F)
     subtes_1: [
-        { no: 1, gambarSoal: "assets/cfit/subtes_1/subtes 1 -1 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 1, gambarSoal: "assets/cfit/subtes_1/subtes 1-1.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
         { no: 2, gambarSoal: "assets/cfit/subtes_1/subtes 1-2.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 3, gambarSoal: "assets/cfit/subtes_1/subtes 1 -3 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 4, gambarSoal: "assets/cfit/subtes_1/subtes 1 -4 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 5, gambarSoal: "assets/cfit/subtes_1/subtes 1 -5 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 6, gambarSoal: "assets/cfit/subtes_1/subtes 1 -6 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 7, gambarSoal: "assets/cfit/subtes_1/subtes 1 -7 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 8, gambarSoal: "assets/cfit/subtes_1/subtes 1 -8 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 9, gambarSoal: "assets/cfit/subtes_1/subtes 1 -9 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 10, gambarSoal: "assets/cfit/subtes_1/subtes 1 -10 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 11, gambarSoal: "assets/cfit/subtes_1/subtes 1 -11 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 12, gambarSoal: "assets/cfit/subtes_1/subtes 1 -12 .png", pilihan: ["A", "B", "C", "D", "E", "F"] },
-        { no: 13, gambarSoal: "assets/cfit/subtes_1/subtes 1 -13 .png", pilihan: ["A", "B", "C", "D", "E", "F"] }
+        { no: 3, gambarSoal: "assets/cfit/subtes_1/subtes 1-3.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 4, gambarSoal: "assets/cfit/subtes_1/subtes 1-4.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 5, gambarSoal: "assets/cfit/subtes_1/subtes 1-5.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 6, gambarSoal: "assets/cfit/subtes_1/subtes 1-6.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 7, gambarSoal: "assets/cfit/subtes_1/subtes 1-7.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 8, gambarSoal: "assets/cfit/subtes_1/subtes 1-8.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 9, gambarSoal: "assets/cfit/subtes_1/subtes 1-9.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 10, gambarSoal: "assets/cfit/subtes_1/subtes 1-10.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 11, gambarSoal: "assets/cfit/subtes_1/subtes 1-11.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 12, gambarSoal: "assets/cfit/subtes_1/subtes 1-12.png", pilihan: ["A", "B", "C", "D", "E", "F"] },
+        { no: 13, gambarSoal: "assets/cfit/subtes_1/subtes 1-13.png", pilihan: ["A", "B", "C", "D", "E", "F"] }
     ],
 
     // SUBTES 2: 14 Soal (Opsi A - E, Pilih 2)

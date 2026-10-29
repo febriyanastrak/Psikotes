@@ -20,8 +20,20 @@ function formatWaktuDisplay(val) {
         if (!isNaN(d.getTime())) {
             return d.toLocaleString('id-ID') + note;
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('[HRD] Gagal memformat waktu:', e);
+    }
     return String(val);
+}
+
+/**
+ * Mendapatkan instance Supabase Client resmi dan terpusat
+ * @returns {object|null}
+ */
+function getHrdSupabaseClient() {
+    if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
+    if (typeof window !== 'undefined' && window.supabase) return window.supabase;
+    return null;
 }
 
 /**
@@ -174,9 +186,7 @@ function filterHrdTable(immediate = false) {
  * Dilindungi verifikasi sesi Supabase Auth aktif
  */
 async function loadHrdData() {
-    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-        ? supabaseClient
-        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+    const sb = getHrdSupabaseClient();
 
     if (!sb) {
         customAlert("Koneksi Terputus", "Koneksi ke database Supabase tidak tersedia.", "error");
@@ -400,26 +410,7 @@ async function loadHrdData() {
             if ((!target["Token"] || target["Token"] === '-') && source["Token"]) target["Token"] = source["Token"];
         };
 
-        // 2. Ambil dari tabel lama (hasil_psikotes_kandidat) jika ada dan satukan ke data kandidat yang cocok
-        try {
-            const resOld = await sb
-                .from('hasil_psikotes_kandidat')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (!resOld.error && resOld.data && resOld.data.length > 0) {
-                resOld.data.forEach(item => {
-                    const existing = combinedData.find(c => isCandidateMatch(c, item));
-                    if (existing) {
-                        mergeCandidateRecords(existing, item);
-                    } else {
-                        combinedData.push(item);
-                    }
-                });
-            }
-        } catch (errOld) {}
-
-        // 3. Deduplikasi ketat: Setiap kandidat hanya muncul TEPAT 1 KALI di tabel HRD
+        // 2. Deduplikasi ketat: Setiap kandidat hanya muncul TEPAT 1 KALI di tabel HRD
         const uniqueData = [];
         combinedData.forEach(row => {
             const existing = uniqueData.find(u => isCandidateMatch(u, row));
@@ -961,9 +952,7 @@ async function hapusSemuaData() {
             if (loadingEl) loadingEl.classList.remove('hide-section');
 
             try {
-                const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-                    ? supabaseClient
-                    : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+                const sb = getHrdSupabaseClient();
 
                 if (!sb) {
                     if (loadingEl) loadingEl.classList.add('hide-section');
@@ -1109,16 +1098,6 @@ async function hapusSemuaData() {
                         .not('id', 'is', null);
                 } catch (e1) {
                     console.warn("Hapus kandidat_psikotes:", e1);
-                }
-
-                // C. Hapus data dari tabel lama hasil_psikotes_kandidat jika ada
-                try {
-                    await sb
-                        .from('hasil_psikotes_kandidat')
-                        .delete()
-                        .not('id', 'is', null);
-                } catch (e2) {
-                    console.warn("Hapus hasil_psikotes_kandidat:", e2);
                 }
 
                 localStorage.removeItem('hasil_psikotes_local');
@@ -2988,7 +2967,7 @@ function getIstSubtestKeyMap(subSpec) {
  */
 async function fetchIstKeysFromDatabase() {
     if (IST_OFFICIAL_ANSWER_KEYS) return IST_OFFICIAL_ANSWER_KEYS;
-    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    const sb = getHrdSupabaseClient();
     if (sb && typeof sb.rpc === 'function') {
         try {
             const { data, error } = await sb.rpc('ist_kunci');
@@ -3598,9 +3577,7 @@ function initOrUpdateIstProfileChart() {
  * Menyimpan data koreksi manual HRD ke Supabase (tabel: kandidat_psikotes, kolom: hasil_ist)
  */
 async function simpanKoreksiIstKeSupabase() {
-    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-        ? supabaseClient
-        : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+    const sb = getHrdSupabaseClient();
 
     if (!sb || !activeIstCorrection.candidateId) {
         if (typeof showHrdToast === 'function') {
@@ -4336,9 +4313,7 @@ function renderDiscResults(hasilDisc) {
                     // Simpan kembali secara otomatis ke Supabase agar tersimpan permanen
                     if (typeof currentSelectedCandidate !== 'undefined' && currentSelectedCandidate && currentSelectedCandidate.id) {
                         try {
-                            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient)
-                                ? supabaseClient
-                                : ((typeof window !== 'undefined' && window.supabase && typeof window.supabase.from === 'function') ? window.supabase : null);
+                            const sb = getHrdSupabaseClient();
                             if (sb && sb.from) {
                                 sb.from('kandidat_psikotes')
                                     .update({ hasil_disc: data })
@@ -4568,7 +4543,7 @@ async function renderCandidatePhotos(candidate) {
         const rawPhotoEntries = [];
         const seenFileNames = new Set();
         const seenTimestamps = new Set();
-        const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        const sbClient = getHrdSupabaseClient();
 
         // Identifikasi kandidat: ID unik database (UUID/integer), kontak & email
         const candId = (candidate && (candidate.id || candidate.id_peserta || candidate.id_kandidat))
@@ -5078,7 +5053,7 @@ async function handleDirectHrdLogin(e) {
     if (loadingEl) loadingEl.classList.remove('hide-section');
 
     try {
-        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        const sb = getHrdSupabaseClient();
         if (!sb || !sb.auth) {
             if (loadingEl) loadingEl.classList.add('hide-section');
             return customAlert("Kesalahan Koneksi", "Koneksi Supabase belum siap.", "error");
@@ -5168,7 +5143,7 @@ async function logoutDirectHrd() {
     const loadingEl = document.getElementById('modal-loading');
     if (loadingEl) loadingEl.classList.remove('hide-section');
     try {
-        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        const sb = getHrdSupabaseClient();
         if (sb && sb.auth) {
             await sb.auth.signOut();
         }
@@ -5209,7 +5184,7 @@ async function loadHrdTokens() {
         tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data token...</td></tr>`;
     }
 
-    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    const sb = getHrdSupabaseClient();
     if (!sb) {
         if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-amber-500">Supabase belum terhubung.</td></tr>`;
         return;
@@ -5297,7 +5272,7 @@ async function handleBuatTokenHrd() {
     if (btn) btn.disabled = true;
     if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuat...';
 
-    const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    const sb = getHrdSupabaseClient();
     if (!sb) {
         if (btn) btn.disabled = false;
         if (btnText) btnText.textContent = '+ Buat Token';
@@ -5316,7 +5291,9 @@ async function handleBuatTokenHrd() {
                 rpcSuccess = true;
                 dibuatCount = Array.isArray(data) ? data.length : jumlah;
             }
-        } catch (eRpc) {}
+        } catch (eRpc) {
+            console.warn('[HRD Token] RPC buat_batch_token fallback:', eRpc);
+        }
 
         // Fallback langsung jika RPC belum dibuat di database
         if (!rpcSuccess) {
@@ -5385,7 +5362,7 @@ async function handleHapusSingleToken(token) {
         "error",
         true,
         async () => {
-            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            const sb = getHrdSupabaseClient();
             if (!sb) {
                 showHrdToast("Koneksi Supabase tidak tersedia.", "error");
                 return;
@@ -5398,7 +5375,9 @@ async function handleHapusSingleToken(token) {
                 try {
                     const { error: rpcErr } = await sb.rpc('hapus_token_ujian', { p_token: cleanToken });
                     if (!rpcErr) deleted = true;
-                } catch (eRpc) {}
+                } catch (eRpc) {
+                    console.warn('[HRD Token] RPC hapus_token_ujian fallback:', eRpc);
+                }
 
                 // 2. Direct delete jika RPC belum ada / gagal
                 if (!deleted) {
@@ -5452,7 +5431,7 @@ async function handleBersihkanTokenTerpakai() {
         "error",
         true,
         async () => {
-            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            const sb = getHrdSupabaseClient();
             if (!sb) {
                 showHrdToast("Koneksi Supabase tidak tersedia.", "error");
                 return;
@@ -5463,7 +5442,9 @@ async function handleBersihkanTokenTerpakai() {
                 try {
                     const { error: rpcErr } = await sb.rpc('bersihkan_token_terpakai');
                     if (!rpcErr) rpcOk = true;
-                } catch (eRpc) {}
+                } catch (eRpc) {
+                    console.warn('[HRD Token] RPC bersihkan_token_terpakai fallback:', eRpc);
+                }
 
                 if (!rpcOk) {
                     const { error } = await sb
@@ -5512,7 +5493,7 @@ async function handleHapusSemuaToken() {
         "error",
         true,
         async () => {
-            const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+            const sb = getHrdSupabaseClient();
             if (!sb) {
                 showHrdToast("Koneksi Supabase tidak tersedia.", "error");
                 return;
@@ -5524,7 +5505,9 @@ async function handleHapusSemuaToken() {
                 try {
                     const { error: rpcErr } = await sb.rpc('hapus_semua_token');
                     if (!rpcErr) rpcOk = true;
-                } catch (eRpc) {}
+                } catch (eRpc) {
+                    console.warn('[HRD Token] RPC hapus_semua_token fallback:', eRpc);
+                }
 
                 // 2. Direct delete jika RPC belum dibuat
                 if (!rpcOk) {
@@ -5595,7 +5578,7 @@ if (typeof window !== 'undefined') {
             } catch (e) {}
         }
 
-        const sb = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+        const sb = getHrdSupabaseClient();
         if (!sb || !sb.auth) return;
         try {
             const { data } = await sb.auth.getSession();
@@ -5644,7 +5627,7 @@ async function resolveGrafisUrl(rawUrl) {
     if (!rawUrl) return '';
     if (rawUrl.startsWith('data:') || rawUrl.includes('/object/sign/')) return rawUrl;
 
-    const sbClient = (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : window.supabase;
+    const sbClient = getHrdSupabaseClient();
     if (!sbClient || !sbClient.storage) return rawUrl;
 
     let storagePath = rawUrl;

@@ -75,7 +75,8 @@ function customAlert(title, message, type = 'info', isConfirm = false, onOk = nu
     if (btnCancel && btnOk) {
         if (isConfirm) {
             btnCancel.classList.remove('hide-section');
-            btnCancel.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition cursor-pointer";
+            btnCancel.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-2";
+            btnCancel.innerHTML = "<span>Batal</span>";
             btnOk.innerText = type === 'warning' ? "Ya, Kunci & Kirim" : "Ya, Lanjutkan";
         } else {
             btnCancel.classList.add('hide-section');

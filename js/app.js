@@ -52,6 +52,22 @@ window.perbaruiStatusTombolTahap2 = perbaruiStatusTombolTahap2;
 /**
  * Memeriksa dan menampilkan modal gerbang Layar Penuh saat berada di Dashboard jika belum Fullscreen
  */
+
+/**
+ * Meminta mode Fullscreen secara aman dengan proteksi User Gesture
+ */
+function requestFullscreenSafely() {
+    try {
+        if (!document.fullscreenElement && document.documentElement && typeof document.documentElement.requestFullscreen === 'function') {
+            const p = document.documentElement.requestFullscreen();
+            if (p && typeof p.catch === 'function') {
+                p.catch(() => {});
+            }
+        }
+    } catch (e) {}
+}
+window.requestFullscreenSafely = requestFullscreenSafely;
+
 function checkDashboardFullscreen() {
     const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
     const dashView = document.getElementById('view-dashboard') || document.getElementById('page-dashboard');
@@ -647,9 +663,7 @@ document.addEventListener('fullscreenchange', () => {
                     "warning",
                     false,
                     () => {
-                        if (document.documentElement.requestFullscreen) {
-                            document.documentElement.requestFullscreen().catch(() => {});
-                        }
+                        requestFullscreenSafely();
                     }
                 );
             }
@@ -657,19 +671,7 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 
-// Pastikan browser kembali masuk Fullscreen saat tombol modal pesan diklik (kecuali di halaman selesai)
-document.addEventListener('click', (e) => {
-    if (e.target && (e.target.id === 'msgBtnOk' || e.target.closest('#msgBtnOk'))) {
-        const selesaiView = document.getElementById('view-selesai') || document.getElementById('page-selesai');
-        const isSelesaiVisible = selesaiView && !selesaiView.classList.contains('hide-section') && selesaiView.style.display !== 'none';
-        if (window._tesSelesai || isSelesaiVisible) return;
-
-        const isCandidateLoggedIn = typeof state !== 'undefined' && state.user && (state.user.email || state.user.name) && !window._tesSelesai;
-        if (isCandidateLoggedIn && !document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        }
-    }
-});
+// Listener ganda msgBtnOk telah dibersihkan untuk proteksi User Gesture
 
 // Inisialisasi awal saat aplikasi selesai dimuat
 window.addEventListener('DOMContentLoaded', () => {

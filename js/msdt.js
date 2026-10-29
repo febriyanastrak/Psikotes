@@ -35,7 +35,9 @@
             if (!identifier && typeof localStorage !== 'undefined') {
                 identifier = localStorage.getItem('phone_peserta') || localStorage.getItem('email_peserta') || '';
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[MSDT] Gagal membaca user identity:', e);
+        }
         try {
             window.jepretDanUpload(identifier, 'MSDT', subtesLabel, fase);
         } catch (errCam) {
@@ -116,7 +118,9 @@
             msdtStartTime = new Date().toISOString();
             try {
                 localStorage.setItem('msdt_start_time', msdtStartTime);
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[MSDT] Gagal menyimpan start time:', e);
+            }
         }
 
         // Jepret Foto Awal MSDT saat peserta mulai mengerjakan soal
@@ -303,7 +307,9 @@
 
         try {
             localStorage.setItem('msdt_answers', JSON.stringify(msdtAnswers));
-        } catch (e) {}
+        } catch (e) {
+            console.warn('[MSDT] Gagal menyimpan jawaban lokal:', e);
+        }
 
         // Update highlight visual kartu
         updateMsdtCardHighlight(no, choice);
@@ -839,7 +845,9 @@
             try {
                 localStorage.setItem('msdt_selesai', 'true');
                 localStorage.setItem('msdt_payload', JSON.stringify(payload));
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[MSDT] Gagal menyimpan status backup lokal:', e);
+            }
 
             if (window.tahap2State) {
                 window.tahap2State.modulSelesai.msdt = true;

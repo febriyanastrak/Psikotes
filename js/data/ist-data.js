@@ -422,14 +422,14 @@ const istSoal07 = {
         { no: 12, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 1 - 12.png", gambarSoal: "assets/ist/soal_07/12.png", pilihan: ["A", "B", "C", "D", "E"] },
         
         // Nomor 13 - 20 (Menggunakan Master Gambar 2)
-        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/13.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/14.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/15.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/16.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/17.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/18.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/19.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20 .png", gambarSoal: "assets/ist/soal_07/20.png", pilihan: ["A", "B", "C", "D", "E"] }
+        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/13.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/14.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/15.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/16.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/17.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/18.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/19.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_07/soal 13 - 20.png", gambarSoal: "assets/ist/soal_07/20.png", pilihan: ["A", "B", "C", "D", "E"] }
     ]
 };
 
@@ -476,26 +476,26 @@ const istSoal08 = {
         }
     ],
     soal: [
-        { no: 1, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/1.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 2, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/2.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 3, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/3.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 4, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/4.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 5, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/5.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 6, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/6.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 7, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/7.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 8, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/8.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 9, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/9.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 10, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/10.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 11, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/11.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 12, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/12.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/13.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/14.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/15.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/16.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/17.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/18.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/19.png", pilihan: ["A", "B", "C", "D", "E"] },
-        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20 .png", gambarSoal: "assets/ist/soal_08/20.png", pilihan: ["A", "B", "C", "D", "E"] }
+        { no: 1, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/1.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 2, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/2.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 3, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/3.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 4, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/4.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 5, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/5.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 6, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/6.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 7, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/7.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 8, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/8.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 9, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/9.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 10, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/10.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 11, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/11.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 12, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/12.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 13, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/13.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 14, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/14.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 15, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/15.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 16, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/16.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 17, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/17.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 18, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/18.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 19, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/19.png", pilihan: ["A", "B", "C", "D", "E"] },
+        { no: 20, tipe: "pilihan_gambar", gambarOpsi: "assets/ist/soal_08/soal 1 - 20.png", gambarSoal: "assets/ist/soal_08/20.png", pilihan: ["A", "B", "C", "D", "E"] }
     ]
 };
 

@@ -24,5 +24,5 @@ Last reviewed: 2026-10-28
 
 ## Quality Verification Commands
 - Fast Check: `node -c js/*.js js/data/*.js`
-- Automated E2E Bot: `node scratch/e2e_assessment_bot.js`
+- Automated E2E Bot: `node scratch/e2e_full_assessment_bot.js`
 - HRD Portal Verification: `http://localhost:3000/hrd.html`
