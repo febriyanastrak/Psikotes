@@ -267,7 +267,116 @@ const istLogic = {
     // =====================================================================
 
     /**
-     * Memulai fase contoh soal (Percobaan 30 Detik)
+     * Memulai fase menghafal kata-kata untuk Subtes 09 (Waktu 3 Menit)
+     */
+    mulaiFaseHafalan() {
+        this.fase = "HAFALAN";
+        this.isUjianTerkunci = false;
+
+        // Pengawasan Kamera & Layar Penuh (Fullscreen): Khusus Soal 09 (Mengingat Kata)
+        if (typeof startProctoringCamera === 'function') {
+            startProctoringCamera();
+        }
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+
+        const subtestData = this.getCurrentSubtestData();
+        this.sisaWaktuHafalanDetik = Math.round((subtestData.waktuHafalan || 180000) / 1000); // 180 detik (3 menit)
+
+        istUI.renderFaseHafalan(this.sisaWaktuHafalanDetik);
+
+        if (this.timerContohId) clearInterval(this.timerContohId);
+        this.timerContohId = setInterval(() => {
+            this.sisaWaktuHafalanDetik--;
+            istUI.updateWaktuHafalan(this.sisaWaktuHafalanDetik);
+
+            // TRIGGER SUBTES 09: Jepret foto pengawasan di tengah hafalan 3 menit (01:30 / 90 detik)
+            if (this.currentSubtestNo === 9 && this.sisaWaktuHafalanDetik === 90) {
+                console.log("[IST Logic] Jepret foto pengawasan fase tengah hafalan Subtes 09 (01:30)...");
+                const emailKandidat = localStorage.getItem('email_peserta') || (typeof state !== 'undefined' && state.user && state.user.email) || 'kandidat';
+                if (typeof jepretDanUpload === 'function') {
+                    jepretDanUpload(emailKandidat, 'IST', 'Subtes-9', 'Tengah');
+                }
+            }
+
+            // Setelah 3 menit berlalu -> Otomatis lanjut ke Fase Contoh Soal IST 09
+            if (this.sisaWaktuHafalanDetik <= 0) {
+                clearInterval(this.timerContohId);
+                this.timerContohId = null;
+                this.selesaiHafalanDanMulaiContoh(true);
+            }
+        }, 1000);
+    },
+
+    /**
+     * Selesai menghafal kata-kata dan beralih ke latihan contoh soal Subtes 09
+     */
+    selesaiHafalanDanMulaiContoh(isAuto = false) {
+        if (this.timerContohId) {
+            clearInterval(this.timerContohId);
+            this.timerContohId = null;
+        }
+
+        const startContoh = () => {
+            this.mulaiFaseContoh();
+        };
+
+        if (isAuto) {
+            let autoTimeout = null;
+            const proceed = () => {
+                if (autoTimeout) clearTimeout(autoTimeout);
+                istUI.closeModal();
+                startContoh();
+            };
+
+            istUI.showModal({
+                title: "Waktu Menghafal Selesai",
+                message: "Waktu menghafal 3 menit telah berakhir.\n\nSistem akan mengalihkan Anda ke sesi Latihan Contoh Soal Subtes 09.",
+                type: "info",
+                iconHtml: '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>',
+                okText: `<span>Lanjut ke Contoh Soal</span> <i class="fa-solid fa-arrow-right"></i>`,
+                onOk: proceed
+            });
+
+            autoTimeout = setTimeout(() => {
+                proceed();
+            }, 2500);
+        } else {
+            istUI.showModal({
+                title: "Selesai Menghafal",
+                message: "Apakah Anda telah selesai menghafal dan siap melihat petunjuk serta latihan contoh soal Subtes 09?",
+                type: "confirm",
+                iconHtml: '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>',
+                okText: `<span>Lanjut ke Contoh Soal</span> <i class="fa-solid fa-arrow-right"></i>`,
+                cancelText: "<span>Kembali Menghafal</span>",
+                onOk: () => {
+                    startContoh();
+                },
+                onCancel: () => {
+                    // Resume timer hafalan jika peserta batal
+                    if (!this.timerContohId && this.sisaWaktuHafalanDetik > 0) {
+                        this.timerContohId = setInterval(() => {
+                            this.sisaWaktuHafalanDetik--;
+                            istUI.updateWaktuHafalan(this.sisaWaktuHafalanDetik);
+                            if (this.sisaWaktuHafalanDetik === 90) {
+                                const emailKandidat = localStorage.getItem('email_peserta') || (typeof state !== 'undefined' && state.user && state.user.email) || 'kandidat';
+                                if (typeof jepretDanUpload === 'function') jepretDanUpload(emailKandidat, 'IST', 'Subtes-9', 'Tengah');
+                            }
+                            if (this.sisaWaktuHafalanDetik <= 0) {
+                                clearInterval(this.timerContohId);
+                                this.timerContohId = null;
+                                this.selesaiHafalanDanMulaiContoh(true);
+                            }
+                        }, 1000);
+                    }
+                }
+            });
+        }
+    },
+
+    /**
+     * Memulai fase contoh soal (Percobaan 60/90 Detik)
      */
     mulaiFaseContoh() {
         this.fase = "CONTOH";
@@ -292,43 +401,21 @@ const istLogic = {
         const subtestCode = String(this.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
 
-        this.sisaWaktuContohDetik = Math.round((subtestData.waktuContoh || 30000) / 1000); // 30 detik
+        this.sisaWaktuContohDetik = Math.round((subtestData.waktuContoh || 60000) / 1000);
         
         // Render tampilan contoh soal
         istUI.renderFaseContoh(this.sisaWaktuContohDetik);
 
-        // Jalankan timer untuk fase contoh / hafalan
+        // Jalankan timer untuk fase contoh
         if (this.timerContohId) clearInterval(this.timerContohId);
         this.timerContohId = setInterval(() => {
             this.sisaWaktuContohDetik--;
             istUI.updateWaktuContoh(this.sisaWaktuContohDetik);
 
-            // TRIGGER SUBTES 09: Tepat saat timer menunjukkan sisa waktu 01:30 (tengah-tengah hafalan 3 menit)
-            if (this.currentSubtestNo === 9 && this.sisaWaktuContohDetik === 90) {
-                console.log("[IST Logic] Jepret foto pengawasan fase tengah hafalan Subtes 09 (01:30)...");
-                const emailKandidat = localStorage.getItem('email_peserta') || (typeof state !== 'undefined' && state.user && state.user.email) || 'kandidat';
-                if (typeof jepretDanUpload === 'function') {
-                    jepretDanUpload(emailKandidat, 'IST', 'Subtes-9', 'Tengah');
-                }
-            }
-
             // Setelah waktu berlalu:
             if (this.sisaWaktuContohDetik <= 0) {
                 clearInterval(this.timerContohId);
                 this.timerContohId = null;
-
-                const isHafalan = this.currentSubtestNo === 9 || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
-
-                // Auto-Next Subtes 09: Sembunyikan area hafalan dan langsung buka lembar ujian
-                if (isHafalan) {
-                    const cardHafalan = document.getElementById('card-hafalan-soal-09');
-                    if (cardHafalan) cardHafalan.style.display = 'none';
-                    const faseContohWrapper = document.getElementById('fase-contoh-wrapper');
-                    if (faseContohWrapper) faseContohWrapper.style.display = 'none';
-
-                    this.mulaiFaseUjian();
-                    return;
-                }
 
                 let autoTimeout = null;
                 const navigateToExam = () => {
@@ -337,12 +424,10 @@ const istLogic = {
                 };
                 
                 istUI.showModal({
-                    title: isHafalan ? "Waktu Menghafal Habis" : "Waktu Percobaan Selesai",
-                    message: isHafalan 
-                        ? `Waktu menghafal habis. Lanjut ke Ujian ${subtestName}.`
-                        : `Waktu percobaan telah habis.\n\nSesi contoh sudah berakhir. Layar akan otomatis memindahkan Anda untuk lanjut ke ${subtestName.toLowerCase()}.`,
+                    title: "Waktu Percobaan Selesai",
+                    message: `Waktu latihan contoh soal telah habis.\n\nSesi contoh sudah berakhir. Layar akan otomatis memindahkan Anda untuk lanjut ke ${subtestName.toLowerCase()}.`,
                     type: "info",
-                    iconHtml: isHafalan ? '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>' : '<i class="fa-solid fa-hourglass-end text-[#ffbe1a]"></i>',
+                    iconHtml: '<i class="fa-solid fa-hourglass-end text-[#ffbe1a]"></i>',
                     okText: `<span>Lanjut ke Ujian ${subtestName}</span> <i class="fa-solid fa-arrow-right"></i>`,
                     onOk: navigateToExam
                 });
@@ -378,15 +463,12 @@ const istLogic = {
         const subtestData = this.getCurrentSubtestData();
         const subtestCode = String(this.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
-        const isHafalan = this.currentSubtestNo === 9 || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
 
         istUI.showModal({
-            title: isHafalan ? "Mulai Ujian Hafalan" : "Sesi Percobaan Selesai",
-            message: isHafalan 
-                ? `Apakah Anda siap mengakhiri waktu menghafal dan lanjut ke Ujian ${subtestName}?`
-                : `Anda telah mempelajari contoh soal.\n\nSesi contoh sudah berakhir. Silakan klik tombol di bawah untuk lanjut ke ${subtestName.toLowerCase()}.`,
+            title: "Sesi Percobaan Selesai",
+            message: `Anda telah mempelajari contoh soal.\n\nSesi contoh sudah berakhir. Silakan klik tombol di bawah untuk lanjut ke ${subtestName.toLowerCase()}.`,
             type: "info",
-            iconHtml: isHafalan ? '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>' : '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
+            iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
             okText: `<span>Lanjut ke ${subtestName}</span> <i class="fa-solid fa-arrow-right"></i>`,
             onOk: () => {
                 this.mulaiFaseUjian();

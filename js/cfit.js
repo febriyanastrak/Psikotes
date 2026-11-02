@@ -754,7 +754,7 @@
         const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         timerEl.innerText = str;
-        if (cfitState.sisaWaktuDetik <= 30) {
+        if (cfitState.sisaWaktuDetik <= 30 && timerEl.parentElement) {
             timerEl.parentElement.className = "px-3.5 py-1.5 rounded-xl font-mono font-black text-xs bg-red-500/20 text-red-300 border border-red-500/40 flex items-center shadow-inner animate-pulse";
         }
     }
@@ -867,10 +867,10 @@
                         </div>
                     </div>
 
-                    <!-- Visual Timer Hitung Mundur -->
-                    <div class="px-3.5 py-1.5 rounded-xl font-mono font-black text-xs bg-[#003865] text-white border border-blue-400/30 flex items-center shadow-inner">
-                        <i class="fa-solid fa-stopwatch mr-1.5 text-amber-400"></i>
-                        <span id="cfit-exam-timer">${timeStr}</span>
+                    <!-- Badge Status Pengerjaan (Persis Gaya IST: Titik Hijau Berkedip, Waktu Berjalan di Belakang Layar) -->
+                    <div class="flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/40 px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-200 shadow-inner">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Sedang Berjalan</span>
                     </div>
                 </div>
 
@@ -1305,33 +1305,41 @@
         const container = document.getElementById('cfit-app-container');
         if (!container) return;
 
+        // Pusatkan kartu secara vertikal pada viewport layar
+        const section = document.getElementById('view-cfit');
+        if (section) {
+            section.classList.remove('justify-start');
+            section.classList.add('justify-center');
+            section.style.minHeight = 'calc(100vh - 4.5rem)';
+        }
+
         container.innerHTML = `
-            <div class="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-xl border border-[#b9d0e7] overflow-hidden text-center p-8 space-y-6 animate-fade-in">
-                <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-3xl font-black shadow-inner">
+            <div class="cfit-selesai-card w-full mx-auto bg-white rounded-3xl shadow-xl border border-[#b9d0e7] overflow-hidden text-center p-8 sm:p-12 space-y-7 animate-fade-in my-6 sm:my-10" style="max-width: min(92vw, 48rem);">
+                <div class="w-24 h-24 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-4xl font-black shadow-inner">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">MODUL SELESAI</span>
-                    <h2 class="text-2xl font-black text-slate-800 mt-2">Tes Inteligent 2 Telah Selesai</h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">MODUL SELESAI</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Tes Inteligent 2 Telah Selesai</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-2.5 leading-relaxed max-w-lg mx-auto">
                         Seluruh jawaban 4 subtes Anda telah berhasil disimpan dan dikirim ke server asesmen PT Altrak 1978.
                     </p>
                 </div>
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-left space-y-2.5 text-xs text-slate-700">
-                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                <div class="bg-slate-50 p-6 sm:p-7 rounded-2xl border border-slate-200 text-left space-y-3.5 text-xs sm:text-sm text-slate-700 max-w-lg mx-auto">
+                    <div class="flex justify-between border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Jumlah Subtes Selesai:</span>
                         <span class="font-bold text-[#003865]">4 dari 4 Subtes</span>
                     </div>
-                    <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <div class="flex justify-between border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Status Penyimpanan:</span>
-                        <span class="font-bold text-emerald-600 flex items-center gap-1"><i class="fa-solid fa-check"></i> Tersimpan di Database</span>
+                        <span class="font-bold text-emerald-600 flex items-center gap-1.5"><i class="fa-solid fa-check"></i> Tersimpan di Database</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-500">Pengawasan Kamera:</span>
                         <span class="font-bold text-slate-800">3 Foto Terekam</span>
                     </div>
                 </div>
-                <div class="pt-2">
+                <div class="pt-2 max-w-lg mx-auto">
                     <button type="button" onclick="if(typeof bukaDashboardTahap2==='function'){bukaDashboardTahap2();}else if(typeof pindahFase==='function'){pindahFase('view-dashboard-tahap2');}else{window.location.reload();}" class="w-full py-4 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black rounded-xl shadow-lg hover:shadow-xl transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-arrow-left"></i>
                         <span>Kembali ke Dashboard Asesmen Tahap 2</span>

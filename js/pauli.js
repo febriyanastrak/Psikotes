@@ -952,43 +952,7 @@ async function sendToSupabase(payload = null, callback = null) {
                     }
                 }
             }
-
-            // 2. Sinkronkan ke tabel legacy (hasil_psikotes_kandidat) tanpa membuat baris dobel
-            try {
-                const emailClean = (payload["Alamat Email"] || '').trim().toLowerCase();
-                const phoneClean = (payload["No WhatsApp"] || '').replace(/[^0-9]/g, '');
-                let existingOldId = null;
-
-                if (emailClean && !emailClean.includes('altrak1978.co.id')) {
-                    const { data: oldByEmail } = await sbClient
-                        .from('hasil_psikotes_kandidat')
-                        .select('id')
-                        .eq('Alamat Email', payload["Alamat Email"])
-                        .limit(1);
-                    if (oldByEmail && oldByEmail.length > 0) existingOldId = oldByEmail[0].id;
-                }
-                if (!existingOldId && phoneClean && phoneClean.length >= 6) {
-                    const { data: oldByPhone } = await sbClient
-                        .from('hasil_psikotes_kandidat')
-                        .select('id')
-                        .eq('No WhatsApp', payload["No WhatsApp"])
-                        .limit(1);
-                    if (oldByPhone && oldByPhone.length > 0) existingOldId = oldByPhone[0].id;
-                }
-
-                if (existingOldId) {
-                    await sbClient
-                        .from('hasil_psikotes_kandidat')
-                        .update(payload)
-                        .eq('id', existingOldId);
-                } else if (!updatedKandidat) {
-                    // Hanya buat baris baru jika kandidat belum tercatat di kandidat_psikotes
-                    await sbClient
-                        .from('hasil_psikotes_kandidat')
-                        .insert([payload]);
-                }
-            } catch (errOld) {}
-        }
+}
     } catch (err) {
         console.warn('Supabase Network Note (tersimpan aman di cadangan lokal):', err);
     } finally {

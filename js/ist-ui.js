@@ -98,7 +98,11 @@ const istUI = {
             if (isConfirm) {
                 btnCancel.classList.remove('hide-section');
                 btnCancel.style.display = 'flex';
-                btnCancel.innerHTML = cancelText.includes('<') ? cancelText : `<span>${cancelText}</span>`;
+                let formattedCancel = cancelText.includes('<') ? cancelText : `<span>${cancelText}</span>`;
+                if (formattedCancel.includes('fa-xmark') && !formattedCancel.includes('mr-')) {
+                    formattedCancel = formattedCancel.replace('fa-xmark', 'fa-xmark mr-1.5');
+                }
+                btnCancel.innerHTML = formattedCancel;
                 btnOk.innerHTML = okText.includes('<') ? okText : `<span>${okText}</span>`;
             } else {
                 btnCancel.classList.add('hide-section');
@@ -145,6 +149,7 @@ const istUI = {
         if (!container) return;
 
         const totalSelesai = completedSubtests.length;
+        const isAllCompleted = totalSelesai >= 9;
 
         let cardsHtml = '';
         IST_SUBTESTS_LIST.forEach((sub, idx) => {
@@ -263,6 +268,53 @@ const istUI = {
                     ${cardsHtml}
                 </div>
 
+<!-- Tombol Navigasi / Failsafe Kembali ke Dashboard Utama -->
+                <div class="pt-6 sm:pt-8 border-t border-slate-200">
+                    ${isAllCompleted ? `
+                        <div class="bg-gradient-to-br from-emerald-50 via-white to-blue-50 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-md flex flex-col sm:flex-row items-center justify-between gap-5">
+                            <div class="flex items-center gap-4 text-center sm:text-left">
+                                <div class="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 mb-1">
+                                        <i class="fa-solid fa-trophy text-[11px] text-emerald-600"></i> Seluruh 9 Subtes Selesai
+                                    </span>
+                                    <h3 class="text-lg sm:text-xl font-black text-slate-800">Modul 1 (Inteligent 1) Tuntas</h3>
+                                    <p class="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
+                                        Seluruh jawaban telah tersimpan. Silakan kembali ke Dashboard untuk melanjutkan ke Tes 2 (PAPI Kostick).
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="istLogic.selesaiDanKembaliKeDashboard()" 
+                                class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 text-sm sm:text-base cursor-pointer shrink-0">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                                <span>Selesai &amp; Kembali ke Dashboard Utama</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center text-sm shrink-0">
+                                    <i class="fa-solid fa-lock"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm font-bold text-slate-700">Penyelesaian Tes</p>
+                                    <p class="text-xs text-slate-500 font-medium">Anda harus menyelesaikan semua 9 bagian soal sebelum dapat melanjutkan ke modul berikutnya.</p>
+                                </div>
+                            </div>
+                            <button type="button" disabled 
+                                class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80 shrink-0">
+                                <i class="fa-solid fa-lock text-slate-400"></i>
+                                <span>Selesaikan Seluruh 9 Bagian Soal Dahulu (${totalSelesai} / 9 Selesai)</span>
+                            </button>
+                        </div>
+                    `}
+                </div>
+
+            
+
             </div>
         `;
 
@@ -337,9 +389,9 @@ const istUI = {
 
                     <!-- Tombol Aksi Bawah: Lanjut ke Contoh Soal & Kembali -->
                     <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center">
-                        <button type="button" onclick="istLogic.mulaiFaseContoh()"
+                        <button type="button" onclick="${istLogic.currentSubtestNo === 9 ? 'istLogic.mulaiFaseHafalan()' : 'istLogic.mulaiFaseContoh()'}"
                             class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 sm:py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base">
-                            <span>Lanjut ke Latihan Contoh Soal</span>
+                            <span>${istLogic.currentSubtestNo === 9 ? 'Mulai Sesi Menghafal' : 'Lanjut ke Latihan Contoh Soal'}</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
                         <button type="button" onclick="istLogic.tampilkanMenu9Subtes()"
@@ -358,6 +410,178 @@ const istUI = {
     // =====================================================================
     // 2. FASE PERCOBAAN (CONTOH SOAL: WAKTU 30 DETIK & PESERTA KLIK SENDIRI)
     // =====================================================================
+
+    
+    // =====================================================================
+    // 2A. FASE MENGHAFAL KATA (KHUSUS SUBTES 09 - WAKTU 3 MENIT)
+    // =====================================================================
+
+    /**
+     * Menampilkan lembar hafalan kata Subtes 09 dengan desain minimalis resmi (kotak garis monokrom)
+     * @param {number} sisaDetik Sisa waktu menghafal (180 detik)
+     */
+    renderFaseHafalan(sisaDetik) {
+        const container = this.getContainer();
+        if (!container) return;
+
+        const subtestData = istLogic.getCurrentSubtestData();
+        const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
+        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+
+        const m = Math.floor(Math.max(0, sisaDetik) / 60);
+        const s = Math.max(0, sisaDetik) % 60;
+        const formattedTimer = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+        const html = `
+            <div id="fase-hafalan-wrapper" class="w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in pb-4">
+                <!-- Header Card Hafalan -->
+                <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#071f38] px-6 py-5 text-white border-b border-[#0b4578]">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md text-[#ffbe1a] border border-white/15 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#f5b300] text-[#051627] uppercase tracking-wider">FASE MENGHAFAL KATA</span>
+                                    <span class="text-xs text-sky-200 font-bold">ME - ${subtestName}</span>
+                                </div>
+                                <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Lembar Hafalan Kata</h2>
+                                <p class="text-xs sm:text-sm text-blue-100/80 mt-0.5">
+                                    Hafalkan kelompok kata di bawah ini selama 3 menit tanpa mencatat.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Waktu Berjalan Fase Menghafal (3 Menit) -->
+                        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 text-center shrink-0 self-start sm:self-auto">
+                            <div class="w-8 h-8 rounded-full bg-[#f5b300] text-[#051627] flex items-center justify-center font-black text-sm">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">Waktu Menghafal</div>
+                                <div id="hafalan-timer-display" class="text-lg font-black text-[#ffbe1a]">
+                                    ${formattedTimer}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Timer 3 Menit -->
+                <div class="w-full bg-slate-100 h-1.5 overflow-hidden">
+                    <div id="hafalan-progress-bar" class="h-full bg-gradient-to-r from-[#f5b300] to-[#ffbe1a] transition-all duration-1000 ease-linear" style="width: 100%;"></div>
+                </div>
+
+                <!-- Konten Hafalan -->
+                <div class="p-6 md:p-8 space-y-6">
+                    <!-- KOTAK PERINGATAN TEGAS PENGAWASAN KAMERA & PANDUAN POSISI TANGAN -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-red-50 border-2 border-red-500 shadow-sm text-red-900">
+                        <div class="flex items-start gap-3.5 mb-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shrink-0 mt-0.5 shadow-sm">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                                    PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                                </h4>
+                                <p class="text-xs text-red-700 font-semibold mt-0.5">
+                                    Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-3.5 bg-white/90 rounded-xl border border-red-200 shadow-xs">
+                            <div class="shrink-0 text-center">
+                                <img src="assets/ist/panduan-tangan-ist09.png" alt="Panduan Posisi Tangan Wajib" class="w-28 sm:w-36 h-auto rounded-lg shadow-sm border border-red-300 object-cover mx-auto" />
+                                <span class="inline-flex items-center gap-1 mt-1.5 text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-xs">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Contoh Pose Wajib
+                                </span>
+                            </div>
+                            <div class="text-xs sm:text-sm text-red-950 space-y-2">
+                                <p class="font-bold leading-relaxed">
+                                    Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                                </p>
+                                <p class="font-medium text-red-900 leading-normal">
+                                    Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LEMBAR HAFALAN MINIMALIS RESMI (KOTAK GARIS MONOKROM SESUAI FOTO LEMBAR ASLI) -->
+                    <div class="my-6 mx-auto max-w-2xl bg-white border-2 border-slate-900 rounded-xl p-6 sm:p-8 shadow-sm">
+                        <div class="text-slate-900 text-xs sm:text-sm md:text-base space-y-4 font-bold leading-relaxed tracking-wide select-none" style="user-select: none; -webkit-user-select: none;">
+                            <div class="flex items-center">
+                                <span class="w-24 sm:w-32 tracking-wider shrink-0 text-slate-900 font-extrabold">BUNGA</span>
+                                <span class="mx-2 sm:mx-3 text-slate-900 font-black">:</span>
+                                <span class="font-semibold text-slate-800">Soka - Larat - Flamboyan - Yasmin - Dahlia</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-24 sm:w-32 tracking-wider shrink-0 text-slate-900 font-extrabold">PERKAKAS</span>
+                                <span class="mx-2 sm:mx-3 text-slate-900 font-black">:</span>
+                                <span class="font-semibold text-slate-800">Wajan - Jarum - Kikir - Cangkul - Palu</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-24 sm:w-32 tracking-wider shrink-0 text-slate-900 font-extrabold">BURUNG</span>
+                                <span class="mx-2 sm:mx-3 text-slate-900 font-black">:</span>
+                                <span class="font-semibold text-slate-800">Itik - Elang - Walet - Tekukur - Nuri</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-24 sm:w-32 tracking-wider shrink-0 text-slate-900 font-extrabold">KESENIAN</span>
+                                <span class="mx-2 sm:mx-3 text-slate-900 font-black">:</span>
+                                <span class="font-semibold text-slate-800">Quintet - Arca - Opera - Gamelan - Ukiran</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-24 sm:w-32 tracking-wider shrink-0 text-slate-900 font-extrabold">BINATANG</span>
+                                <span class="mx-2 sm:mx-3 text-slate-900 font-black">:</span>
+                                <span class="font-semibold text-slate-800">Musang - Rusa - Beruang - Zebra - Harimau</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Navigasi Bawah -->
+                    <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <button type="button" onclick="istLogic.tampilkanMenu9Subtes()" 
+                            class="text-xs font-bold text-slate-500 hover:text-[#003865] flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Kembali ke Daftar Bagian Soal</span>
+                        </button>
+
+                        <button type="button" onclick="istLogic.selesaiHafalanDanMulaiContoh()" 
+                            class="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 text-sm cursor-pointer">
+                            <span>Lanjut ke Contoh Soal</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    /**
+     * Memperbarui angka hitung mundur waktu menghafal 3 menit
+     */
+    updateWaktuHafalan(sisaDetik) {
+        const timerDisplay = document.getElementById('hafalan-timer-display');
+        const progressBar = document.getElementById('hafalan-progress-bar');
+        
+        if (timerDisplay) {
+            const m = Math.floor(Math.max(0, sisaDetik) / 60);
+            const s = Math.max(0, sisaDetik) % 60;
+            timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        if (progressBar) {
+            const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : {};
+            const totalDetik = Math.round((subtestData.waktuHafalan || 180000) / 1000);
+            const persen = Math.max(0, (sisaDetik / totalDetik) * 100);
+            progressBar.style.width = `${persen}%`;
+        }
+    },
 
     /**
      * Menampilkan 2 contoh soal secara simultan berderet ke bawah
@@ -517,14 +741,10 @@ const istUI = {
                             <img src="${encodeURI(item.gambarSoal)}" alt="Panduan Contoh ${subtestName}" class="max-w-full h-auto object-contain rounded-xl select-none" draggable="false">
                         </div>
 
-                        <!-- Kotak Cara Mengerjakan (dari properti penjelasan) tepat di bawah gambar panduan -->
+                        <!-- Kotak Penjelasan Resmi Tepat di Bawah Gambar Panduan (Hanya Isi Penjelasan) -->
                         ${item.penjelasan ? `
                             <div class="rounded-r-2xl p-4 sm:p-5 mt-4 mb-2 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
-                                <div class="font-black text-slate-900 mb-1.5 flex items-center gap-2 text-sm sm:text-base">
-                                    <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
-                                    <span>Cara Mengerjakan:</span>
-                                </div>
-                                <p class="text-slate-800 leading-relaxed font-medium pl-6 text-sm sm:text-base">
+                                <p class="text-slate-800 leading-relaxed font-medium text-sm sm:text-base">
                                     ${item.penjelasan}
                                 </p>
                             </div>
@@ -547,11 +767,11 @@ const istUI = {
                     <div class="space-y-2 mb-3">
                         <label for="input_contoh_${contohNo}" class="block text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2">
                             <i class="fa-solid fa-pen-to-square text-[#003865]"></i>
-                            <span>Silakan coba ketikkan jawaban pada kolom isian di bawah ini:</span>
+                            <span>Silakan coba input jawaban pada kolom isian di bawah ini:</span>
                         </label>
-                        <div class="relative max-w-md">
+                        <div class="relative w-full max-w-xl sm:max-w-2xl">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid ${isAngka ? 'fa-calculator' : 'fa-keyboard'} text-sm text-slate-400"></i>
+                                <i class="fa-solid ${isAngka ? 'fa-calculator' : 'fa-keyboard'} text-base text-slate-400"></i>
                             </div>
                             <input type="text" 
                                 id="input_contoh_${contohNo}" 
@@ -565,37 +785,13 @@ const istUI = {
                         </div>
                     </div>
 
-                    <!-- KOTAK PENJELASAN: Tepat di bawah form input, alert box warna krem muda (#FFF8E1) & border tebal oranye di sisi kiri -->
-                    ${item.penjelasan ? `
-                        <div class="rounded-r-2xl p-4 sm:p-5 mt-4 mb-3 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
-                            <div class="font-black text-slate-900 mb-1.5 flex items-center gap-2 text-sm sm:text-base">
-                                <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
-                                <span>Cara Mengerjakan:</span>
-                            </div>
-                            <p class="text-slate-800 leading-relaxed font-medium pl-6 text-sm">
-                                ${item.penjelasan}
-                            </p>
-                        </div>
-                    ` : ''}
+                    
                 `;
             } else {
                 // Pilihan Ganda (A - E) untuk Soal 01, 02, 03, 07, 08
                 const isPilihanGambar = item.tipe === 'pilihan_gambar' || subtestData.id === 'soal_08' || subtestData.id === 'soal_07';
 
                 contohInteractionHtml = `
-                    <!-- Cara Mengerjakan / Penjelasan Resmi -->
-                    ${item.penjelasan ? `
-                        <div class="rounded-r-2xl p-4 sm:p-5 mb-4 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
-                            <div class="font-black text-slate-900 mb-1.5 flex items-center gap-2 text-sm sm:text-base">
-                                <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
-                                <span>Cara Mengerjakan:</span>
-                            </div>
-                            <p class="text-slate-800 leading-relaxed font-medium pl-6 text-sm">
-                                ${item.penjelasan}
-                            </p>
-                        </div>
-                    ` : ''}
-
                     <div class="space-y-2.5 mb-4">
                         <p class="text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
                             <i class="fa-solid fa-hand-pointer text-[#003865]"></i>
@@ -647,6 +843,8 @@ const istUI = {
                             }).join('')}
                         </div>
                     </div>
+
+                    
                 `;
             }
 
@@ -656,7 +854,7 @@ const istUI = {
                     <div class="flex items-center justify-between gap-3 mb-4">
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#003865] text-white font-extrabold text-xs shadow-sm">
                             <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-black text-xs">${hurufContoh}</span>
-                            <span>Contoh ${hurufContoh}</span>
+                            <span>${item.hurufContoh || ('Contoh ' + hurufContoh)}</span>
                         </div>
 
                         <!-- Kunci Jawaban Diberitahukan Secara Terbuka (Badge Hijau Muda) -->
@@ -670,10 +868,10 @@ const istUI = {
                         <div class="mb-5 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
                             <div class="text-xs sm:text-sm font-black text-[#003865] uppercase tracking-wider mb-3 flex items-center gap-2">
                                 <i class="fa-solid fa-shapes text-amber-500 text-sm sm:text-base"></i>
-                                <span>${subtestData.id === 'soal_08' ? 'Pilihan Kubus Patokan (A, B, C, D, E):' : 'Pilihan Bentuk Patokan (A, B, C, D, E):'}</span>
+                                <span>${subtestData.id === 'soal_08' ? 'Contoh pilihan jawaban (A, B, C, D, E):' : 'Contoh pilihan jawaban (A, B, C, D, E):'}</span>
                             </div>
                             <div class="flex justify-center items-center overflow-x-auto py-1">
-                                <img src="${encodeURI(item.gambarOpsi)}" alt="Pilihan Patokan" 
+                                <img src="${encodeURI(item.gambarOpsi)}" alt="Contoh pilihan jawaban" 
                                      class="w-full max-w-3xl h-auto ${subtestData.id === 'soal_07' ? 'max-h-[220px] sm:max-h-[260px]' : 'max-h-[150px] sm:max-h-[180px]'} object-contain select-none mx-auto transition-all" 
                                      draggable="false">
                             </div>
@@ -685,10 +883,10 @@ const istUI = {
                         <div class="mb-4 bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200">
                             <div class="text-xs font-black text-[#003865] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                 <i class="fa-solid ${subtestData.id === 'soal_08' ? 'fa-cube' : 'fa-puzzle-piece'} text-[#003865]"></i>
-                                <span>${subtestData.id === 'soal_08' ? 'Contoh Soal Kubus (Kedudukan Kubus):' : 'Contoh Soal Bentuk:'}</span>
+                                <span>${subtestData.id === 'soal_08' ? 'Contoh soal :' : 'Contoh pilihan jawaban (gambar yang atas A, B, C, D, E) & Contoh soal (gambar yang bawah)  :'}</span>
                             </div>
                             <div class="flex justify-center items-center overflow-x-auto">
-                                <img src="${encodeURI(item.gambarSoal)}" alt="Contoh Soal" 
+                                <img src="${encodeURI(item.gambarSoal)}" alt="Contoh pilihan jawaban (gambar yang atas A, B, C, D, E) & Contoh soal (gambar yang bawah) " 
                                      class="${subtestData.id === 'soal_07' ? 'w-full max-w-2xl max-h-[260px] sm:max-h-[320px]' : 'max-w-full max-h-[120px] sm:max-h-[140px]'} h-auto object-contain select-none transition-all" 
                                      draggable="false">
                             </div>
@@ -703,10 +901,19 @@ const istUI = {
                     <!-- Interaksi Contoh (Isian untuk 04-06 atau Pilihan Ganda untuk 01-03, 08) -->
                     ${contohInteractionHtml}
 
-                    <!-- Status Pilihan Peserta -->
+                    <!-- KOTAK HIJAU: Status Feedback Pilihan Peserta (Diletakkan di Atas Kotak Kuning) -->
                     <div id="status-pilihan-contoh-${contohNo}" class="mt-3">
                         ${this.generateKeteranganContohHtml(item, jawabanTerpilih)}
                     </div>
+
+                    <!-- KOTAK KUNING: Penjelasan Resmi (Diletakkan di Bawah Kotak Hijau) -->
+                    ${item.penjelasan ? `
+                        <div class="rounded-r-2xl p-4 sm:p-5 mt-3 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
+                            <p class="text-slate-800 leading-relaxed font-medium text-sm">
+                                ${item.penjelasan}
+                            </p>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         });
@@ -801,127 +1008,60 @@ const istUI = {
             1: {
                 formatLabel: "Pilihan Ganda (A - E)",
                 formatIcon: "fa-list-ol",
-                highlightedText: "Soal-soal <strong>01 – 20</strong> terdiri atas kalimat-kalimat rumpang. Pada setiap kalimat terdapat <strong>satu kata yang hilang</strong> dan disediakan <strong>5 (lima) kata pilihan</strong> sebagai penggantinya. Pilihlah kata yang paling tepat untuk menyempurnakan kalimat tersebut.",
-                steps: [
-                    { no: "1", title: "Cermati Kalimat", desc: "Baca kalimat rumpang secara utuh dan pahami maksud maknanya." },
-                    { no: "2", title: "Bandingkan 5 Pilihan", desc: "Cermati kelima kata pilihan pengganti (A, B, C, D, E) yang disediakan." },
-                    { no: "3", title: "Pilih Kata Tepat", desc: "Klik pada satu kata yang paling tepat menyempurnakan kalimat itu." }
-                ],
-                tips: "Gunakan waktu 30 detik untuk mencoba Contoh A dan B di bawah ini sebelum memasuki ujian utama."
+                highlightedText: "Soal-soal <strong>01 - 20</strong> terdiri atas kalimat-kalimat. Pada setiap kalimat <strong>satu kata hilang</strong> dan disediakan <strong>5 (lima) kata pilihan</strong> sebagai penggantinya. Pilihlah kata yang tepat yang dapat menyempurnakan kalimat itu !."
             },
             2: {
                 formatLabel: "Pilihan Ganda (A - E)",
                 formatIcon: "fa-list-ol",
-                highlightedText: "Ditentukan <strong>5 (lima) kata</strong> pada setiap soal. Pada <strong>4 dari 5 kata</strong> tersebut terdapat suatu <strong>kesamaan sifat atau kategori</strong>. Carilah <strong>kata kelima yang berbeda</strong> atau tidak memiliki kesamaan dengan keempat kata lainnya.",
-                steps: [
-                    { no: "1", title: "Amati 5 Kata", desc: "Baca kelima pilihan kata yang disajikan pada soal dengan teliti." },
-                    { no: "2", title: "Temukan Kesamaan 4 Kata", desc: "Cari hubungan atau kategori yang menyatukan 4 kata di antaranya." },
-                    { no: "3", title: "Pilih Kata Ganjil", desc: "Pilih 1 kata yang berdiri sendiri dan tidak termasuk ke dalam kategori itu." }
-                ],
-                tips: "Perhatikan penjelasan pada Contoh A dan B di bawah untuk melihat pola kata yang dikecualikan."
+                highlightedText: "Ditentukan <strong>5 (lima) kata.</strong> Pada <strong>4 dari 5 kata</strong> tersebut terdapat suatu <strong>kesamaan.</strong> Carilah <strong>kata yang kelima yang</strong> tidak memiliki kesamaan dengan keempat kata itu."
             },
             3: {
                 formatLabel: "Pilihan Ganda (A - E)",
                 formatIcon: "fa-arrows-split-up-and-left",
-                highlightedText: "Ditentukan <strong>3 (tiga) kata</strong>. Antara kata pertama dan kata kedua terdapat <strong>suatu hubungan logika tertentu</strong>. Antara kata ketiga dan salah satu di antara 5 pilihan kata harus terdapat <strong>hubungan yang sama persis</strong>. Carilah kata pengganti tanda tanya (?) tersebut.",
-                steps: [
-                    { no: "1", title: "Analisis Pasangan Pertama", desc: "Temukan rumus hubungan logika antara kata pertama dan kata kedua." },
-                    { no: "2", title: "Terapkan ke Kata Ketiga", desc: "Gunakan aturan hubungan yang sama persis untuk dipasangkan dengan kata ketiga." },
-                    { no: "3", title: "Pilih Pasangan Tepat", desc: "Pilih kata (A, B, C, D, E) yang menggenapi hubungan analogi tersebut." }
-                ],
-                tips: "Pahami analogi pada Contoh A (hutan : pohon = tembok : ?) dan Contoh B di bawah."
+                highlightedText: "Ditentukan <strong>3 (tiga) kata</strong>. Antara kata pertama dan kata kedua terdapat <strong>suatu hubungan tertentu</strong>. Antara kata ketiga dan salah satu di antara 5 kata pilihan harus pula terdapat <strong>hubungan yang sama itu</strong>. Carilah kata itu."
             },
             4: {
                 formatLabel: "Kolom Isian (Ketik Kata)",
                 formatIcon: "fa-keyboard",
-                highlightedText: "Ditentukan <strong>dua perkataan</strong> pada setiap soal. Carilah <strong>satu perkataan payung / kategori umum</strong> yang dapat mencakup dan meliputi pengertian kedua kata tadi. <strong>Ketikkan perkataan itu</strong> langsung pada kolom yang disediakan.",
-                steps: [
-                    { no: "1", title: "Amati Sepasang Kata", desc: "Cermati kedua kata yang ditampilkan (contoh: ayam – itik)." },
-                    { no: "2", title: "Cari Kategori Payung", desc: "Tentukan satu perkataan umum yang membawahi keduanya (contoh: burung)." },
-                    { no: "3", title: "Ketikkan Jawaban", desc: "Ketik perkataan jawaban pada kolom isian (tidak ada tombol radio A-E)." }
-                ],
-                tips: "Gunakan satu kata umum yang tepat. Coba ketikkan jawaban pada kotak latihan contoh di bawah."
+                highlightedText: "Ditentukan <strong>dua kata</strong>. Carilah <strong>satu perkataan</strong> yang meliputi pengertian kedua kata tadi. <strong>silakan input perkataan itu</strong> langsung pada kolom yang disediakan."
             },
             5: {
                 formatLabel: "Kolom Isian (Ketik Angka)",
                 formatIcon: "fa-calculator",
-                highlightedText: "Persoalan berikutnya adalah <strong>soal-soal hitungan matematika</strong>. Hitunglah persoalan yang diberikan dan <strong>ketikkan angka jawaban akhir</strong> secara langsung pada kolom isian yang telah disediakan.",
-                steps: [
-                    { no: "1", title: "Pahami Cerita Hitungan", desc: "Cermati persoalan matematika dan tentukan operasi hitung yang diperlukan." },
-                    { no: "2", title: "Kalkulasi Mandiri", desc: "Hitung dengan teliti tanpa menggunakan alat bantu seperti kalkulator." },
-                    { no: "3", title: "Ketikkan Angka", desc: "Ketikkan hanya angka hasil akhir pada kolom jawaban (contoh: 75)." }
-                ],
-                tips: "Hanya ketikkan angka jawaban. Coba ketikkan angka pada contoh hitungan di bawah."
+                highlightedText: "Persoalan berikutnya ialah <strong>soal-soal hitungan</strong>. Cara menjawab angka berikutnya dengan menginput angka secara langsung pada kolom isian yang disediakan."
             },
             6: {
                 formatLabel: "Kolom Isian (Ketik Angka)",
                 formatIcon: "fa-arrow-trend-up",
-                highlightedText: "Diberikan suatu <strong>barisan deret angka</strong>. Setiap deret tersusun menurut <strong>suatu aturan atau pola matematika tertentu</strong> dan dapat dilanjutkan. Carilah <strong>angka kelanjutan berikutnya</strong> dari deret tersebut dan <strong>ketikkan angka jawaban</strong> pada kolom yang disediakan.",
-                steps: [
-                    { no: "1", title: "Analisis Pola Deret", desc: "Amati lompatan antar angka (apakah ditambah, dikurang, dikali, atau berselang-seling)." },
-                    { no: "2", title: "Hitung Angka Lanjutan", desc: "Terapkan aturan pola tersebut untuk menentukan angka pengganti tanda tanya (?)." },
-                    { no: "3", title: "Ketikkan Angka", desc: "Ketikkan angka kelanjutan tersebut langsung pada kolom jawaban." }
-                ],
-                tips: "Pola dapat berupa operasi bertingkat atau berselang-seling. Coba pelajari contoh deret di bawah."
+                highlightedText: "Pada persoalan berikut akan <strong>diberikan deret angka</strong>. Setiap deret tersusun menurut <strong>suatu aturan yang tertentu</strong> dan dapat dilanjutkan menurut aturan itu. Carilah <strong>untuk setiap deret,</strong> angka berikutnya<strong> dan input jawaban</strong> saudara pada kolom yang disediakan."
             },
             7: {
                 formatLabel: "Pilihan Ganda Gambar (A - E)",
                 formatIcon: "fa-shapes",
-                highlightedText: "Setiap soal memperlihatkan suatu <strong>bentuk tertentu yang terpotong menjadi beberapa bagian</strong>. Carilah di antara bentuk-bentuk patokan yang ditentukan <strong>(A, B, C, D, E)</strong> bentuk yang dibangun dengan cara <strong>menyusun potongan-potongan itu secara utuh</strong>.",
-                steps: [
-                    { no: "1", title: "Amati Potongan Gambar", desc: "Lihat potongan-potongan bentuk pada gambar soal dengan seksama." },
-                    { no: "2", title: "Bayangkan Susunannya", desc: "Gabungkan potongan dalam pikiran (potongan boleh diputar tetapi tidak boleh dibalik)." },
-                    { no: "3", title: "Cocokkan Patokan (A-E)", desc: "Pilih bentuk patokan A, B, C, D, atau E yang terbentuk dari potongan itu." }
-                ],
-                tips: "Pada ujian utama, gambar master patokan (A - E) akan selalu menempel (sticky) di bagian atas layar."
+                highlightedText: "Pada soal - soal berikut ini, Setiap soal memperlihatkan sesuatu <strong>bentuk tertentu yang terpotong menjadi beberapa bagian</strong>. Carilah di antara bentuk-bentuk yang ditentukan <strong>(A, B, C, D, E),</strong> bentuk yang dapat dibangun dengan cara <strong>menyusun potongan-potongan itu sedemikian rupa</strong>, sehingga tidak ada kelebihan sudut atau ruang di antaranya. Carilah bentuk - bentuk itu dan pililah jawaban yang sesuai."
             },
             8: {
                 formatLabel: "Pilihan Ganda Kubus (A - E)",
                 formatIcon: "fa-cube",
-                highlightedText: "Ditentukan 5 buah <strong>kubus patokan (A, B, C, D, E)</strong>. Pada tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tentukan kubus patokan manakah yang <strong>kedudukannya sama persis</strong> dengan kubus soal.",
-                steps: [
-                    { no: "1", title: "Amati Kubus Soal", desc: "Cermati tiga sisi tampak dan tanda-tanda pada kubus soal." },
-                    { no: "2", title: "Putar atau Gulingkan", desc: "Bayangkan kubus patokan diputar atau digulingkan ke berbagai arah." },
-                    { no: "3", title: "Pilih Kubus Patokan", desc: "Pilih kubus A, B, C, D, atau E yang identik dengan kubus soal." }
-                ],
-                tips: "Gambar patokan kubus (A - E) akan selalu menempel (sticky) di bagian atas layar selama ujian."
+                highlightedText: "Ditentukan 5 buah <strong>kubus (A, B, C, D, E)</strong>. Pada tiap - tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tiga dari tanda itu dapat di lihat. Kubus - kubus yang di tentukan <strong>itu kubus (A, B, C, D, E)</strong> ialah kubus - kubus yang berbada, artinya kubus kubus itu dapat mempunyai tanda - tanda yang sama, akan tetapi susunanya berlainan. Setiap soal memperlihatkan salah satu kubus yang di tentukan di dalam kedudukan  yang berbeda. Carilah kubus yang di maksudkan itu dan jawablah. <strong> Kubus itu dapat di putar, dapat di gulingkan atau dapat di putar dan gulingkan dalam pikiran saudara</strong>, oleh karena itu mungkin akan terlihat suatu tanda yang baru. "
             },
             9: {
-                formatLabel: "Tes Hafalan Kata",
-                formatIcon: "fa-brain",
-                highlightedText: "Anda akan diberikan waktu <strong>3 menit untuk menghafal</strong> kata-kata di bawah ini. Anda <strong>TIDAK DIPERKENANKAN mencatat</strong>. Setelah 3 menit, halaman akan otomatis berpindah ke soal ujian.",
-                steps: [
-                    { no: "1", title: "Fokus Menghafal", desc: "Cermati 5 kelompok kategori kata (Bunga, Perkakas, Burung, Kesenian, Binatang)." },
-                    { no: "2", title: "Ingat Kata & Awalan", desc: "Hafalkan kata-kata dalam kelompok dan huruf permulaannya tanpa mencatat." },
-                    { no: "3", title: "Kerjakan Ujian", desc: "Pada ujian utama, tentukan kategori kata berdasarkan huruf permulaan yang ditanyakan." }
-                ],
-                tips: "Waktu menghafal 3 Menit. Fokuskan perhatian Anda pada layar dan jangan mencatat."
+                formatLabel: (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH') ? "Pilihan Ganda (A - E)" : "Tes Hafalan Kata",
+                formatIcon: (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH') ? "fa-list-ol" : "fa-brain",
+                highlightedText: (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH')
+                    ? "Pada persoalan berikutnya, terdapat sejumlah pertanyaan mengenai kata-kata yang telah saudara hafalkan tadi. Pilihlah satu kategori yang tepat sesuai kata yang telah Anda hafalkan."
+                    : "Anda akan diberikan waktu <strong>3 menit untuk menghafal</strong> kata-kata di bawah ini. Anda <strong>TIDAK DIPERKENANKAN mencatat</strong>, selama anda menghafal kata - kata, <strong>angkat tangan anda sejajar dengan kepala seperti gambar di layar ini</strong>, setelah 3 menit, halaman akan otomatis berpindah ke contoh soal."
             }
         };
 
         const config = configMap[subtestNo] || {
             formatLabel: "Petunjuk Soal",
             formatIcon: "fa-circle-info",
-            highlightedText: subtestData.petunjuk || "",
-            steps: [
-                { no: "1", title: "Pahami Petunjuk", desc: "Baca seluruh arahan pengerjaan dengan cermat." },
-                { no: "2", title: "Pelajari Contoh", desc: "Perhatikan contoh soal dan kunci jawaban yang disajikan." },
-                { no: "3", title: "Kerjakan Ujian", desc: "Jawab setiap soal sesuai waktu yang ditentukan." }
-            ],
-            tips: "Gunakan sesi percobaan ini sebaik mungkin untuk memahami cara menjawab."
+            highlightedText: subtestData.petunjuk || ""
         };
 
-        const stepsHtml = config.steps.map(step => `
-            <div class="bg-white/90 rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs flex items-start gap-3 transition-all hover:border-[#b9d0e7] hover:shadow-xs">
-                <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-[#003865] to-[#0a4980] text-white flex items-center justify-center text-xs font-black shrink-0 mt-0.5 shadow-xs">
-                    ${step.no}
-                </div>
-                <div class="min-w-0">
-                    <h4 class="text-xs sm:text-sm font-black text-slate-800 leading-tight">${step.title}</h4>
-                    <p class="text-[11px] sm:text-xs text-slate-600 font-medium leading-relaxed mt-1">${step.desc}</p>
-                </div>
-            </div>
-        `).join('');
+        const isSubtest9 = Number(subtestNo) === 9 || (subtestData && subtestData.id === 'soal_09');
+        const showWarningPanduan9 = isSubtest9 && (typeof istLogic === 'undefined' || istLogic.fase === 'PANDUAN');
 
         return `
             <div class="bg-gradient-to-br from-[#f8fafc] via-[#edf3f9] to-[#e4eef7] border-2 border-[#b9d0e7] rounded-3xl p-5 sm:p-7 shadow-sm transition-all relative overflow-hidden">
@@ -952,22 +1092,49 @@ const istUI = {
                 </div>
 
                 <!-- Deskripsi Inti / Kalimat Resmi Standar IST -->
-                <div class="bg-white/95 rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs mb-4">
+                <div class="bg-white/95 rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs">
                     <p class="text-slate-800 text-sm sm:text-base leading-relaxed font-medium">
                         ${config.highlightedText}
                     </p>
                 </div>
 
-                <!-- 3 Langkah Kunci Pengerjaan -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
-                    ${stepsHtml}
-                </div>
 
-                <!-- Banner Catatan Pengingat / Tips Bawah -->
-                <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs sm:text-[13px] font-semibold">
-                    <i class="fa-solid fa-lightbulb text-amber-500 text-sm sm:text-base shrink-0"></i>
-                    <span class="leading-snug">${config.tips}</span>
+                ${showWarningPanduan9 ? `
+                <!-- KOTAK PERINGATAN TEGAS PENGAWASAN KAMERA & PANDUAN POSISI TANGAN (IST 09) -->
+                <div class="mt-4 p-4 sm:p-5 rounded-2xl bg-red-50 border-2 border-red-500 shadow-sm text-red-900">
+                    <div class="flex items-start gap-3.5 mb-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shrink-0 mt-0.5 shadow-sm">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                                PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                            </h4>
+                            <p class="text-xs text-red-700 font-semibold mt-0.5">
+                                Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-3.5 bg-white/90 rounded-xl border border-red-200 shadow-xs">
+                        <div class="shrink-0 text-center">
+                            <img src="assets/ist/panduan-tangan-ist09.png" alt="Panduan Posisi Tangan Wajib" class="w-28 sm:w-36 h-auto rounded-lg shadow-sm border border-red-300 object-cover mx-auto" />
+                            <span class="inline-flex items-center gap-1 mt-1.5 text-[11px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-xs">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> Contoh Pose Wajib
+                            </span>
+                        </div>
+                        <div class="text-xs sm:text-sm text-red-950 space-y-2">
+                            <p class="font-bold leading-relaxed">
+                                Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                            </p>
+                            <p class="font-medium text-red-900 leading-normal">
+                                Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+                ` : ''}
             </div>
         `;
     },
@@ -1321,7 +1488,7 @@ const istUI = {
                         <i class="fa-solid fa-pen-to-square text-[#003865]"></i>
                         <span>KETIKKAN JAWABAN ANDA DI BAWAH INI:</span>
                     </label>
-                    <div class="relative max-w-md">
+                    <div class="relative w-full max-w-xl sm:max-w-2xl">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid ${isAngka ? 'fa-calculator' : 'fa-keyboard'} text-sm text-slate-400"></i>
                         </div>
@@ -1402,7 +1569,7 @@ const istUI = {
                         <div class="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200/80">
                             <span class="inline-flex items-center gap-1.5 text-xs font-black text-[#003865] uppercase tracking-wider">
                                 <i class="fa-solid fa-shapes text-amber-500"></i>
-                                <span>${subtestData.id === 'soal_08' ? 'Pilihan Kubus Patokan (A, B, C, D, E)' : 'Pilihan Bentuk Patokan (A, B, C, D, E)'}</span>
+                                <span>${subtestData.id === 'soal_08' ? 'Pilihan jawaban (A, B, C, D, E)' : 'Pilihan jawaban (A, B, C, D, E)'}</span>
                             </span>
                         </div>
                         <div class="flex justify-center items-center overflow-x-auto py-1">
@@ -1465,7 +1632,7 @@ const istUI = {
 
                     <!-- Teks Pertanyaan Soal: Proporsional dan tidak terlalu tebal (disamakan seperti Soal 01, deret angka diberi spasi lega) -->
                     <div class="my-5">
-                        <h3 class="text-base sm:text-lg font-bold text-slate-800 leading-relaxed ${subtestData.id === 'soal_06' ? 'deret-angka-text' : ''}" ${subtestData.id === 'soal_06' ? 'style="word-spacing: 1.5rem;"' : ''}>
+                        <h3 class="text-base sm:text-xl font-bold text-slate-800 leading-relaxed ${subtestData.id === 'soal_06' ? 'deret-angka-text' : ''}" ${subtestData.id === 'soal_06' ? 'style="word-spacing: 1.5rem;"' : ''}>
                             ${soal.pertanyaan}
                         </h3>
                     </div>
@@ -1548,52 +1715,60 @@ const istUI = {
         const container = this.getContainer();
         if (!container) return;
 
+        // Pusatkan kartu secara vertikal pada viewport layar
+        const section = document.getElementById('view-ist');
+        if (section) {
+            section.classList.remove('justify-start');
+            section.classList.add('justify-center');
+            section.style.minHeight = 'calc(100vh - 4.5rem)';
+        }
+
         const totalDijawab = Object.keys(istLogic.jawabanPeserta).length;
         const totalSoal = istSubtes01.soal.length;
 
         container.innerHTML = `
-            <div class="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden text-center p-8 space-y-6 animate-fade-in">
-                <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-3xl font-black shadow-inner">
+            <div class="ist-selesai-card w-full mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden text-center p-8 sm:p-12 space-y-7 animate-fade-in my-6 sm:my-10" style="max-width: min(92vw, 48rem);">
+                <div class="w-24 h-24 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-4xl font-black shadow-inner">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
 
                 <div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#edf3f9] text-[#003865] uppercase tracking-wider">Soal 01 Selesai</span>
-                    <h2 class="text-2xl font-black text-slate-800 mt-2">Soal 01 Telah Ditutup</h2>
-                    <p class="text-sm text-slate-500 mt-2">Seluruh jawaban Anda untuk 20 soal telah berhasil disimpan ke sistem asesmen.</p>
+                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#edf3f9] text-[#003865] uppercase tracking-wider">Soal 01 Selesai</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Soal 01 Telah Ditutup</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-2.5 leading-relaxed max-w-lg mx-auto">Seluruh jawaban Anda untuk 20 soal telah berhasil disimpan ke sistem asesmen.</p>
                 </div>
 
                 <!-- Ringkasan Peserta (Aman, Tanpa Menampilkan Kunci Jawaban / Benar-Salah) -->
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-left space-y-3">
-                    <div class="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
+                <div class="bg-slate-50 p-6 sm:p-7 rounded-2xl border border-slate-200 text-left space-y-3.5 text-xs sm:text-sm text-slate-700 max-w-lg mx-auto">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">ID Peserta:</span>
                         <span class="font-bold text-[#003865]">${skorJson.id_peserta}</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Bagian Diselesaikan:</span>
                         <span class="font-bold text-slate-800">Soal 01</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Jumlah Soal Terisi:</span>
                         <span class="font-bold text-slate-800">${totalDijawab} dari ${totalSoal} Soal</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
+                    <div class="flex justify-between items-center">
                         <span class="text-slate-500">Status Modul:</span>
-                        <span class="font-bold text-emerald-600">Tersimpan</span>
+                        <span class="font-bold text-emerald-600 flex items-center gap-1.5"><i class="fa-solid fa-check"></i> Tersimpan</span>
                     </div>
                 </div>
 
-                <div class="pt-2 flex flex-col gap-3">
+                <div class="pt-2 flex flex-col gap-3 max-w-lg mx-auto">
                     <!-- Tombol Kembali ke Daftar 9 Bagian Soal IST -->
                     <button type="button" onclick="istLogic.tampilkanMenu9Subtes()"
-                        class="w-full py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full py-4 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-xl shadow-lg transition-all text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-list-ol"></i>
                         <span>Kembali ke Daftar Bagian Soal</span>
                     </button>
 
                     <!-- Tombol Simpan & Selesaikan Modul IST ke Dashboard Utama -->
                     <button type="button" onclick="istLogic.selesaiDanKembaliKeDashboard()"
-                        class="w-full py-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full py-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-house"></i>
                         <span>Selesai &amp; Buka Tes 2 (PAPI Kostick)</span>
                     </button>

@@ -1520,6 +1520,88 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP KOMITMEN INTEGRITAS & KETENTUAN UJIAN (PASCA LOGIN) -->
+    <div id="modal-komitmen-ujian"
+        class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto custom-scrollbar">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-[#b9d0e7] overflow-hidden my-auto text-slate-800 animate-fade-in">
+            <!-- Header Modal -->
+            <div class="bg-gradient-to-r from-[#071f38] via-[#003865] to-[#0a4980] p-6 text-white relative">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xl font-black shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-sky-200">PT ALTRAK 1978 &bull; Online Assessment Portal</span>
+                            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Komitmen Integritas &amp; Ketentuan Ujian</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="p-6 sm:p-8 space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed max-h-[65vh] overflow-y-auto custom-scrollbar">
+                <div class="bg-[#edf3f9] p-4 rounded-2xl border border-[#b9d0e7] flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 text-lg mt-0.5 shrink-0"></i>
+                    <div>
+                        <p class="font-black text-[#003865] text-sm mb-1">
+                            Pemberitahuan Wajib Sebelum Memulai Asesmen
+                        </p>
+                        <p class="text-slate-600 text-xs leading-relaxed">
+                            Harap membaca, memahami, dan menyetujui dua ketentuan penting di bawah ini demi kelancaran dan keabsahan hasil asesmen psikotes Anda:
+                        </p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Poin 1: Komitmen Kerahasiaan & Pengawasan Digital -->
+                    <div class="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-[#003865] text-white text-xs flex items-center justify-center font-black shrink-0 shadow-sm">1</span>
+                            <h4 class="font-black text-[#003865] text-sm uppercase tracking-wide">
+                                KOMITMEN KERAHASIAAN &amp; PENGAWASAN DIGITAL
+                            </h4>
+                        </div>
+                        <p class="text-slate-700 text-xs sm:text-sm pl-9 leading-relaxed">
+                            Saya berjanji dan berkomitmen penuh untuk <strong>tidak mengambil tangkapan layar (screenshot), memfoto, merekam video, menyalin, maupun menyebarluaskan</strong> materi dan butir soal psikotes ini ke media sosial atau khalayak umum dalam bentuk apa pun. Apabila saya terbukti melakukan pelanggaran, saya bersedia menerima sanksi tegas berupa <strong>diskualifikasi langsung</strong> dari proses seleksi dan konsekuensi hukum yang berlaku.
+                        </p>
+                        <div class="mt-2 ml-9 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs flex items-center gap-2.5 font-semibold">
+                            <i class="fa-solid fa-video text-amber-600 text-sm shrink-0"></i>
+                            <span><strong>PERHATIAN:</strong> Sesi asesmen ini diawasi secara otomatis melalui kamera pengawas (proctoring camera) serta pencatat integritas aktivitas browser.</span>
+                        </div>
+                    </div>
+
+                    <!-- Poin 2: Ketentuan Koneksi Internet & Ketahanan Data -->
+                    <div class="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-xl bg-emerald-700 text-white text-xs flex items-center justify-center font-black shrink-0 shadow-sm">2</span>
+                            <h4 class="font-black text-emerald-800 text-sm uppercase tracking-wide">
+                                KETENTUAN KONEKSI INTERNET &amp; KEAMANAN DATA
+                            </h4>
+                        </div>
+                        <p class="text-slate-700 text-xs sm:text-sm pl-9 leading-relaxed">
+                            Apabila jaringan internet Anda terputus atau mengalami gangguan di tengah pengerjaan tes, <strong>JANGAN KELUAR ATAU MENUTUP HALAMAN PSIKOTES</strong>. Sistem telah dilengkapi teknologi pencadangan otomatis (<em>auto-save offline</em>). Tetaplah berada di layar ujian sampai koneksi internet kembali terhubung, dan seluruh jawaban Anda akan langsung tersinkronisasi kembali ke server secara aman.
+                        </p>
+                        <div class="mt-2 ml-9 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-center gap-2.5 font-semibold">
+                            <i class="fa-solid fa-wifi text-emerald-600 text-sm shrink-0"></i>
+                            <span><strong>PANDUAN:</strong> Bila sinyal internet terputus, jangan panik. Cukup biarkan layar terbuka hingga indikator jaringan kembali stabil.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal / Tombol Persetujuan -->
+            <div class="p-5 sm:p-6 bg-slate-50 border-t border-slate-200">
+                <button type="button" id="btnKonfirmasiKomitmen" onclick="konfirmasiKomitmenDanMasukDashboard()"
+                    class="w-full bg-gradient-to-r from-[#003865] via-[#0b4578] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-black py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer">
+                    <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+                    <span>Saya Mengerti, Berkomitmen &amp; Mulai Asesmen</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CUSTOM ALERT -->
     <div id="modal-message"
         class="hide-section fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">

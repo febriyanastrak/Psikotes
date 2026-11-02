@@ -481,11 +481,11 @@ input, textarea {
 .ist-text-input {
     width: 100%;
     box-sizing: border-box;
-    padding: 13px 16px;
+    padding: 14px 18px;
     border: 1.5px solid #CBD5E1;
-    border-radius: 10px;
+    border-radius: 12px;
     outline: none;
-    font-size: 16px;
+    font-size: clamp(1rem, 2vw, 1.15rem);
     font-weight: 600;
     color: #1E293B;
     background-color: #ffffff;
@@ -496,7 +496,7 @@ input, textarea {
 }
 
 .ist-text-input.pl-11 {
-    padding-left: 2.75rem !important;
+    padding-left: 2.85rem !important;
 }
 
 .ist-text-input::placeholder {
@@ -1134,5 +1134,34 @@ input[type="number"] {
         page-break-inside: avoid !important;
         margin-top: 10px !important;
         padding-top: 8px !important;
+    }
+}
+
+/* =========================================================================
+   Penyelarasan Tata Letak Responsif & Eliminasi Ruang Kosong (Widescreen)
+   ========================================================================= */
+
+/* 1. Layar Selesai Modul (Completion Cards) */
+.cfit-selesai-card,
+.ist-selesai-card,
+.modul-selesai-card {
+    width: 100%;
+    max-width: min(92vw, 48rem) !important;
+    margin: 2rem auto !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 56, 101, 0.12);
+}
+
+/* 2. Vertically Center Completion Sections without affecting ongoing exams */
+#view-cfit:has(.cfit-selesai-card),
+#view-ist:has(.ist-selesai-card) {
+    justify-content: center !important;
+    min-height: calc(100vh - 4.5rem) !important;
+}
+
+@media (min-width: 1024px) {
+    .cfit-selesai-card,
+    .ist-selesai-card,
+    .modul-selesai-card {
+        padding: 3rem 2.5rem !important;
     }
 }

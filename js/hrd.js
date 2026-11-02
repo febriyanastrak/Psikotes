@@ -3222,8 +3222,12 @@ function renderCorrectionSheets() {
     IST_SUBTEST_SPECS.forEach(sub => {
         let rowsHtml = '';
         let totalSubScore = 0;
+        const offset = IST_SUBTEST_OFFSETS[sub.code] || 0;
+        const startNo = offset + 1;
+        const endNo = offset + sub.totalSoal;
 
         for (let i = 1; i <= sub.totalSoal; i++) {
+            const noGlobal = offset + i;
             const ans = activeIstCorrection.answers[sub.code][i] || '-';
             const score = activeIstCorrection.scores[sub.code][i] || 0;
             totalSubScore += score;
@@ -3259,7 +3263,7 @@ function renderCorrectionSheets() {
 
             rowsHtml += `
                 <tr class="${rowBg} border-b border-slate-200 transition-colors">
-                    <td class="py-1 px-1 border-r border-slate-200 text-slate-500 font-mono text-[11px]">${i}</td>
+                    <td class="py-1 px-1 border-r border-slate-200 text-slate-500 font-mono text-[11px]">${noGlobal}</td>
                     <td class="py-1 px-1 border-r border-slate-200 font-bold ${score > 0 ? 'text-emerald-700' : 'text-slate-800'} truncate max-w-[85px]" title="${tooltipText}">${escapeHtml(ans)}</td>
                     <td class="py-1 px-1">${scoreInputHtml}</td>
                 </tr>
@@ -3273,13 +3277,13 @@ function renderCorrectionSheets() {
             <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs flex flex-col">
                 <div class="bg-[#003865] text-white py-1.5 px-2 text-center font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
                     <span>${sub.name}</span>
-                    <span class="text-[10px] text-amber-300 font-normal">(${sub.totalSoal})</span>
+                    <span class="text-[10px] text-amber-300 font-normal">(No. ${startNo} - ${endNo})</span>
                 </div>
                 <div class="overflow-y-auto max-h-[380px] custom-scrollbar flex-grow">
                     <table class="w-full text-center text-xs border-collapse">
                         <thead class="bg-slate-100 text-slate-600 sticky top-0 text-[10px] font-bold border-b border-slate-300 z-10">
                             <tr>
-                                <th class="py-1 px-1 border-r border-slate-200 w-8">No</th>
+                                <th class="py-1 px-1 border-r border-slate-200 w-10 min-w-[36px]">No</th>
                                 <th class="py-1 px-1 border-r border-slate-200">Jawab</th>
                                 <th class="py-1 px-1 w-14">Score</th>
                             </tr>

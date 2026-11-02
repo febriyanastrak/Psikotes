@@ -274,8 +274,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Pulihkan konten spesifik per modul tes
         setTimeout(() => {
+            const redirectIfCompleted = (moduleId) => {
+                if (typeof isModuleCompleted === 'function' && isModuleCompleted(moduleId)) {
+                    console.log('[SPA Router] Modul ' + moduleId + ' sudah berstatus selesai. Mengalihkan ke Dashboard.');
+                    pindahFase('view-dashboard');
+                    if (typeof syncAllModuleCardStates === 'function') {
+                        syncAllModuleCardStates();
+                    }
+                    if (typeof updateDashboardProgress === 'function') {
+                        updateDashboardProgress();
+                    }
+                    return true;
+                }
+                return false;
+            };
+
+            // Modul 0: Grafis
+            if (activeFase === 'view-grafis') {
+                if (redirectIfCompleted('grafis')) return;
+                if (typeof bukaModulGrafis === 'function') {
+                    bukaModulGrafis();
+                }
+            }
             // Modul 1: IST
-            if (activeFase === 'view-ist') {
+            else if (activeFase === 'view-ist') {
+                if (redirectIfCompleted(1)) return;
                 if (typeof startISTTest === 'function') {
                     startISTTest();
                 } else if (typeof istLogic !== 'undefined' && typeof istLogic.init === 'function') {
@@ -284,26 +307,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Modul 2: PAPI Kostick
             else if (activeFase === 'view-papi') {
+                if (redirectIfCompleted(2)) return;
                 if (typeof startPapiTest === 'function') {
                     startPapiTest();
                 }
             }
             // Modul 3: DISC Assessment
             else if (activeFase === 'view-disc') {
+                if (redirectIfCompleted(3)) return;
                 if (typeof startDiscTest === 'function') {
                     startDiscTest();
                 } else if (typeof renderDiscUI === 'function') {
                     renderDiscUI();
                 }
             }
-            // Modul 4: Pauli (Kraepelin)
+            // Modul 4: EPPS
+            else if (activeFase === 'view-epps') {
+                if (redirectIfCompleted(4)) return;
+                if (typeof startEppsTest === 'function') {
+                    startEppsTest();
+                }
+            }
+            // Modul 5: Pauli (Kraepelin)
             else if (activeFase === 'view-pauli') {
+                if (redirectIfCompleted(5)) return;
                 if (typeof startPauliTest === 'function') {
                     startPauliTest();
                 }
             }
             else if (activeFase === 'view-pauli-tutorial') {
+                if (redirectIfCompleted(5)) return;
                 pindahFase('view-pauli-tutorial');
+            }
+            // Modul 6: MSDT
+            else if (activeFase === 'view-msdt') {
+                if (redirectIfCompleted(6)) return;
+                if (typeof startMsdtTest === 'function') {
+                    startMsdtTest();
+                }
+            }
+            // Modul 7: CFIT
+            else if (activeFase === 'view-cfit') {
+                if (redirectIfCompleted(7)) return;
+                if (typeof startCfitTest === 'function') {
+                    startCfitTest();
+                }
+            }
+            // Modul 8: MBTI
+            else if (activeFase === 'view-mbti') {
+                if (redirectIfCompleted(8)) return;
+                if (typeof startMbtiTest === 'function') {
+                    startMbtiTest();
+                }
             }
             // Dashboard Asesmen Reguler
             else if (activeFase === 'view-dashboard') {
@@ -318,30 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (activeFase === 'view-dashboard-tahap2') {
                 if (typeof bukaDashboardTahap2 === 'function') {
                     bukaDashboardTahap2();
-                }
-            }
-            // Modul Tahap 2: MSDT
-            else if (activeFase === 'view-msdt') {
-                if (typeof startMsdtTest === 'function') {
-                    startMsdtTest();
-                }
-            }
-            // Modul Tahap 2: EPPS
-            else if (activeFase === 'view-epps') {
-                if (typeof startEppsTest === 'function') {
-                    startEppsTest();
-                }
-            }
-            // Modul Tahap 2: CFIT
-            else if (activeFase === 'view-cfit') {
-                if (typeof startCfitTest === 'function') {
-                    startCfitTest();
-                }
-            }
-            // Modul Tahap 2: MBTI
-            else if (activeFase === 'view-mbti') {
-                if (typeof startMbtiTest === 'function') {
-                    startMbtiTest();
                 }
             }
         }, 150);

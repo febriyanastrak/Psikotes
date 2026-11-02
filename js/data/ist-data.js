@@ -7,7 +7,7 @@ const istSubtes01 = {
     id: "subtes_01",
     nama: "Soal 01",
     kodeSubtes: "SE",
-    waktuContoh: 30000, // 30 detik (30.000 ms)
+    waktuContoh: 60000, // 60 detik (60.000 ms)
     waktuUjian: 360000, // 6 menit (360.000 ms - hidden di background)
     petunjuk: "Soal-soal 01 - 20 terdiri atas kalimat-kalimat. Pada setiap kalimat satu kata hilang dan disediakan 5 (lima) kata pilihan sebagai penggantinya. Pilihlah kata yang tepat yang dapat menyempurnakan kalimat itu!",
     contoh: [
@@ -20,7 +20,7 @@ const istSubtes01 = {
         },
         { 
             no: "02", 
-            pertanyaan: "Lawan 'harapan' adalah ...............", 
+            pertanyaan: "Lawan 'harapan' ialah ...............", 
             pilihan: ["A. Duka", "B. Putus Asa", "C. Sengsara", "D. Cinta", "E. Benci"], 
             jawabanBenar: "B",
             penjelasan: "Lawan kata (antonim) dari 'harapan' adalah 'putus asa'. Maka jawaban yang benar ialah : B (Putus Asa)."
@@ -120,7 +120,7 @@ const istSubtes01 = {
         { 
             no: 19, 
             pertanyaan: "Jika kita mengetahui jumlah presentase nomor-nomor lotere yang tidak menang, maka kita dapat menghitung ...............", 
-            pilihan: ["A. Jumlah nomor yang menang", "B. Pajak lotere", "C. Kemungkinan menang", "D. Tinggi keuntungan", "E. Jumlah pengikut"] 
+            pilihan: ["A. Jumlah nomor yang menang", "B. Pajak lotere", "C. Kemungkinan menang", "D. Jumlah pengikut", "E. Tinggi keuntungan"] 
         },
         { 
             no: 20, 
@@ -137,7 +137,7 @@ const istSoal02 = {
     id: "soal_02",
     nama: "Soal 02",
     kodeSubtes: "WA",
-    waktuContoh: 30000,
+    waktuContoh: 60000,
     waktuUjian: 360000, 
     petunjuk: "Ditentukan 5 kata. Pada 4 dari 5 kata itu terdapat suatu kesamaan. Carilah kata yang kelima yang tidak memiliki kesamaan dengan keempat kata itu.",
     contoh: [
@@ -187,7 +187,7 @@ const istSoal03 = {
     id: "soal_03",
     nama: "Soal 03",
     kodeSubtes: "AN",
-    waktuContoh: 30000,
+    waktuContoh: 60000,
     waktuUjian: 420000, 
     petunjuk: "Ditentukan 3 (tiga) kata. Antara kata pertama dan kata kedua terdapat suatu hubungan tertentu. Antara kata ketiga dan salah satu diantara lima kata pilihan harus pula terdapat hubungan yang sama itu. Carilah kata itu.",
     contoh: [
@@ -237,7 +237,7 @@ const istSoal04 = {
     id: "soal_04",
     nama: "Soal 04",
     kodeSubtes: "GE",
-    waktuContoh: 30000,
+    waktuContoh: 60000,
     waktuUjian: 480000, // 8 Menit
     petunjuk: "Ditentukan dua kata. Carilah satu perkataan yang meliputi pengertian kedua kata tadi. Ketiklah perkataan itu pada kolom yang disediakan.",
     contoh: [
@@ -246,14 +246,14 @@ const istSoal04 = {
             pertanyaan: "Ayam - itik", 
             tipe: "isian",
             jawabanBenar: "burung",
-            penjelasan: "Cara mengerjakan: Perkataan 'burung' dapat meliputi pengertian kedua kata itu. Maka ketik 'burung' sebagai jawaban."
+            penjelasan: "Perkataan 'burung' dapat meliputi pengertian kedua kata itu. Maka ketik 'burung' sebagai jawaban."
         },
         { 
             no: "02", 
             pertanyaan: "Gaun - celana", 
             tipe: "isian",
             jawabanBenar: "pakaian",
-            penjelasan: "Cara mengerjakan: Perkataan yang tepat meliputi pengertian gaun dan celana adalah 'pakaian'."
+            penjelasan: "Perkataan yang tepat meliputi pengertian gaun dan celana adalah 'pakaian'."
         }
     ],
     soal: [
@@ -283,7 +283,7 @@ const istSoal05 = {
     id: "soal_05",
     nama: "Soal 05",
     kodeSubtes: "RA",
-    waktuContoh: 30000,
+    waktuContoh: 60000,
     waktuUjian: 600000, // 10 Menit
     petunjuk: "Persoalan berikutnya ialah soal-soal hitungan. Ketiklah angka jawaban pada kolom yang disediakan.",
     contoh: [
@@ -292,14 +292,14 @@ const istSoal05 = {
             pertanyaan: "Sebatang pensil harganya 25 rupiah. Berapakah harga 3 batang?", 
             tipe: "isian",
             jawabanBenar: "75",
-            penjelasan: "Cara mengerjakan: 25 x 3 = 75. Ketik angka 75."
+            penjelasan: "25 x 3 = 75. Ketik angka 75."
         },
         { 
             no: "02", 
             pertanyaan: "Dengan sepeda Husin dapat mencapai 15 km dalam waktu 1 jam. Berapa km-kah yang dapat ia capai dalam waktu 4 jam?", 
             tipe: "isian",
             jawabanBenar: "60",
-            penjelasan: "Cara mengerjakan: 15 x 4 = 60. Ketik angka 60."
+            penjelasan: "15 x 4 = 60. Ketik angka 60."
         }
     ],
     soal: [
@@ -317,7 +317,7 @@ const istSoal05 = {
         { no: 12, pertanyaan: "Untuk suatu campuran diperlukan 2 bagian perak dan 3 bagian timah. Berapa gramkah perak yang diperlukan untuk mendapatkan campuran itu yang beratnya 15 gram?", tipe: "isian" },
         { no: 13, pertanyaan: "Untuk setiap Rp 3,- yang dimiliki Sidin, Hamid memiliki Rp 5,- Jika mereka bersama mempunyai Rp 120,- berapa rupiahkah yang dimiliki Hamid?", tipe: "isian" },
         { no: 14, pertanyaan: "Mesin A menenun 60 m kain, sedangkan mesin B menenun 40 m. berapa meterkah yang ditenun mesin A, jika mesin B menenun 60 m?", tipe: "isian" },
-        { no: 15, pertanyaan: "Seseorang membelanjakan 1/10 dari uangnya untuk perangko dan 4 kali jumlah itu untuk alat tulis. Sisa uangnya masih Rp 60,- Berapa rupiahkah uang semula?", tipe: "isian" },
+        { no: 15, pertanyaan: "Seseorang membelikan 1/10 dari uangnya untuk perangko dan 4 kali jumlah itu untuk alat tulis. Sisa uangnya masih Rp 60,- Berapa rupiahkah uang semula?", tipe: "isian" },
         { no: 16, pertanyaan: "Di dalam dua peti terdapat 43 piring. Di dalam peti yang satu terdapat 9 piring lebih banyak dari pada di dalam peti yang lain. Berapa buah piring terdapat di dalam peti yang lebih kecil?", tipe: "isian" },
         { no: 17, pertanyaan: "Suatu lembaran kain yang panjangnya 60 cm harus dibagikan sedemikian rupa sehingga panjangnya satu bagian ialah 2/3 dari bagian yang lain. Berapa panjangnya bagian yang terpendek?", tipe: "isian" },
         { no: 18, pertanyaan: "Suatu perusahaan mengekspor 3/4 dari hasil produksinya dan menjual 4/5 dari sisa itu dalam negeri. Berapa % kah hasil produksi yang masih tinggal?", tipe: "isian" },
@@ -333,7 +333,7 @@ const istSoal06 = {
     id: "soal_06",
     nama: "Soal 06",
     kodeSubtes: "ZR",
-    waktuContoh: 30000,
+    waktuContoh: 60000,
     waktuUjian: 600000, // 10 Menit
     petunjuk: "Pada persoalan berikut akan diberikan deret angka. Setiap deret tersusun menurut suatu aturan yang tertentu dan dapat dilanjutkan menurut aturan itu. Carilah untuk setiap deret, angka berikutnya dan ketiklah jawaban saudara pada kolom yang disediakan.",
     contoh: [
@@ -342,14 +342,14 @@ const istSoal06 = {
             pertanyaan: "2   4   6   8   10   12   14   ?", 
             tipe: "isian",
             jawabanBenar: "16",
-            penjelasan: "Cara mengerjakan: Pada deret ini angka berikutnya selalu didapat jika angka di depannya ditambah dengan 2. Maka jawabannya ialah 16."
+            penjelasan: "Pada deret ini angka berikutnya selalu didapat jika angka di depannya ditambah dengan 2. Maka jawabannya ialah 16."
         },
         { 
             no: "02", 
             pertanyaan: "9   7   10   8   11   9   12   ?", 
             tipe: "isian",
             jawabanBenar: "10",
-            penjelasan: "Cara mengerjakan: Pada deret ini berganti-ganti harus dikurangi dengan 2 dan setelah itu ditambah dengan 3. Maka jawabannya ialah 10."
+            penjelasan: "Pada deret ini berganti-ganti harus dikurangi dengan 2 dan setelah itu ditambah dengan 3. Maka jawabannya ialah 10."
         }
     ],
     soal: [
@@ -383,7 +383,7 @@ const istSoal07 = {
     id: "soal_07",
     nama: "Soal 07",
     kodeSubtes: "FA",
-    waktuContoh: 30000,
+    waktuContoh: 90000,
     waktuUjian: 480000, // 8 Menit
     petunjuk: "Setiap soal memperlihatkan suatu bentuk tertentu yang terpotong menjadi beberapa bagian. Carilah di antara bentuk-bentuk yang ditentukan (A, B, C, D, E) bentuk yang dibangun dengan cara menyusun potongan-potongan itu.",
     contoh: [
@@ -391,19 +391,19 @@ const istSoal07 = {
             no: "01", 
             tipe: "pilihan_gambar",
             gambarSoal: "assets/ist/soal_07/contoh soal 07.png", 
-            pertanyaan: "Berdasarkan gambar panduan di atas, jika potongan-potongan pada KOTAK CONTOH PERTAMA (paling kiri) disusun, bentuk manakah (A, B, C, D, atau E) yang dibangun?",
+            pertanyaan: "Berdasarkan gambar contoh soal di atas, jika potongan-potongan pada contoh 07 disusun (digabungkan), bentuk manakah yang dihasilkan dari contoh pilihan jawaban (A, B, C, D, atau E) yang sesuai?",
             pilihan: ["A", "B", "C", "D", "E"],
             jawabanBenar: "A",
-            penjelasan: "Cara mengerjakan: Jika potongan-potongan pada kotak contoh pertama digabungkan, akan menghasilkan bentuk A. Maka pilihan yang benar adalah A."
+            penjelasan: "Jika potongan-potongan pada kotak contoh pertama digabungkan, akan menghasilkan bentuk A. Maka pilihan yang benar adalah A."
         },
         { 
             no: "02", 
             tipe: "pilihan_gambar",
             gambarSoal: "assets/ist/soal_07/contoh soal 07.png", 
-            pertanyaan: "Sekarang cermati KOTAK CONTOH KEDUA (nomor 2 dari kiri): jika potongan-potongannya digabungkan dan diputar, bentuk manakah yang dihasilkan?",
+            pertanyaan: "Sekarang cermati gambar contoh soal kedua (nomor 2 dari kiri): jika potongan-potongannya digabungkan, bentuk manakah yang dihasilkan dari contoh pilihan jawaban (A, B, C, D, atau E) yang sesuai ?",
             pilihan: ["A", "B", "C", "D", "E"],
             jawabanBenar: "E",
-            penjelasan: "Cara mengerjakan: Potongan-potongan pada kotak contoh kedua jika dirapatkan dan diputar dengan tepat akan menghasilkan bentuk E. Maka pilihan yang benar adalah E."
+            penjelasan: "Potongan-potongan pada kotak contoh kedua jika dirapatkan dan diputar dengan tepat akan menghasilkan bentuk E. Maka pilihan yang benar adalah E."
         }
     ],
     soal: [
@@ -440,7 +440,7 @@ const istSoal08 = {
     id: "soal_08",
     nama: "Soal 08",
     kodeSubtes: "WU",
-    waktuContoh: 30000,
+    waktuContoh: 90000,
     waktuUjian: 540000, // 9 Menit
     petunjuk: "Ditentukan 5 buah kubus A, B, C, D, E. Pada tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tiga dari tanda itu dapat dilihat. Carilah kubus yang dimaksudkan (yang diputar/digulingkan) dari pilihan yang ada.",
     contoh: [
@@ -449,30 +449,30 @@ const istSoal08 = {
             tipe: "pilihan_gambar",
             gambarOpsi: "assets/ist/soal_08/opsi_08.png",
             gambarSoal: "assets/ist/soal_08/contoh_08.png", 
-            pertanyaan: "Tentukan kubus patokan (A, B, C, D, atau E) manakah yang kedudukannya sama dengan KUBUS PERTAMA (paling kiri):",
+            pertanyaan: "Tentukan kubus (A, B, C, D, atau E) manakah yang kedudukannya sama dengan KUBUS 01 pada contoh soal:",
             pilihan: ["A", "B", "C", "D", "E"],
             jawabanBenar: "A",
-            penjelasan: "Cara mengerjakan: Kubus pertama memperlihatkan kubus A dengan kedudukan berbeda (digulingkan ke kiri 1x, diputar ke kiri 1x). Maka jawaban yang benar untuk kubus pertama adalah A."
+            penjelasan: "Kubus pertama memperlihatkan kubus A dengan kedudukan berbeda (digulingkan ke kiri 1x, diputar ke kiri 1x). Maka jawaban yang benar untuk kubus pertama adalah A."
         },
         { 
             no: "02", 
             tipe: "pilihan_gambar",
             gambarOpsi: "assets/ist/soal_08/opsi_08.png",
             gambarSoal: "assets/ist/soal_08/contoh_08.png", 
-            pertanyaan: "Sekarang, tentukan kubus patokan manakah yang kedudukannya sama dengan KUBUS KEDUA (nomor 2 dari kiri):",
+            pertanyaan: "Sekarang, Tentukan kubus (A, B, C, D, atau E) manakah yang kedudukannya sama dengan KUBUS 02 pada contoh soal :",
             pilihan: ["A", "B", "C", "D", "E"],
             jawabanBenar: "E",
-            penjelasan: "Cara mengerjakan: Kubus kedua adalah bentuk dari kubus E yang diputar/digulingkan. Maka jawaban yang benar adalah E."
+            penjelasan: "Kubus kedua adalah bentuk dari kubus E yang diputar/digulingkan. Maka jawaban yang benar adalah E."
         },
         { 
             no: "03", 
             tipe: "pilihan_gambar",
             gambarOpsi: "assets/ist/soal_08/opsi_08.png",
             gambarSoal: "assets/ist/soal_08/contoh_08.png", 
-            pertanyaan: "Tentukan kubus patokan manakah yang kedudukannya sama dengan KUBUS KETIGA (tengah):",
+            pertanyaan: "Tentukan kubus (A, B, C, D, atau E) manakah yang kedudukannya sama dengan KUBUS 03 pada contoh soal:",
             pilihan: ["A", "B", "C", "D", "E"],
             jawabanBenar: "B",
-            penjelasan: "Cara mengerjakan: Kubus ketiga adalah bentuk dari kubus B yang diputar/digulingkan. Maka jawaban yang benar adalah B."
+            penjelasan: "Kubus ketiga adalah bentuk dari kubus B yang diputar/digulingkan. Maka jawaban yang benar adalah B."
         }
     ],
     soal: [
@@ -506,45 +506,56 @@ const istSoal09 = {
     id: "soal_09",
     nama: "Soal 09",
     kodeSubtes: "ME",
-    waktuContoh: 180000, // 3 Menit untuk menghafal
-    waktuUjian: 360000,  // 6 Menit untuk menjawab
-    petunjuk: "Anda akan diberikan waktu 3 menit untuk menghafal kata-kata di bawah ini. Anda TIDAK DIPERKENANKAN mencatat. Setelah 3 menit, halaman akan otomatis berpindah ke soal ujian.",
+    waktuHafalan: 180000, // 3 Menit untuk menghafal (180.000 ms)
+    waktuContoh: 60000,   // 60 Detik untuk latihan contoh soal (60.000 ms)
+    waktuUjian: 360000,   // 6 Menit untuk menjawab
+    petunjuk: "Anda akan diberikan waktu 3 menit untuk menghafal kata-kata di bawah ini. Anda TIDAK DIPERKENANKAN mencatat. Setelah 3 menit, halaman akan otomatis berpindah ke contoh soal.",
+    hafalanTeks: [
+        "BUNGA: Soka, Larat, Flamboyan, Yasmin, Dahlia",
+        "PERKAKAS: Wajan, Jarum, Kikir, Cangkul, Palu",
+        "BURUNG: Itik, Elang, Walet, Tekukur, Nuri",
+        "KESENIAN: Quintet, Arca, Opera, Gamelan, Ukiran",
+        "BINATANG: Musang, Rusa, Beruang, Zebra, Harimau"
+    ],
     contoh: [
         { 
-            no: "Hafalan", 
-            tipe: "layar_hafalan",
-            pertanyaan: "Hafalkan pengelompokan kata-kata berikut ini:", 
-            hafalanTeks: [
-                "BUNGA: Seroja, Melati, Anggrek, Kamboja, Flamboyan",
-                "PERKAKAS: Wajan, Jarum, Kikir, Palu, Cangkul",
-                "BURUNG: Itik, Elang, Walet, Tekukur, Nuri",
-                "KESENIAN: Quintet, Arca, Opera, Gamelan, Ukiran",
-                "BINATANG: Musang, Rusa, Beruang, Zebra, Harimau"
-            ],
-            penjelasan: "Waktu menghafal: 3 Menit. Fokuskan perhatian Anda pada layar."
+            no: "01",
+            hurufContoh: "Contoh 09",
+            pertanyaan: "Kata yang mempunyai huruf permulaan - Q - adalah suatu .........", 
+            pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], 
+            jawabanBenar: "D",
+            penjelasan: "Quintet adalah termasuk dalam jenis kesenian, sehingga jawaban yang benar ialah: D (Kesenian)."
+        },
+        { 
+            no: "02",
+            hurufContoh: "Contoh Berikutnya",
+            pertanyaan: "Kata yang mempunyai huruf permulaan - Z - adalah suatu .........", 
+            pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"], 
+            jawabanBenar: "E",
+            penjelasan: "Zebra termasuk dalam jenis binatang, sehingga jawaban yang benar ialah: E (Binatang)."
         }
     ],
     soal: [
-        { no: 1, pertanyaan: "Kata yang mempunyai huruf permulaan Q adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 2, pertanyaan: "Kata yang mempunyai huruf permulaan R adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 3, pertanyaan: "Kata yang mempunyai huruf permulaan P adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 4, pertanyaan: "Kata yang mempunyai huruf permulaan N adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 5, pertanyaan: "Kata yang mempunyai huruf permulaan S adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 6, pertanyaan: "Kata yang mempunyai huruf permulaan Z adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 7, pertanyaan: "Kata yang mempunyai huruf permulaan J adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 8, pertanyaan: "Kata yang mempunyai huruf permulaan F adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 9, pertanyaan: "Kata yang mempunyai huruf permulaan G adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 10, pertanyaan: "Kata yang mempunyai huruf permulaan E adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 11, pertanyaan: "Kata yang mempunyai huruf permulaan H adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 12, pertanyaan: "Kata yang mempunyai huruf permulaan C adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 13, pertanyaan: "Kata yang mempunyai huruf permulaan I adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 14, pertanyaan: "Kata yang mempunyai huruf permulaan O adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 15, pertanyaan: "Kata yang mempunyai huruf permulaan T adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 16, pertanyaan: "Kata yang mempunyai huruf permulaan U adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 17, pertanyaan: "Kata yang mempunyai huruf permulaan B adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 18, pertanyaan: "Kata yang mempunyai huruf permulaan M adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 19, pertanyaan: "Kata yang mempunyai huruf permulaan K adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
-        { no: 20, pertanyaan: "Kata yang mempunyai huruf permulaan W adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] }
+        { no: 1, pertanyaan: "Kata yang mempunyai huruf permulaan A adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 2, pertanyaan: "Kata yang mempunyai huruf permulaan B adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 3, pertanyaan: "Kata yang mempunyai huruf permulaan C adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 4, pertanyaan: "Kata yang mempunyai huruf permulaan D adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 5, pertanyaan: "Kata yang mempunyai huruf permulaan E adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 6, pertanyaan: "Kata yang mempunyai huruf permulaan F adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 7, pertanyaan: "Kata yang mempunyai huruf permulaan G adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 8, pertanyaan: "Kata yang mempunyai huruf permulaan H adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 9, pertanyaan: "Kata yang mempunyai huruf permulaan I adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 10, pertanyaan: "Kata yang mempunyai huruf permulaan J adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 11, pertanyaan: "Kata yang mempunyai huruf permulaan K adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 12, pertanyaan: "Kata yang mempunyai huruf permulaan L adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 13, pertanyaan: "Kata yang mempunyai huruf permulaan M adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 14, pertanyaan: "Kata yang mempunyai huruf permulaan N adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 15, pertanyaan: "Kata yang mempunyai huruf permulaan O adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 16, pertanyaan: "Kata yang mempunyai huruf permulaan P adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 17, pertanyaan: "Kata yang mempunyai huruf permulaan R adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 18, pertanyaan: "Kata yang mempunyai huruf permulaan S adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 19, pertanyaan: "Kata yang mempunyai huruf permulaan T adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] },
+        { no: 20, pertanyaan: "Kata yang mempunyai huruf permulaan U adalah suatu ...", pilihan: ["A. Bunga", "B. Perkakas", "C. Burung", "D. Kesenian", "E. Binatang"] }
     ]
 };
 

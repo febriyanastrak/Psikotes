@@ -479,11 +479,42 @@ async function handleUnifiedCandidateLogin(e) {
     if (btn) btn.disabled = false;
     if (btnText) btnText.innerHTML = originalBtnHtml;
 
-    // Masuk ke Mode Layar Penuh (Fullscreen) dari awal login dan arahkan ke Dashboard Tes
+    // Tampilkan Modal Komitmen & Ketentuan Ujian sebelum masuk ke Dashboard
+    bukaModalKomitmenUjian();
+}
+
+/**
+ * Membuka modal pop-up komitmen integritas & ketentuan ujian pasca login
+ */
+function bukaModalKomitmenUjian() {
+    const modal = document.getElementById('modal-komitmen-ujian');
+    if (modal) {
+        modal.classList.remove('hide-section');
+        modal.style.display = 'flex';
+        const scrollArea = modal.querySelector('.overflow-y-auto');
+        if (scrollArea) scrollArea.scrollTop = 0;
+    } else {
+        // Fallback langsung jika elemen modal tidak ada di DOM
+        konfirmasiKomitmenDanMasukDashboard();
+    }
+}
+
+/**
+ * Menutup modal komitmen dan melanjutkan masuk ke Dashboard Asesmen (Fullscreen)
+ */
+function konfirmasiKomitmenDanMasukDashboard() {
+    const modal = document.getElementById('modal-komitmen-ujian');
+    if (modal) {
+        modal.classList.add('hide-section');
+        modal.style.display = 'none';
+    }
+
+    // Masuk ke Mode Layar Penuh (Fullscreen) dari user gesture klik tombol persetujuan
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
 
+    // Arahkan ke Dashboard Tes
     if (typeof pindahFase === 'function') {
         pindahFase('view-dashboard');
     } else if (typeof showPage === 'function') {
@@ -500,6 +531,8 @@ if (typeof window !== 'undefined') {
     window.handleCandidateLogin = handleUnifiedCandidateLogin;
     window.handleLoginSPA = handleUnifiedCandidateLogin;
     window.handleRequestOTP = handleUnifiedCandidateLogin;
+    window.bukaModalKomitmenUjian = bukaModalKomitmenUjian;
+    window.konfirmasiKomitmenDanMasukDashboard = konfirmasiKomitmenDanMasukDashboard;
 }
 
 // Pasang listener realtime input untuk membersihkan error saat peserta mengetik ulang
