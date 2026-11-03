@@ -287,6 +287,8 @@ async function handleUnifiedCandidateLogin(e) {
 
     let idPesertaBaru = null;
     let sessionSecretBaru = null;
+    let isResume = false;
+    let resumeProgres = null;
 
     try {
         // PRIORITAS 1: Gunakan RPC daftar_kandidat secara atomic (Security Hardening Fase 3)
@@ -316,6 +318,8 @@ async function handleUnifiedCandidateLogin(e) {
             } else if (resDaftar.success === true && resDaftar.id) {
                 idPesertaBaru = resDaftar.id;
                 sessionSecretBaru = resDaftar.session_secret;
+                isResume = !!resDaftar.is_resume;
+                resumeProgres = resDaftar.progres || null;
             }
         } else {
             // FALLBACK: Jika RPC daftar_kandidat belum tersedia, gunakan klaim_token_ujian
@@ -433,9 +437,11 @@ async function handleUnifiedCandidateLogin(e) {
     localStorage.setItem('penempatan_peserta', cleanPenempatan);
     localStorage.setItem('token_peserta', cleanToken);
 
-    // Bersihkan seluruh sesi tes sebelumnya dari browser
+    // Bersihkan sesi tes jika pendaftaran baru, atau pulihkan jika Resume Session
+    if (!isResume) {
     const keysToClear = [
         'ist_selesai', 'papi_selesai', 'disc_selesai', 'epps_selesai', 'pauli_selesai',
+        'grafis_selesai', 'msdt_selesai', 'cfit_selesai', 'mbti_selesai', 'mcmi_selesai',
         'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
         'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
         'epps_answers', 'epps_payload', 'epps_start_time',
@@ -448,6 +454,39 @@ async function handleUnifiedCandidateLogin(e) {
     // Reset visual kartu dashboard ke kondisi awal (Tes 1 aktif, 2-4 terkunci, 0/4)
     if (typeof resetDashboardState === 'function') {
         resetDashboardState();
+    }
+    } else {
+        // RESUME SESSION (PINDAH DEVICE): Pulihkan modul yang sudah tuntas dari database ke perangkat baru
+        if (resumeProgres && typeof resumeProgres === 'object') {
+            if (resumeProgres.grafis_selesai) localStorage.setItem('grafis_selesai', 'true');
+            if (resumeProgres.ist_selesai) localStorage.setItem('ist_selesai', 'true');
+            if (resumeProgres.papi_selesai) localStorage.setItem('papi_selesai', 'true');
+            if (resumeProgres.disc_selesai) localStorage.setItem('disc_selesai', 'true');
+            if (resumeProgres.epps_selesai) localStorage.setItem('epps_selesai', 'true');
+            if (resumeProgres.pauli_selesai) localStorage.setItem('pauli_selesai', 'true');
+            if (resumeProgres.msdt_selesai) localStorage.setItem('msdt_selesai', 'true');
+            if (resumeProgres.cfit_selesai) localStorage.setItem('cfit_selesai', 'true');
+            if (resumeProgres.mbti_selesai) {
+                localStorage.setItem('mbti_selesai', 'true');
+                localStorage.setItem('mcmi_selesai', 'true');
+            }
+        }
+
+        // Segarkan status kartu dan progres dashboard
+        if (typeof syncAllModuleCardStates === 'function') {
+            syncAllModuleCardStates();
+        }
+        if (typeof updateDashboardProgress === 'function') {
+            updateDashboardProgress();
+        }
+
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Sesi Dipulihkan",
+                "Selamat datang kembali! Progres tes Anda sebelumnya berhasil dimuat. Silakan lanjutkan modul yang belum selesai.",
+                "success"
+            );
+        }
     }
 
     const profil = {

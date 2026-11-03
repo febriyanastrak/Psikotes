@@ -477,7 +477,7 @@ function viewCandidateChart(index) {
 
     // Render data ke masing-masing tab asesmen
     renderGrafisResults(row.hasil_grafis, row);
-    renderIstResults(row.hasil_ist);
+    renderIstResults(row.hasil_ist, row.jawaban_ist, row);
     renderPapiResults(row.hasil_papi);
     renderDiscResults(row.hasil_disc);
     renderEppsResults(row.hasil_epps);
@@ -3045,8 +3045,9 @@ let activeIstCorrection = {
  * Merender seluruh data tab IST saat kandidat dipilih
  * @param {Object|string} rawHasilIst Data hasil IST dari database kandidat
  */
-async function renderIstResults(rawHasilIst) {
+async function renderIstResults(rawHasilIst, rawJawabanIst = null, rowCandidate = null) {
     if (!currentSelectedCandidate) return;
+    rowCandidate = rowCandidate || currentSelectedCandidate;
 
     // Ambil kunci server secara dinamis dari database Supabase jika belum ada di memori
     if (!IST_OFFICIAL_ANSWER_KEYS) {
@@ -3066,7 +3067,25 @@ async function renderIstResults(rawHasilIst) {
     activeIstCorrection.rw = {};
     activeIstCorrection.sw = {};
 
-    const rawAnswers = (parsed && (parsed.jawaban_peserta || parsed.jawaban)) || {};
+    let parsedJawaban = null;
+    try {
+        parsedJawaban = typeof rawJawabanIst === 'string' ? JSON.parse(rawJawabanIst) : (rawJawabanIst || {});
+    } catch (e) {
+        parsedJawaban = {};
+    }
+    if (!parsedJawaban || (typeof parsedJawaban === 'object' && Object.keys(parsedJawaban).length === 0)) {
+        const candidateSource = (rowCandidate && (rowCandidate.jawaban_ist || rowCandidate.jawaban)) || (parsed && (parsed.jawaban_ist || parsed.jawaban));
+        if (candidateSource) {
+            try {
+                parsedJawaban = typeof candidateSource === 'string' ? JSON.parse(candidateSource) : (candidateSource || {});
+            } catch (e) {
+                parsedJawaban = {};
+            }
+        }
+    }
+
+    const rawAnswers = (parsed && (parsed.jawaban_peserta || parsed.jawaban || parsed.jawaban_ist)) || {};
+    const extAnswers = (parsedJawaban && (parsedJawaban.jawaban_peserta || parsedJawaban.jawaban || parsedJawaban)) || {};
     const previousManual = (parsed && parsed.koreksi_manual_hrd) || {};
 
     let initialGrandRw = 0;
@@ -3076,9 +3095,18 @@ async function renderIstResults(rawHasilIst) {
         activeIstCorrection.answers[sub.code] = {};
         activeIstCorrection.scores[sub.code] = {};
 
-        // Ambil objek subtes spesifik dari database (misal: parsed.subtes_01, parsed.subtes_02, dst.)
+        const subNoInt = parseInt(sub.no, 10);
+        const subNoStr = String(subNoInt);
+        const offset = IST_SUBTEST_OFFSETS[sub.code] || 0;
+
+        // Ambil objek subtes spesifik dari database (mencakup semua variasi kunci Supabase)
         const subtesObj = (parsed && (
+            parsed[sub.no] ||
+            parsed[subNoStr] ||
             parsed['subtes_' + sub.no] ||
+            parsed['subtes_' + subNoStr] ||
+            parsed['0' + subNoStr + '_' + sub.code] ||
+            parsed[sub.no + '_' + sub.code] ||
             parsed['subtes_' + sub.code.toLowerCase()] ||
             parsed[sub.code] ||
             parsed['soal_' + sub.no] ||
@@ -3086,9 +3114,46 @@ async function renderIstResults(rawHasilIst) {
         )) || {};
 
         // Ambil kamus jawaban peserta dari dalam objek subtes
-        const subAnswers = subtesObj.jawaban_peserta || subtesObj.jawaban || subtesObj.rincian_jawaban || {};
+        const subtesJawabanObj = (parsedJawaban && (
+            parsedJawaban[sub.no] ||
+            parsedJawaban[subNoStr] ||
+            parsedJawaban['subtes_' + sub.no] ||
+            parsedJawaban['subtes_' + subNoStr] ||
+            parsedJawaban['subtes_' + sub.code.toLowerCase()] ||
+            parsedJawaban[sub.code] ||
+            parsedJawaban['0' + subNoStr + '_' + sub.code] ||
+            parsedJawaban[sub.no + '_' + sub.code] ||
+            parsedJawaban['soal_' + sub.no] ||
+            parsedJawaban['soal_' + subNoStr] ||
+            (parsedJawaban.subtes && (parsedJawaban.subtes['0' + subNoStr + '_' + sub.code] || parsedJawaban.subtes[sub.code] || parsedJawaban.subtes[sub.no] || parsedJawaban.subtes[subNoStr])) ||
+            (parsedJawaban.subtes_detail && (parsedJawaban.subtes_detail[sub.no] || parsedJawaban.subtes_detail[subNoStr] || parsedJawaban.subtes_detail[sub.code]))
+        )) || {};
 
-        const offset = IST_SUBTEST_OFFSETS[sub.code];
+        // Ambil kamus jawaban peserta dari dalam objek subtes
+        const hasNumericKey = (obj) => typeof obj === 'object' && obj !== null && Object.keys(obj).some(k => !isNaN(k) && Number(k) >= 1 && Number(k) <= 176);
+
+        let directAnswers = {};
+        const checkAndCollect = (obj) => {
+            if (typeof obj !== 'object' || obj === null) return;
+            if (obj.jawaban_peserta && typeof obj.jawaban_peserta === 'object') {
+                Object.assign(directAnswers, obj.jawaban_peserta);
+            }
+            if (obj.jawaban && typeof obj.jawaban === 'object') {
+                Object.assign(directAnswers, obj.jawaban);
+            }
+            if (obj.rincian_jawaban && typeof obj.rincian_jawaban === 'object') {
+                Object.assign(directAnswers, obj.rincian_jawaban);
+            }
+            if (hasNumericKey(obj)) {
+                Object.assign(directAnswers, obj);
+            }
+        };
+
+        checkAndCollect(subtesJawabanObj);
+        checkAndCollect(subtesObj);
+
+        const subAnswers = (Object.keys(directAnswers).length > 0) ? directAnswers : (subtesObj.jawaban_peserta || subtesObj.jawaban || subtesObj || {});
+
         let subRwCalculated = 0;
 
         for (let i = 1; i <= sub.totalSoal; i++) {
@@ -3102,6 +3167,8 @@ async function renderIstResults(rawHasilIst) {
                 ans = subAnswers[String(i)];
             } else if (subAnswers[noGlobal] !== undefined && subAnswers[noGlobal] !== null) {
                 ans = subAnswers[noGlobal];
+            } else if (subAnswers[String(noGlobal)] !== undefined && subAnswers[String(noGlobal)] !== null) {
+                ans = subAnswers[String(noGlobal)];
             }
             // 2. Fallback: Ambil dari format jawaban lain jika ada
             else if (rawAnswers[sub.code] && rawAnswers[sub.code][i] !== undefined) {
@@ -3114,6 +3181,20 @@ async function renderIstResults(rawHasilIst) {
                 ans = rawAnswers['soal_' + sub.no][i];
             } else if (rawAnswers[noGlobal] !== undefined) {
                 ans = rawAnswers[noGlobal];
+            } else if (extAnswers[sub.code] && (extAnswers[sub.code][i] !== undefined || extAnswers[sub.code][String(i)] !== undefined)) {
+                ans = extAnswers[sub.code][i] !== undefined ? extAnswers[sub.code][i] : extAnswers[sub.code][String(i)];
+            } else if (extAnswers[sub.no] && (extAnswers[sub.no][i] !== undefined || extAnswers[sub.no][String(i)] !== undefined)) {
+                ans = extAnswers[sub.no][i] !== undefined ? extAnswers[sub.no][i] : extAnswers[sub.no][String(i)];
+            } else if (extAnswers[subNoStr] && (extAnswers[subNoStr][i] !== undefined || extAnswers[subNoStr][String(i)] !== undefined)) {
+                ans = extAnswers[subNoStr][i] !== undefined ? extAnswers[subNoStr][i] : extAnswers[subNoStr][String(i)];
+            } else if (extAnswers['subtes_' + sub.no] && extAnswers['subtes_' + sub.no][i] !== undefined) {
+                ans = extAnswers['subtes_' + sub.no][i];
+            } else if (extAnswers['subtes_' + subNoStr] && extAnswers['subtes_' + subNoStr][i] !== undefined) {
+                ans = extAnswers['subtes_' + subNoStr][i];
+            } else if (extAnswers['soal_' + sub.no] && extAnswers['soal_' + sub.no][i] !== undefined) {
+                ans = extAnswers['soal_' + sub.no][i];
+            } else if (extAnswers[noGlobal] !== undefined && extAnswers[noGlobal] !== null && extAnswers[noGlobal] !== '') {
+                ans = extAnswers[noGlobal];
             } else if (sub.code === 'SE' && rawAnswers[i] !== undefined) {
                 ans = rawAnswers[i];
             }
@@ -3147,6 +3228,15 @@ async function renderIstResults(rawHasilIst) {
                     }
                 }
             }
+            // Cadangan Cerdas (Fallback Jawaban Benar):
+            // Jika jawaban teks masih '-' tapi peserta terbukti menjawab benar (skor > 0), ambil huruf dari Kunci Jawaban Resmi
+            const subKeyMap = getIstSubtestKeyMap(sub);
+            const expectedSubKey = (subKeyMap && (subKeyMap[String(i)] !== undefined ? subKeyMap[String(i)] : subKeyMap[i])) || '';
+            if ((ans === '-' || ans === '' || ans === null || ans === undefined) && sc > 0 && expectedSubKey) {
+                ans = expectedSubKey;
+                activeIstCorrection.answers[sub.code][i] = String(expectedSubKey);
+            }
+
             activeIstCorrection.scores[sub.code][i] = Math.max(0, Math.min(sc, sub.maxScore));
             subRwCalculated += activeIstCorrection.scores[sub.code][i];
         }
@@ -6132,5 +6222,3 @@ if (typeof window !== 'undefined') {
     window.unduhBerkasGrafis = unduhBerkasGrafis;
     window.unduhBerkasLightbox = unduhBerkasLightbox;
 }
-
-
