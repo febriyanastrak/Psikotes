@@ -3008,6 +3008,27 @@ const IST_NORM_RS_TO_GRADE = {
     'ME': ['V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'V', 'IV', 'IV', 'IV', 'IV', 'IV', 'III-', 'III', 'III', 'III', 'III', 'III+']
 };
 
+// TABEL NORMA RESMI IST PT ALTRAK 1978: Konversi Total RS/RW ke Skor IQ (NORMA!$A$4:$B$156)
+const IST_NORMA_TOTAL_RW_TO_IQ = {
+    0: 69, 1: 69, 2: 69, 3: 69, 4: 69, 5: 69, 6: 69, 7: 69, 8: 69, 9: 69,
+    10: 69, 11: 69, 12: 69, 13: 69, 14: 69, 15: 69, 16: 69, 17: 69, 18: 69, 19: 69,
+    20: 69, 21: 69, 22: 69, 23: 69, 24: 69, 25: 70, 26: 70, 27: 71, 28: 71, 29: 72,
+    30: 72, 31: 73, 32: 73, 33: 74, 34: 74, 35: 75, 36: 75, 37: 76, 38: 76, 39: 77,
+    40: 77, 41: 78, 42: 78, 43: 79, 44: 79, 45: 80, 46: 80, 47: 81, 48: 81, 49: 82,
+    50: 82, 51: 83, 52: 83, 53: 84, 54: 84, 55: 85, 56: 85, 57: 85, 58: 86, 59: 86,
+    60: 87, 61: 87, 62: 88, 63: 88, 64: 89, 65: 89, 66: 90, 67: 90, 68: 91, 69: 91,
+    70: 92, 71: 92, 72: 93, 73: 93, 74: 94, 75: 94, 76: 95, 77: 95, 78: 96, 79: 96,
+    80: 97, 81: 97, 82: 98, 83: 98, 84: 99, 85: 99, 86: 100, 87: 100, 88: 101, 89: 101,
+    90: 102, 91: 102, 92: 103, 93: 103, 94: 104, 95: 104, 96: 105, 97: 105, 98: 106, 99: 106,
+    100: 107, 101: 107, 102: 108, 103: 108, 104: 109, 105: 109, 106: 110, 107: 110, 108: 111, 109: 111,
+    110: 112, 111: 112, 112: 113, 113: 113, 114: 114, 115: 114, 116: 115, 117: 115, 118: 116, 119: 116,
+    120: 117, 121: 117, 122: 118, 123: 118, 124: 118, 125: 119, 126: 119, 127: 120, 128: 120, 129: 121,
+    130: 121, 131: 122, 132: 122, 133: 123, 134: 123, 135: 124, 136: 124, 137: 125, 138: 125, 139: 126,
+    140: 126, 141: 127, 142: 127, 143: 128, 144: 128, 145: 129, 146: 129, 147: 130, 148: 130, 149: 131,
+    150: 131, 151: 132, 152: 132
+};
+
+
 /**
  * Menghitung Kategori Kecerdasan berdasarkan Rumus Resmi Excel:
  * <=69 (Mental Retarded), <=79 (Borderline), <=89 (Dull Normal), <=99 (Low Average),
@@ -3279,13 +3300,11 @@ async function renderIstResults(rawHasilIst, rawJawabanIst = null, rowCandidate 
         }
     });
 
-    // 2. Tentukan Nilai IQ awal langsung dari Total/Rata-rata SW
-    let initialTotalSw = 0;
-    IST_SUBTEST_SPECS.forEach(sub => {
-        initialTotalSw += (activeIstCorrection.sw[sub.code] || 0);
-    });
-    const initialAvgSw = Math.round(initialTotalSw / 9);
-    activeIstCorrection.skorIq = initialAvgSw;
+    // 2. Tentukan Nilai IQ awal dari Tabel Norma Total RW (Sesuai Norma IST PT Altrak)
+    const initialIq = (IST_NORMA_TOTAL_RW_TO_IQ[initialGrandRw] !== undefined)
+        ? IST_NORMA_TOTAL_RW_TO_IQ[initialGrandRw]
+        : (initialGrandRw > 152 ? 132 : 69);
+    activeIstCorrection.skorIq = initialIq;
 
     // 3. Render Lembar Koreksi 9 Subtes & Tabel Profil
     renderCorrectionSheets();
@@ -3295,8 +3314,8 @@ async function renderIstResults(rawHasilIst, rawJawabanIst = null, rowCandidate 
     // 4. Update Nilai Metrik Atas & Kategori IQ
     const inputIq = document.getElementById('inputIstSkorIq');
     if (inputIq) {
-        inputIq.value = initialAvgSw;
-        handleIstIqInputChange(initialAvgSw);
+        inputIq.value = initialIq;
+        handleIstIqInputChange(initialIq);
     }
     recalculateAllIstScores();
 }
@@ -3547,9 +3566,19 @@ function recalculateAllIstScores() {
         avgCatEl.title = avgCatInfo.label;
     }
 
-    // AUTO-IQ: Skor IQ langsung mengambil dari Total/Rata-rata SW (misalkan: 86)
-    const autoIq = avgSw;
+    // AUTO-IQ: Konversi Grand Total RW (Jumlah Benar Total) ke Skor IQ Resmi Excel (NORMA!$A$4:$B$156)
+    const autoIq = (IST_NORMA_TOTAL_RW_TO_IQ[grandTotalRw] !== undefined)
+        ? IST_NORMA_TOTAL_RW_TO_IQ[grandTotalRw]
+        : (grandTotalRw > 152 ? 132 : 69);
     activeIstCorrection.skorIq = autoIq;
+
+    // Baris total (Σ) pada tabel aspek: Menampilkan skor IQ (persis sel N38 di sheet SCORING Excel)
+    // dan tooltip menyajikan rincian lengkap (Skor IQ, Rata-rata SW, dan Total SW)
+    if (avgSwEl) {
+        avgSwEl.innerText = autoIq;
+        avgSwEl.title = `Skor IQ: ${autoIq} (Konversi dari Total RW ${grandTotalRw}) | Rata-rata SW: ${avgSw} | Total SW: ${totalSw}`;
+    }
+
     const inputIq = document.getElementById('inputIstSkorIq');
     if (inputIq) {
         inputIq.value = autoIq;
