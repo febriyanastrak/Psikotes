@@ -53,7 +53,7 @@ const CFIT_EXAMPLES = {
         {
             no: 1,
             gambarSoal: "assets/cfit/subtes_1/contoh subtes 1-1.png",
-            pertanyaan: "Bila posisi gambar kita miringkan mengikuti pola, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
             kunci: "C",
             penjelasan: "Garis ranting berputar searah jarum jam dengan sudut miring 45 derajat bertahap. Kelanjutan logis yang tepat adalah bentuk C."
@@ -61,7 +61,7 @@ const CFIT_EXAMPLES = {
         {
             no: 2,
             gambarSoal: "assets/cfit/subtes_1/contoh subtes 1-2.png",
-            pertanyaan: "Bila gambar kita beri warna hitam mengikuti pola, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
             kunci: "E",
             penjelasan: "Bagian hitam bertambah ke bawah secara teratur. Pola berikutnya adalah bentuk E."
@@ -69,7 +69,7 @@ const CFIT_EXAMPLES = {
         {
             no: 3,
             gambarSoal: "assets/cfit/subtes_1/contoh subtes 1-3.png",
-            pertanyaan: "Bila gambar kita tambahkan bulatan kecil mengikuti pola, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
             kunci: "E",
             penjelasan: "Jumlah bulatan kecil bertambah secara konsisten (1, 2, 3, dan selanjutnya 4). Pola yang benar adalah E."
@@ -79,15 +79,15 @@ const CFIT_EXAMPLES = {
         {
             no: 1,
             gambarSoal: "assets/cfit/subtes_2/contoh subtes 2-1.png",
-            pertanyaan: "Pilih 2 (dua) kotak yang memiliki kesamaan karakter dari 5 (lima) kotak yang tersedia (A, B, C, D, E):",
+            pertanyaan: "PILIH 2 DARI 5 PILIHAN GAMBAR YANG MEMILIKI POLA ATAUPUN KARAKTERISTIK YANG MIRIP/SAMA",
             pilihan: ["A", "B", "C", "D", "E"],
-            kunci: ["A", "D"],
-            penjelasan: "Kotak B, C, E memiliki orientasi miring/sudut, sedangkan A dan D berbentuk bangun datar berdiri tegak sempurna dengan sisi simetris. Maka jawaban yang benar adalah A dan D."
+            kunci: ["B", "D"],
+            penjelasan: "Kotak A, C, E memiliki orientasi miring/sudut, sedangkan B dan D berbentuk bangun datar berdiri tegak sempurna dengan sisi simetris. Maka jawaban yang benar adalah B dan D."
         },
         {
             no: 2,
             gambarSoal: "assets/cfit/subtes_2/contoh subtes 2-2.png",
-            pertanyaan: "Pilih 2 (dua) kotak yang memiliki kesamaan karakter dari 5 (lima) kotak yang tersedia (A, B, C, D, E):",
+            pertanyaan: "PILIH 2 DARI 5 PILIHAN GAMBAR YANG MEMILIKI POLA ATAUPUN KARAKTERISTIK YANG MIRIP/SAMA",
             pilihan: ["A", "B", "C", "D", "E"],
             kunci: ["C", "E"],
             penjelasan: "Kotak A, B, D berisi lingkaran putih polos, sedangkan kotak C dan E memiliki arsiran/warna hitam di dalamnya. Maka pilihan yang tepat adalah C dan E."
@@ -97,7 +97,7 @@ const CFIT_EXAMPLES = {
         {
             no: 1,
             gambarSoal: "assets/cfit/subtes_3/contoh subtes 3-1.png",
-            pertanyaan: "Berdasarkan pola yang tersedia, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
             kunci: "B",
             penjelasan: "Pola matriks 2x2 menunjukkan garis tebal bergeser secara simetris. Kotak kosong dilengkapi oleh bentuk B."
@@ -105,7 +105,7 @@ const CFIT_EXAMPLES = {
         {
             no: 2,
             gambarSoal: "assets/cfit/subtes_3/contoh subtes 3-2.png",
-            pertanyaan: "Berdasarkan pola yang tersedia, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
             kunci: "C",
             penjelasan: "Gambar burung di baris bawah berhadapan secara simetri cermin dengan baris atas. Bentuk yang tepat adalah C."
@@ -113,17 +113,17 @@ const CFIT_EXAMPLES = {
         {
             no: 3,
             gambarSoal: "assets/cfit/subtes_3/contoh subtes 3-3.png",
-            pertanyaan: "Berdasarkan pola yang tersedia, maka jawaban yang tepat untuk melengkapi kotak garis putus-putus adalah?",
+            pertanyaan: "PILIH 1 DARI 6 PILIHAN GAMBAR YANG ADA DENGAN MELANJUTKAN POLA YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E", "F"],
-            kunci: "D",
-            penjelasan: "Kombinasi jumlah lingkaran dan arsiran bertambah sesuai aturan kolom. Bentuk yang benar adalah D."
+            kunci: "F",
+            penjelasan: "Kombinasi jumlah lingkaran dan arsiran bertambah sesuai aturan kolom. Bentuk yang benar adalah F."
         }
     ],
     subtes_4: [
         {
             no: 1,
             gambarSoal: "assets/cfit/subtes_4/contoh subtes 4-1.png",
-            pertanyaan: "Pilih satu gambar (A, B, C, D, E) yang memungkinkan sebuah titik diletakkan di dalam kondisi ruang yang sama dengan gambar soal:",
+            pertanyaan: "PILIH 1 DARI 5 PILIHAN GAMBAR DIMANA GAMBAR TERSEBUT MEMILIKI KONDISI, TEKSTUR ATAUPUN SITUASI YANG SAMA SEPERTI SOAL YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E"],
             kunci: "C",
             penjelasan: "Pada gambar patokan, titik terletak di dalam persegi dan juga di dalam lingkaran. Pilihan C adalah satu-satunya yang memungkinkan titik berada di dalam persegi sekaligus lingkaran."
@@ -131,15 +131,15 @@ const CFIT_EXAMPLES = {
         {
             no: 2,
             gambarSoal: "assets/cfit/subtes_4/contoh subtes 4-1-2.png",
-            pertanyaan: "Pilih satu gambar (A, B, C, D, E) yang memiliki kesesuaian posisi peletakan titik:",
+            pertanyaan: "PILIH 1 DARI 5 PILIHAN GAMBAR DIMANA GAMBAR TERSEBUT MEMILIKI KONDISI, TEKSTUR ATAUPUN SITUASI YANG SAMA SEPERTI SOAL YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E"],
-            kunci: "E",
-            penjelasan: "Titik harus berada di dalam segitiga tetapi di luar persegi panjang. Gambar E memenuhi kondisi tersebut."
+            kunci: "D",
+            penjelasan: "Titik harus berada di dalam segitiga tetapi di luar persegi panjang. Gambar D memenuhi kondisi tersebut."
         },
         {
             no: 3,
             gambarSoal: "assets/cfit/subtes_4/contoh subtes 4-3.png",
-            pertanyaan: "Pilih satu gambar (A, B, C, D, E) yang memungkinkan titik berada di dalam kondisi ruang yang persis sama:",
+            pertanyaan: "PILIH 1 DARI 5 PILIHAN GAMBAR DIMANA GAMBAR TERSEBUT MEMILIKI KONDISI, TEKSTUR ATAUPUN SITUASI YANG SAMA SEPERTI SOAL YANG DISEDIAKAN",
             pilihan: ["A", "B", "C", "D", "E"],
             kunci: "B",
             penjelasan: "Titik berada di bawah garis lengkung dan di dalam sudut segitiga. Pilihan B memberikan ruang yang sesuai."

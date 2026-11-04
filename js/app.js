@@ -392,7 +392,10 @@ window.addEventListener('beforeunload', (e) => {
     const testStatus = isTestActive();
     if (testStatus.active) {
         e.preventDefault();
-        const namaTes = testStatus.testType ? `Tes ${testStatus.testType}` : 'Tes Asesmen';
+        let displayType = testStatus.testType;
+        if (testStatus.testType === 'IST') displayType = 'Inteligent 1';
+        else if (testStatus.testType === 'CFIT') displayType = 'Inteligent 2';
+        const namaTes = displayType ? `Tes ${displayType}` : 'Tes Asesmen';
         e.returnValue = `${namaTes} sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!`;
         return e.returnValue;
     }
@@ -450,7 +453,26 @@ function handleIntegrityViolation(reason) {
     // Bersihkan clipboard saat terjadi indikasi screenshot (misal Win+Shift+S / Snipping Tool yang memicu blur)
     clearUserClipboard();
 
+    // Pulihkan nilai terbaru dari localStorage jika ada desinkronisasi
+    try {
+        const _storedTabViolations = localStorage.getItem('altrak_tab_violations');
+        if (_storedTabViolations !== null) {
+            const _p = parseInt(_storedTabViolations, 10);
+            if (!isNaN(_p) && _p > tabSwitchViolations) {
+                tabSwitchViolations = _p;
+            }
+        }
+    } catch (e) {}
+
     tabSwitchViolations++;
+
+    // Sinkronkan ke localStorage seketika (Anti-Refresh F5)
+    try {
+        localStorage.setItem('altrak_tab_violations', String(tabSwitchViolations));
+    } catch (e) {}
+    if (typeof window !== 'undefined') {
+        window.tabSwitchViolations = tabSwitchViolations;
+    }
 
     // Jepret foto bukti pelanggaran otomatis via webcam jika tersedia
     if (typeof window.jepretDanUpload === 'function') {
@@ -470,7 +492,10 @@ function handleIntegrityViolation(reason) {
     }
     const isPauli = testStatus.testType === 'Pauli';
     const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI'].includes(testStatus.testType);
-    const namaTes = testStatus.testType || 'IST';
+    let displayNamaTes = testStatus.testType;
+    if (testStatus.testType === 'IST') displayNamaTes = 'Inteligent 1';
+    else if (testStatus.testType === 'CFIT') displayNamaTes = 'Inteligent 2';
+    const namaTes = displayNamaTes || 'Asesmen';
 
     if (tabSwitchViolations <= 3) {
         const sisa = 3 - tabSwitchViolations;
@@ -540,6 +565,12 @@ function handleIntegrityViolation(reason) {
                         istLogic.timerContohId = null;
                     }
                     tabSwitchViolations = 0; // Reset toleransi untuk pengerjaan 20 soal
+                    try {
+                        localStorage.setItem('altrak_tab_violations', '0');
+                    } catch (e) {}
+                    if (typeof window !== 'undefined') {
+                        window.tabSwitchViolations = 0;
+                    }
                     istLogic.mulaiFaseUjian();
                 };
 
@@ -675,6 +706,20 @@ document.addEventListener('fullscreenchange', () => {
 
 // Inisialisasi awal saat aplikasi selesai dimuat
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Pulihkan nilai pelanggaran tab-switch dari localStorage (Anti-Refresh F5)
+    try {
+        const _savedTabViolations = localStorage.getItem('altrak_tab_violations');
+        if (_savedTabViolations !== null) {
+            const _parsed = parseInt(_savedTabViolations, 10);
+            if (!isNaN(_parsed) && _parsed >= 0) {
+                tabSwitchViolations = _parsed;
+                if (typeof window !== 'undefined') {
+                    window.tabSwitchViolations = _parsed;
+                }
+            }
+        }
+    } catch (e) {}
+
     if (typeof perbaruiStatusTombolTahap2 === 'function') {
         perbaruiStatusTombolTahap2();
     }
@@ -689,6 +734,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (!(savedId && savedName && ((activeFase && activeFase !== 'view-login') || isPauliSelesai))) {
         showPage('page-login');
+        // Reset toleransi jika kandidat belum login / berada di halaman login awal
+        tabSwitchViolations = 0;
+        try {
+            localStorage.setItem('altrak_tab_violations', '0');
+        } catch (e) {}
+        if (typeof window !== 'undefined') {
+            window.tabSwitchViolations = 0;
+        }
     }
 
     // Pasang listener pada tombol kumpulkan

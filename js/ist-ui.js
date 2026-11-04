@@ -448,7 +448,7 @@ const istUI = {
                                 </div>
                                 <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Lembar Hafalan Kata</h2>
                                 <p class="text-xs sm:text-sm text-blue-100/80 mt-0.5">
-                                    Hafalkan kelompok kata di bawah ini selama 3 menit tanpa mencatat.
+                                    Hafalkan kelompok kata di bawah ini selama 4 menit tanpa mencatat.
                                 </p>
                             </div>
                         </div>
@@ -484,7 +484,7 @@ const istUI = {
                             <div>
                                 <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
                                     <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-                                    PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                                    PERHATIAN - WAKTU MENGHAFAL 4 MENIT
                                 </h4>
                                 <p class="text-xs text-red-700 font-semibold mt-0.5">
                                     Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
@@ -501,7 +501,7 @@ const istUI = {
                             </div>
                             <div class="text-xs sm:text-sm text-red-950 space-y-2">
                                 <p class="font-bold leading-relaxed">
-                                    Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                                    Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 4 menit penuh.
                                 </p>
                                 <p class="font-medium text-red-900 leading-normal">
                                     Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
@@ -675,7 +675,7 @@ const istUI = {
                                 </div>
                                 <div class="text-xs sm:text-sm text-red-950 space-y-2">
                                     <p class="font-bold leading-relaxed">
-                                        Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                                        Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 4 menit penuh.
                                     </p>
                                     <p class="font-medium text-red-900 leading-normal">
                                         Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.
@@ -1050,7 +1050,7 @@ const istUI = {
                 formatIcon: (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH') ? "fa-list-ol" : "fa-brain",
                 highlightedText: (typeof istLogic !== 'undefined' && istLogic.fase === 'CONTOH')
                     ? "Pada persoalan berikutnya, terdapat sejumlah pertanyaan mengenai kata-kata yang telah saudara hafalkan tadi. Pilihlah satu kategori yang tepat sesuai kata yang telah Anda hafalkan."
-                    : "Anda akan diberikan waktu <strong>3 menit untuk menghafal</strong> kata-kata di bawah ini. Anda <strong>TIDAK DIPERKENANKAN mencatat</strong>, selama anda menghafal kata - kata, <strong>angkat tangan anda sejajar dengan kepala seperti gambar di layar ini</strong>, setelah 3 menit, halaman akan otomatis berpindah ke contoh soal."
+                    : "Anda akan diberikan waktu <strong>4 menit untuk menghafal</strong> kata-kata di bawah ini. Anda <strong>TIDAK DIPERKENANKAN mencatat</strong>, selama anda menghafal kata - kata, <strong>angkat tangan anda sejajar dengan kepala seperti gambar di layar ini</strong>, setelah 4 menit, halaman akan otomatis berpindah ke contoh soal."
             }
         };
 
@@ -1109,7 +1109,7 @@ const istUI = {
                         <div>
                             <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
                                 <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-                                PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                                PERHATIAN - WAKTU MENGHAFAL 4 MENIT
                             </h4>
                             <p class="text-xs text-red-700 font-semibold mt-0.5">
                                 Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
@@ -1126,7 +1126,7 @@ const istUI = {
                         </div>
                         <div class="text-xs sm:text-sm text-red-950 space-y-2">
                             <p class="font-bold leading-relaxed">
-                                Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 3 menit penuh.
+                                Sistem pengawasan kamera diaktifkan secara ketat pada sesi ini. Anda <span class="text-red-700 underline font-black">WAJIB mengangkat dan menaruh kedua tangan di atas</span> (sejajar kepala/telinga dengan telapak tangan terbuka menghadap kamera seperti contoh foto) agar terlihat jelas oleh pengawas selama 4 menit penuh.
                             </p>
                             <p class="font-medium text-red-900 leading-normal">
                                 Dilarang keras meletakkan tangan di bawah, mencatat kata-kata hafalan, atau memfoto layar. Sistem memantau postur Anda secara berkala. Pelanggaran akan otomatis menggugurkan hasil tes Anda.

@@ -267,7 +267,7 @@ const istLogic = {
     // =====================================================================
 
     /**
-     * Memulai fase menghafal kata-kata untuk Subtes 09 (Waktu 3 Menit)
+     * Memulai fase menghafal kata-kata untuk Subtes 09 (Waktu 4 Menit)
      */
     mulaiFaseHafalan() {
         this.fase = "HAFALAN";
@@ -282,7 +282,7 @@ const istLogic = {
         }
 
         const subtestData = this.getCurrentSubtestData();
-        this.sisaWaktuHafalanDetik = Math.round((subtestData.waktuHafalan || 180000) / 1000); // 180 detik (3 menit)
+        this.sisaWaktuHafalanDetik = Math.round((subtestData.waktuHafalan || 240000) / 1000); // 240 detik (4 menit)
 
         istUI.renderFaseHafalan(this.sisaWaktuHafalanDetik);
 
@@ -300,7 +300,7 @@ const istLogic = {
                 }
             }
 
-            // Setelah 3 menit berlalu -> Otomatis lanjut ke Fase Contoh Soal IST 09
+            // Setelah 4 menit berlalu -> Otomatis lanjut ke Fase Contoh Soal IST 09
             if (this.sisaWaktuHafalanDetik <= 0) {
                 clearInterval(this.timerContohId);
                 this.timerContohId = null;
@@ -332,7 +332,7 @@ const istLogic = {
 
             istUI.showModal({
                 title: "Waktu Menghafal Selesai",
-                message: "Waktu menghafal 3 menit telah berakhir.\n\nSistem akan mengalihkan Anda ke sesi Latihan Contoh Soal Subtes 09.",
+                message: "Waktu menghafal 4 menit telah berakhir.\n\nSistem akan mengalihkan Anda ke sesi Latihan Contoh Soal Subtes 09.",
                 type: "info",
                 iconHtml: '<i class="fa-solid fa-brain text-[#ffbe1a]"></i>',
                 okText: `<span>Lanjut ke Contoh Soal</span> <i class="fa-solid fa-arrow-right"></i>`,
@@ -359,7 +359,7 @@ const istLogic = {
                         this.timerContohId = setInterval(() => {
                             this.sisaWaktuHafalanDetik--;
                             istUI.updateWaktuHafalan(this.sisaWaktuHafalanDetik);
-                            if (this.sisaWaktuHafalanDetik === 90) {
+                            if (this.sisaWaktuHafalanDetik === 120) {
                                 const emailKandidat = localStorage.getItem('email_peserta') || (typeof state !== 'undefined' && state.user && state.user.email) || 'kandidat';
                                 if (typeof jepretDanUpload === 'function') jepretDanUpload(emailKandidat, 'IST', 'Subtes-9', 'Tengah');
                             }
@@ -401,7 +401,7 @@ const istLogic = {
         const subtestCode = String(this.currentSubtestNo).padStart(2, '0');
         const subtestName = subtestData.nama || `Soal ${subtestCode}`;
 
-        this.sisaWaktuContohDetik = Math.round((subtestData.waktuContoh || 60000) / 1000);
+        this.sisaWaktuContohDetik = Math.round((subtestData.waktuContoh || 180000) / 1000);
         
         // Render tampilan contoh soal
         istUI.renderFaseContoh(this.sisaWaktuContohDetik);
@@ -564,7 +564,7 @@ const istLogic = {
         }
 
         // b) Foto Tengah: Saat waktu subtes berjalan setengah jalan (pertengahan timer)
-        // Khusus Subtes 9: Foto tengah sudah diambil saat fase menghafal 3 menit, sehingga tidak dijepret ulang saat ujian agar total tetap 3 foto (Tengah Hafalan, Awal Ujian, Akhir Ujian).
+        // Khusus Subtes 9: Foto tengah sudah diambil saat fase menghafal 4 menit, sehingga tidak dijepret ulang saat ujian agar total tetap 3 foto (Tengah Hafalan, Awal Ujian, Akhir Ujian).
         if (this.currentSubtestNo !== 9) {
             if (this.timerFotoTengahTimeoutId) {
                 clearTimeout(this.timerFotoTengahTimeoutId);

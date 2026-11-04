@@ -29,6 +29,16 @@
         headers.push("Token Tahap 2", "Status Tahap 2", "Gaya Kepemimpinan MSDT", "Skor IQ CFIT", "Profil EPPS", "Tipe Kepribadian MBTI");
         let csvLines = [headers.join(",")];
 
+        // Cegah formula injection pada CSV (Formula injection protection standar OWASP)
+        const sanitizeForCsv = (val) => {
+            if (val === null || val === undefined) return '""';
+            let str = String(val).replace(/"/g, '""');
+            if (/^[\t\r\n=+@\-|%]/.test(str)) {
+                str = "'" + str; // Prefix tanda kutip tunggal jika diawali simbol formula / DDE
+            }
+            return `"${str}"`;
+        };
+
         dataList.forEach(row => {
             let intervals = (row["Garis Interval (3 Menit)"] || "").split(',').map(n => n.trim());
             while (intervals.length < 20) intervals.push("0");
@@ -52,16 +62,6 @@
             let pDev = rRata > 0 ? ((totDev / 16) * (100 / rRata)) : 0;
             let tTinggi = Math.max(...parsedNums);
             let tPuncak = tTinggi > 0 ? (parsedNums.indexOf(tTinggi) + 1) : "-";
-
-            // Cegah formula injection pada CSV (Formula injection protection)
-            const sanitizeForCsv = (val) => {
-                if (val === null || val === undefined) return '""';
-                let str = String(val).replace(/"/g, '""');
-                if (/^[=+@-]/.test(str)) {
-                    str = "'" + str; // Prefix tanda kutip tunggal jika diawali simbol formula
-                }
-                return `"${str}"`;
-            };
 
             // Parse data Tahap 2 jika ada
             let msdtGaya = "-";
@@ -102,7 +102,7 @@
             }
 
             let rowData = [
-                row.id,
+                sanitizeForCsv(row.id),
                 sanitizeForCsv(row["Waktu Mulai"]),
                 sanitizeForCsv(row["Waktu Selesai"]),
                 sanitizeForCsv(row["Nama Lengkap"]),

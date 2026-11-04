@@ -7,8 +7,8 @@ const istSubtes01 = {
     id: "subtes_01",
     nama: "Soal 01",
     kodeSubtes: "SE",
-    waktuContoh: 60000, // 60 detik (60.000 ms)
-    waktuUjian: 360000, // 6 menit (360.000 ms - hidden di background)
+    waktuContoh: 120000, // 2 menit (120.000 ms)
+    waktuUjian: 480000, // 8 menit (480.000 ms - hidden di background)
     petunjuk: "Soal-soal 01 - 20 terdiri atas kalimat-kalimat. Pada setiap kalimat satu kata hilang dan disediakan 5 (lima) kata pilihan sebagai penggantinya. Pilihlah kata yang tepat yang dapat menyempurnakan kalimat itu!",
     contoh: [
         { 
@@ -137,8 +137,8 @@ const istSoal02 = {
     id: "soal_02",
     nama: "Soal 02",
     kodeSubtes: "WA",
-    waktuContoh: 60000,
-    waktuUjian: 360000, 
+    waktuContoh: 120000, // 3 menit (180.000 ms)
+    waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background) 
     petunjuk: "Ditentukan 5 kata. Pada 4 dari 5 kata itu terdapat suatu kesamaan. Carilah kata yang kelima yang tidak memiliki kesamaan dengan keempat kata itu.",
     contoh: [
         { 
@@ -187,8 +187,8 @@ const istSoal03 = {
     id: "soal_03",
     nama: "Soal 03",
     kodeSubtes: "AN",
-    waktuContoh: 60000,
-    waktuUjian: 420000, 
+    waktuContoh: 120000, // 3 menit (180.000 ms)
+    waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background) 
     petunjuk: "Ditentukan 3 (tiga) kata. Antara kata pertama dan kata kedua terdapat suatu hubungan tertentu. Antara kata ketiga dan salah satu diantara lima kata pilihan harus pula terdapat hubungan yang sama itu. Carilah kata itu.",
     contoh: [
         { 
@@ -237,8 +237,8 @@ const istSoal04 = {
     id: "soal_04",
     nama: "Soal 04",
     kodeSubtes: "GE",
-    waktuContoh: 60000,
-    waktuUjian: 480000, // 8 Menit
+    waktuContoh: 120000, // 3 menit (180.000 ms)
+    waktuUjian: 480000, // 8 menit (480.000 ms - hidden di background)
     petunjuk: "Ditentukan dua kata. Carilah satu perkataan yang meliputi pengertian kedua kata tadi. Ketiklah perkataan itu pada kolom yang disediakan.",
     contoh: [
         { 
@@ -283,8 +283,8 @@ const istSoal05 = {
     id: "soal_05",
     nama: "Soal 05",
     kodeSubtes: "RA",
-    waktuContoh: 60000,
-    waktuUjian: 600000, // 10 Menit
+    waktuContoh: 120000, // 3 menit (180.000 ms)
+    waktuUjian: 1200000, // 20 menit (1.200.000 ms - hidden di background)
     petunjuk: "Persoalan berikutnya ialah soal-soal hitungan. Ketiklah angka jawaban pada kolom yang disediakan.",
     contoh: [
         { 
@@ -333,8 +333,8 @@ const istSoal06 = {
     id: "soal_06",
     nama: "Soal 06",
     kodeSubtes: "ZR",
-    waktuContoh: 60000,
-    waktuUjian: 600000, // 10 Menit
+    waktuContoh: 120000, // 3 menit (180.000 ms)
+    waktuUjian: 960000, // 16 menit (960.000 ms - hidden di background)
     petunjuk: "Pada persoalan berikut akan diberikan deret angka. Setiap deret tersusun menurut suatu aturan yang tertentu dan dapat dilanjutkan menurut aturan itu. Carilah untuk setiap deret, angka berikutnya dan ketiklah jawaban saudara pada kolom yang disediakan.",
     contoh: [
         { 
@@ -383,8 +383,8 @@ const istSoal07 = {
     id: "soal_07",
     nama: "Soal 07",
     kodeSubtes: "FA",
-    waktuContoh: 90000,
-    waktuUjian: 480000, // 8 Menit
+    waktuContoh: 210000, // 3,5 menit (210.000 ms)
+    waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background)
     petunjuk: "Setiap soal memperlihatkan suatu bentuk tertentu yang terpotong menjadi beberapa bagian. Carilah di antara bentuk-bentuk yang ditentukan (A, B, C, D, E) bentuk yang dibangun dengan cara menyusun potongan-potongan itu.",
     contoh: [
         { 
@@ -440,8 +440,8 @@ const istSoal08 = {
     id: "soal_08",
     nama: "Soal 08",
     kodeSubtes: "WU",
-    waktuContoh: 90000,
-    waktuUjian: 540000, // 9 Menit
+    waktuContoh: 210000, // 3,5 menit (210.000 ms)
+    waktuUjian: 840000, // 14 menit (840.000 ms - hidden di background)
     petunjuk: "Ditentukan 5 buah kubus A, B, C, D, E. Pada tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tiga dari tanda itu dapat dilihat. Carilah kubus yang dimaksudkan (yang diputar/digulingkan) dari pilihan yang ada.",
     contoh: [
         { 
@@ -506,10 +506,10 @@ const istSoal09 = {
     id: "soal_09",
     nama: "Soal 09",
     kodeSubtes: "ME",
-    waktuHafalan: 180000, // 3 Menit untuk menghafal (180.000 ms)
-    waktuContoh: 60000,   // 60 Detik untuk latihan contoh soal (60.000 ms)
-    waktuUjian: 360000,   // 6 Menit untuk menjawab
-    petunjuk: "Anda akan diberikan waktu 3 menit untuk menghafal kata-kata di bawah ini. Anda TIDAK DIPERKENANKAN mencatat. Setelah 3 menit, halaman akan otomatis berpindah ke contoh soal.",
+    waktuHafalan: 240000, // 4 Menit untuk menghafal (240.000 ms)
+    waktuContoh: 120000,  // 3 Menit untuk latihan contoh soal (180.000 ms)
+    waktuUjian: 420000,   // 7 Menit untuk menjawab (420.000 ms)
+    petunjuk: "Anda akan diberikan waktu 4 menit untuk menghafal kata-kata di bawah ini. Anda TIDAK DIPERKENANKAN mencatat. Setelah 4 menit, halaman akan otomatis berpindah ke contoh soal.",
     hafalanTeks: [
         "BUNGA: Soka, Larat, Flamboyan, Yasmin, Dahlia",
         "PERKAKAS: Wajan, Jarum, Kikir, Cangkul, Palu",

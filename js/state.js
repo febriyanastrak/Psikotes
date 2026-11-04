@@ -12,7 +12,21 @@ let cachedHrdData = [];
 let trialCompleted = false;
 
 // Pelacakan keamanan & anti-kecurangan
+const TAB_VIOLATIONS_STORAGE_KEY = 'altrak_tab_violations';
 let tabSwitchViolations = 0;
+try {
+    if (typeof localStorage !== 'undefined') {
+        const _savedTabViolations = localStorage.getItem(TAB_VIOLATIONS_STORAGE_KEY);
+        tabSwitchViolations = _savedTabViolations ? parseInt(_savedTabViolations, 10) : 0;
+        if (isNaN(tabSwitchViolations) || tabSwitchViolations < 0) tabSwitchViolations = 0;
+    }
+} catch (e) {
+    tabSwitchViolations = 0;
+}
+if (typeof window !== 'undefined') {
+    window.tabSwitchViolations = tabSwitchViolations;
+    window.TAB_VIOLATIONS_STORAGE_KEY = TAB_VIOLATIONS_STORAGE_KEY;
+}
 let lastPauliInputTime = 0;
 let rapidInputViolations = 0;
 

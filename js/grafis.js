@@ -449,9 +449,37 @@
                     }
                 }
 
-                // Simpan cadangan lokal secara sinkron (Zero Data Loss)
-                localStorage.setItem('cadangan_hasil_grafis', JSON.stringify(payloadGrafis));
-                localStorage.setItem('grafis_selesai', 'true');
+                // Simpan cadangan lokal secara sinkron dengan proteksi QuotaExceededError (Zero Data Loss)
+                try {
+                    localStorage.setItem('cadangan_hasil_grafis', JSON.stringify(payloadGrafis));
+                } catch (quotaErr) {
+                    console.warn('[Grafis] Kuota localStorage penuh, menyimpan cadangan versi ringkas (tanpa Base64 mentah):', quotaErr);
+                    try {
+                        const stripBase64 = (arr) => (arr || []).map(item => ({
+                            slot: item.slot,
+                            sub_index: item.sub_index,
+                            url: (item.url && !String(item.url).startsWith('data:')) ? item.url : null,
+                            nama_file: item.nama_file,
+                            ukuran: item.ukuran,
+                            tipe: item.tipe,
+                            waktu_upload: item.waktu_upload
+                        }));
+                        const payloadRingkas = {
+                            status: payloadGrafis.status,
+                            total_berkas: payloadGrafis.total_berkas,
+                            waktu_selesai: payloadGrafis.waktu_selesai,
+                            dap: stripBase64(payloadGrafis.dap),
+                            tree: stripBase64(payloadGrafis.tree),
+                            htp: stripBase64(payloadGrafis.htp)
+                        };
+                        localStorage.setItem('cadangan_hasil_grafis', JSON.stringify(payloadRingkas));
+                    } catch (eFallback) {
+                        console.warn('[Grafis] Gagal menyimpan cadangan ringkas ke localStorage:', eFallback);
+                    }
+                }
+                try {
+                    localStorage.setItem('grafis_selesai', 'true');
+                } catch (eFlag) {}
 
                 // Kirim ke database Supabase via updateHasilTes
                 if (typeof updateHasilTes === 'function') {
@@ -490,7 +518,9 @@
             } catch (err) {
                 console.warn('[Grafis] Catatan penyimpanan:', err);
                 // Tetap tandai selesai lokal agar pengerjaan peserta tidak terhambat
-                localStorage.setItem('grafis_selesai', 'true');
+                try {
+                    localStorage.setItem('grafis_selesai', 'true');
+                } catch (eFlag) {}
                 if (typeof pindahFase === 'function') pindahFase('view-dashboard');
             } finally {
                 if (btnSubmit) {

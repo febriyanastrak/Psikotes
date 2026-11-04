@@ -29,7 +29,10 @@
 
         // Timer
         timerUjianId: null,
+        timerContohId: null,
         sisaWaktuDetik: 0,
+        sisaWaktuContohDetik: 180,
+        currentContohSubtesNo: null,
         targetTimestamp: null,
 
         // Tracking Foto Pengawasan Kamera Midpoint (Tengah)
@@ -423,13 +426,67 @@
         `;
     }
 
+    function jalankanTimerContoh(subtesNo) {
+        if (cfitState.currentContohSubtesNo !== subtesNo) {
+            if (cfitState.timerContohId) {
+                clearInterval(cfitState.timerContohId);
+                cfitState.timerContohId = null;
+            }
+            cfitState.currentContohSubtesNo = subtesNo;
+            cfitState.sisaWaktuContohDetik = 180;
+        } else if (!cfitState.sisaWaktuContohDetik || cfitState.sisaWaktuContohDetik <= 0) {
+            cfitState.sisaWaktuContohDetik = 180;
+        }
+
+        if (!cfitState.timerContohId) {
+            cfitState.timerContohId = setInterval(() => {
+                if (cfitState.fase !== 'CONTOH') {
+                    clearInterval(cfitState.timerContohId);
+                    cfitState.timerContohId = null;
+                    return;
+                }
+                cfitState.sisaWaktuContohDetik--;
+                updateTimerContohDisplay();
+
+                if (cfitState.sisaWaktuContohDetik <= 0) {
+                    clearInterval(cfitState.timerContohId);
+                    cfitState.timerContohId = null;
+                    alertModal(
+                        "Waktu Mempelajari Selesai",
+                        `Waktu latihan contoh soal Subtes ${subtesNo} (3 menit) telah habis.\n\nSistem akan mengalihkan Anda ke konfirmasi mulai ujian utama.`,
+                        () => {
+                            konfirmasiMulaiUjianUtama(subtesNo);
+                        }
+                    );
+                }
+            }, 1000);
+        }
+    }
+
+    function updateTimerContohDisplay() {
+        const el = document.getElementById('cfit-contoh-timer');
+        if (!el) return;
+        const sisa = Math.max(0, cfitState.sisaWaktuContohDetik || 0);
+        const m = Math.floor(sisa / 60);
+        const s = sisa % 60;
+        el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (sisa <= 30 && el.parentElement) {
+            el.parentElement.className = "flex items-center gap-2 bg-red-950/80 border border-red-500/50 px-3.5 py-1.5 rounded-xl shadow-inner text-white animate-pulse";
+        }
+    }
+
     // =========================================================================
     // 3. FASE CONTOH & LATIHAN INTERAKTIF PER SUBTES
     // =========================================================================
     function renderContohSubtes(subtesNo, contohIdx = 0) {
         cfitState.fase = "CONTOH";
         cfitState.currentSubtesNo = subtesNo;
-        bersihkanTimer();
+        if (cfitState.timerUjianId) {
+            clearInterval(cfitState.timerUjianId);
+            cfitState.timerUjianId = null;
+        }
+        jalankanTimerContoh(subtesNo);
+
         try {
             localStorage.setItem('cfit_fase', 'CONTOH');
             localStorage.setItem('cfit_current_subtes', String(subtesNo));
@@ -499,9 +556,14 @@
             `;
         });
 
+        const sisaWaktuAwal = Math.max(0, cfitState.sisaWaktuContohDetik || 180);
+        const menitContoh = Math.floor(sisaWaktuAwal / 60);
+        const detikContoh = sisaWaktuAwal % 60;
+        const timerFormatted = `${String(menitContoh).padStart(2, '0')}:${String(detikContoh).padStart(2, '0')}`;
+
         container.innerHTML = `
             <div class="w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-[#b9d0e7] overflow-hidden animate-fade-in pb-5">
-                <!-- Header Contoh (Gaya MSDT) -->
+                <!-- Header Contoh (Gaya MSDT / IST) -->
                 <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#0a4980] px-5 sm:px-6 py-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-400/20">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-amber-400 text-[#051627] flex items-center justify-center font-black text-xs shadow">
@@ -512,9 +574,15 @@
                             <h3 class="text-base sm:text-lg font-black text-white">Contoh Soal #${contoh.no} dari ${contohList.length} Contoh</h3>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/25 text-emerald-300 border border-emerald-400/40">
-                            <i class="fa-solid fa-key text-[10px] text-amber-300"></i> Kunci Jawaban: ${kunciText}
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Timer Waktu Mempelajari (3 Menit Hitung Mundur Persis IST) -->
+                        <div class="flex items-center gap-2 bg-[#002747] border border-blue-400/30 px-3.5 py-1.5 rounded-xl shadow-inner text-white">
+                            <i class="fa-solid fa-stopwatch text-amber-400"></i>
+                            <div class="text-left">
+                                <div class="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">Waktu Mempelajari</div>
+                                <div id="cfit-contoh-timer" class="text-sm font-mono font-black text-amber-300">${timerFormatted}</div>
+                            </div>
+                        </div>
                         </span>
                         <span class="text-xs bg-white/10 px-3 py-1 rounded-full border border-white/20 text-sky-200">
                             Tidak Diberi Nilai Ujian
@@ -523,7 +591,19 @@
                 </div>
 
                 <div class="p-4 sm:p-6 space-y-4">
-                    <!-- 1. KOTAK GAMBAR BERUKURAN PROPORSIONAL & JELAS -->
+                    <!-- 1. TEKS PERTANYAAN CONTOH PROPORSIONAL & TEGAS (DI ATAS GAMBAR PERSIS IST) -->
+                    <div class="p-3 sm:p-3.5 rounded-xl bg-blue-50/70 border border-[#b9d0e7] shadow-2xs">
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#003865] text-amber-400 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                <i class="fa-solid fa-circle-question text-xs"></i>
+                            </div>
+                            <p class="text-xs sm:text-sm md:text-base font-extrabold text-slate-900 leading-snug">
+                                ${contoh.pertanyaan}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 2. KOTAK GAMBAR BERUKURAN PROPORSIONAL & JELAS -->
                     <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-2xs">
                         <div class="text-xs font-black uppercase tracking-wider text-[#003865] flex items-center justify-between gap-2 mb-2">
                             <div class="flex items-center gap-2">
@@ -537,35 +617,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. TEKS PERTANYAAN CONTOH PROPORSIONAL & TEGAS -->
-                    <div class="p-3 sm:p-3.5 rounded-xl bg-blue-50/70 border border-[#b9d0e7] shadow-2xs">
-                        <div class="flex items-start gap-2.5">
-                            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#003865] text-amber-400 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                                <i class="fa-solid fa-circle-question text-xs"></i>
-                            </div>
-                            <p class="text-xs sm:text-sm md:text-base font-extrabold text-slate-900 leading-snug">
-                                ${contoh.pertanyaan}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- 3. KOTAK CARA MENGERJAKAN (BERAKSEN EMAS PERSIS SCREENSHOT IST) -->
-                    <div class="rounded-r-2xl p-4 sm:p-5 my-3 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
-                        <div class="font-black text-slate-900 mb-1.5 flex items-center justify-between flex-wrap gap-2 text-sm sm:text-base">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
-                                <span>Cara Mengerjakan:</span>
-                            </div>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                <i class="fa-solid fa-key text-[10px]"></i> Kunci Jawaban: ${kunciText}
-                            </span>
-                        </div>
-                        <p class="text-slate-800 leading-relaxed font-medium pl-6 text-xs sm:text-sm">
-                            ${contoh.penjelasan}
-                        </p>
-                    </div>
-
-                    <!-- 4. PILIHAN JAWABAN (KARTU GRID PERSIS IST) -->
+                    <!-- 3. PILIHAN JAWABAN (KARTU GRID PERSIS IST) -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between flex-wrap gap-2">
                             <label class="block text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
@@ -581,17 +633,24 @@
                         </div>
                     </div>
 
-                    <!-- Status Keterangan Jawaban Persis IST -->
-                    <div class="rounded-xl p-3 border text-xs sm:text-sm flex items-start gap-2.5 ${isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
+                    <!-- 4. KOTAK KETERANGAN JAWABAN PERSIS IST -->
+                    <div class="rounded-xl p-3 border text-xs sm:text-sm flex items-start gap-2.5 mt-3 ${isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
                         <i class="fa-solid ${isCorrect ? 'fa-circle-check text-emerald-600' : 'fa-circle-exclamation text-amber-600'} text-base shrink-0 mt-0.5"></i>
                         <div>
                             ${isCorrect 
-                                ? `<span class="font-extrabold">Hebat! Jawaban Anda Tepat.</span> Pilihan Anda sudah sesuai dengan pola penjelasan di atas.` 
+                                ? `<span class="font-extrabold">Hebat! Jawaban Anda Tepat.</span> Pilihan Anda sudah sesuai dengan pola penjelasan di bawah.` 
                                 : `<span class="font-extrabold">Pilihan belum tepat.</span> Jawaban yang benar untuk contoh ini adalah <strong>[${kunciText}]</strong>.`}
                         </div>
                     </div>
 
-                    <!-- 5. TOMBOL AKSI CONTOH (LANGSUNG LANJUT KE CONTOH BERIKUTNYA / MULAI UJIAN UTAMA) -->
+                    <!-- 5. KOTAK PENJELASAN (BERAKSEN EMAS PERSIS SCREENSHOT IST) -->
+                    <div class="rounded-r-2xl p-4 sm:p-5 my-3 shadow-xs" style="background-color: #FFF8E1; border-left: 5px solid #d97706;">
+                        <p class="text-slate-800 leading-relaxed font-medium text-xs sm:text-sm">
+                            ${contoh.penjelasan}
+                        </p>
+                    </div>
+
+                    <!-- 6. TOMBOL AKSI CONTOH (LANGSUNG LANJUT KE CONTOH BERIKUTNYA / MULAI UJIAN UTAMA) -->
                     <div class="pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-slate-100">
                         <button type="button" onclick="window.cfitEngine.renderPanduanSubtes(${subtesNo})" class="px-5 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Panduan
@@ -603,11 +662,10 @@
                 </div>
             </div>
         `;
+
+        updateTimerContohDisplay();
     }
 
-    /**
-     * Memilih jawaban latihan contoh
-     */
     function pilihJawabanContoh(subtesNo, contohNo, opt, contohIdx) {
         const key = `${subtesNo}_${contohNo}`;
         if (subtesNo === 2) {
@@ -640,6 +698,7 @@
     }
 
     function konfirmasiMulaiUjianUtama(subtesNo) {
+        bersihkanTimer();
         cfitState.fase = "CONTOH";
         cfitState.currentSubtesNo = subtesNo;
         try {
@@ -1411,6 +1470,10 @@
         if (cfitState.timerUjianId) {
             clearInterval(cfitState.timerUjianId);
             cfitState.timerUjianId = null;
+        }
+        if (cfitState.timerContohId) {
+            clearInterval(cfitState.timerContohId);
+            cfitState.timerContohId = null;
         }
     }
 

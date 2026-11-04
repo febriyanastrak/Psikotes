@@ -284,12 +284,17 @@
 
                         <!-- Checkbox Persetujuan & Pakta Integritas (Wajib) -->
                         <div class="pt-2">
-                            <div id="checkboxConsentContainer" class="flex items-start gap-2.5 p-3 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] transition">
-                                <input type="checkbox" id="checkboxConsent" required
-                                    class="mt-1 h-4 w-4 rounded border-[#b9d0e7] text-[#003865] focus:ring-[#003865] cursor-pointer accent-[#003865]">
-                                <label for="checkboxConsent" class="text-xs text-slate-700 leading-relaxed cursor-pointer select-none">
-                                    Saya menyatakan data yang dimasukkan adalah benar, menyetujui <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); openConsentModal();" class="text-[#003865] underline font-bold hover:text-blue-700 cursor-pointer">Pakta Integritas</a>, serta mengizinkan pengambilan foto wajah via webcam untuk verifikasi dan pengawasan tes.
-                                </label>
+                            <div id="checkboxConsentContainer" class="p-3.5 rounded-xl bg-[#edf3f9] border border-[#b9d0e7] transition space-y-2.5">
+                                <div class="text-xs text-slate-800 font-semibold leading-relaxed">
+                                    Silakan membaca dan menyetujui <a href="javascript:void(0)" onclick="event.preventDefault(); event.stopPropagation(); openConsentModal();" class="text-red-600 font-extrabold underline hover:text-red-700 cursor-pointer">Pakta Integritas</a> berikut:
+                                </div>
+                                <div class="flex items-start gap-2.5 pt-2 border-t border-[#b9d0e7]/60">
+                                    <input type="checkbox" id="checkboxConsent" required
+                                        class="mt-1 h-4 w-4 rounded border-[#b9d0e7] text-[#003865] focus:ring-[#003865] cursor-pointer accent-[#003865]">
+                                    <label for="checkboxConsent" class="text-xs text-slate-700 leading-relaxed cursor-pointer select-none">
+                                        Saya menyatakan bahwa seluruh identitas yang saya cantumkan telah diisi dengan benar dan sesuai dengan kondisi sebenarnya. Saya juga menyatakan telah membaca, memahami, dan menyetujui seluruh isi Pakta Integritas serta bersedia mematuhi dan melaksanakan setiap ketentuan yang tercantum di dalamnya dengan penuh kesadaran dan tanggung jawab.
+                                    </label>
+                                </div>
                             </div>
                             <p id="errorConsent" class="hide-section text-red-500 text-xs font-semibold mt-1 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-exclamation text-[11px]"></i> <span></span>
@@ -1507,11 +1512,26 @@
                             Sistem psikotes dilengkapi mekanisme pemantauan otomatis (deteksi perpindahan jendela/tab, waktu jeda respon, dan validasi ritme pengerjaan). Pelanggaran terhadap tata tertib ujian akan dicatat sebagai catatan evaluasi integritas bagi tim seleksi.
                         </p>
                     </div>
+                               <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-[#003865] mb-1 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-[#003865] text-white text-[10px] flex items-center justify-center font-black">5</span> 
+                            Ketersediaan Pengawasan Kamera &amp; Dokumentasi Foto
+                        </h4>
+                        <p class="text-slate-600 text-xs pl-7">
+                            Peserta bersedia dan memberikan izin penuh kepada sistem untuk mengakses kamera web (webcam) dan mengambil foto wajah secara berkala selama sesi asesmen berlangsung. Dokumentasi foto ini bersifat wajib dan digunakan sebagai bukti otentikasi identitas kehadiran serta penegakan integritas seleksi oleh tim rekrutmen PT Altrak 1978.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
-                <button onclick="document.getElementById('checkboxConsent').checked = true; closeModal('modal-consent');"
+            <div class="p-5 sm:p-6 bg-slate-50 border-t border-slate-200 flex flex-col gap-3">
+                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-slate-200 shadow-xs">
+                    <input type="checkbox" id="checkboxConsentModal" class="mt-1 h-4 w-4 rounded border-slate-300 text-[#003865] cursor-pointer accent-[#003865]">
+                    <label for="checkboxConsentModal" class="text-xs text-slate-800 font-semibold cursor-pointer select-none leading-relaxed">
+                        Saya menyatakan telah membaca, memahami, dan menyetujui seluruh isi Pakta Integritas di atas.
+                    </label>
+                </div>
+                <button type="button" onclick="handleConfirmModalConsent()"
                     class="w-full bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-check"></i>
                     <span>Saya Mengerti &amp; Menyetujui Persetujuan Ini</span>

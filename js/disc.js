@@ -603,11 +603,14 @@
 
             // 2. Standardisasi Kontrak Data: Pastikan jawaban mentah (1..24 P & K) dan hasil perhitungan tersimpan utuh
             try {
+                const violations = (typeof tabSwitchViolations !== 'undefined') ? tabSwitchViolations : 0;
                 let finalDiscPayload = {
                     status: 'selesai',
                     modul: 'DISC Assessment',
                     jawaban: payload,
                     answers: payload,
+                    pelanggaran_tab_switch: violations,
+                    catatan_integritas: violations > 0 ? ('Pernah ' + violations + 'x ganti tab') : 'Bersih (0 Pelanggaran)',
                     waktu_selesai: new Date().toISOString()
                 };
 

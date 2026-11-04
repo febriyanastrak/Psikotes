@@ -290,8 +290,8 @@ async function loadHrdData() {
                             }
                         } catch (e) {}
                     }
-                    // Deteksi pelanggaran dari modul Asesmen Tahap 2 (MSDT, EPPS, CFIT, MBTI)
-                    ['hasil_msdt', 'hasil_epps', 'hasil_cfit', 'hasil_mbti', 'hasil_mcmi'].forEach(modKey => {
+                    // Deteksi pelanggaran dari modul DISC dan Asesmen Tahap 2 (MSDT, EPPS, CFIT, MBTI)
+                    ['hasil_disc', 'hasil_msdt', 'hasil_epps', 'hasil_cfit', 'hasil_mbti', 'hasil_mcmi'].forEach(modKey => {
                         if (row[modKey]) {
                             try {
                                 const m = typeof row[modKey] === 'string' ? JSON.parse(row[modKey]) : row[modKey];
@@ -388,6 +388,18 @@ async function loadHrdData() {
             }
             if (!target.hasil_ist && source.hasil_ist) target.hasil_ist = source.hasil_ist;
             if (!target.hasil_pauli && source.hasil_pauli) target.hasil_pauli = source.hasil_pauli;
+            if (!target.hasil_grafis && source.hasil_grafis) target.hasil_grafis = source.hasil_grafis;
+            if (!target.hasil_papi && source.hasil_papi) target.hasil_papi = source.hasil_papi;
+            if (!target.hasil_disc && source.hasil_disc) target.hasil_disc = source.hasil_disc;
+            if (!target.hasil_epps && source.hasil_epps) target.hasil_epps = source.hasil_epps;
+            if (!target.hasil_msdt && source.hasil_msdt) target.hasil_msdt = source.hasil_msdt;
+            if (!target.hasil_cfit && source.hasil_cfit) target.hasil_cfit = source.hasil_cfit;
+            if (!target.hasil_mbti && source.hasil_mbti) target.hasil_mbti = source.hasil_mbti;
+            if (!target.hasil_mcmi && source.hasil_mcmi) target.hasil_mcmi = source.hasil_mcmi;
+            if (!target.jawaban_ist && source.jawaban_ist) target.jawaban_ist = source.jawaban_ist;
+            if (!target.jawaban_disc && source.jawaban_disc) target.jawaban_disc = source.jawaban_disc;
+            if (!target.token_tahap_2 && source.token_tahap_2) target.token_tahap_2 = source.token_tahap_2;
+            if (!target.status_tahap_2 && source.status_tahap_2) target.status_tahap_2 = source.status_tahap_2;
 
             const pauliTotal = Number(source["Total Pauli"] || 0);
             if ((!target["Total Pauli"] || Number(target["Total Pauli"]) === 0) && pauliTotal > 0) {

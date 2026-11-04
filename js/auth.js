@@ -601,6 +601,27 @@ if (typeof window !== 'undefined') {
         });
         const consent = document.getElementById('checkboxConsent');
         if (consent) {
+            consent.addEventListener('click', (e) => {
+                if (!window._hasApprovedModalConsent) {
+                    e.preventDefault();
+                    consent.checked = false;
+                    if (typeof customAlert === 'function') {
+                        customAlert(
+                            "Wajib Baca Pakta Integritas",
+                            "Anda wajib membaca dan menyetujui dokumen Pakta Integritas terlebih dahulu sebelum mencentang pernyataan ini.",
+                            "warning",
+                            false,
+                            () => {
+                                if (typeof openConsentModal === 'function') openConsentModal();
+                            }
+                        );
+                    } else {
+                        if (typeof openConsentModal === 'function') openConsentModal();
+                    }
+                    return false;
+                }
+            });
+
             consent.addEventListener('change', () => {
                 const errEl = document.getElementById('errorConsent');
                 if (errEl) errEl.classList.add('hide-section');
@@ -609,6 +630,41 @@ if (typeof window !== 'undefined') {
             });
         }
     });
+}
+
+/**
+ * Validasi dan konfirmasi persetujuan di dalam modal Pakta Integritas
+ */
+function handleConfirmModalConsent() {
+    const modalCheck = document.getElementById('checkboxConsentModal');
+    if (!modalCheck || !modalCheck.checked) {
+        if (typeof customAlert === 'function') {
+            customAlert(
+                "Persetujuan Diperlukan",
+                "Harap centang kotak persetujuan 'Saya menyatakan telah membaca, memahami, dan menyetujui seluruh isi Pakta Integritas di atas' terlebih dahulu.",
+                "warning"
+            );
+        } else {
+            alert("Harap centang kotak persetujuan di dalam modal terlebih dahulu.");
+        }
+        return;
+    }
+
+    window._hasApprovedModalConsent = true;
+    if (typeof closeModal === 'function') {
+        closeModal('modal-consent');
+    }
+
+    const container = document.getElementById('checkboxConsentContainer');
+    if (container) {
+        container.classList.remove('border-red-500', 'bg-red-50/40');
+        container.classList.add('border-emerald-400', 'bg-emerald-50/30');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.handleConfirmModalConsent = handleConfirmModalConsent;
+    window._hasApprovedModalConsent = false;
 }
 
 // --- AKSES PORTAL HRD ---
