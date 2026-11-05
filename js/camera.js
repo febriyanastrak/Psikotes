@@ -64,6 +64,22 @@ async function aktifkanKamera() {
 
         cameraStream = stream;
 
+        // Hardening Proctoring: Pantau jika peserta sengaja mematikan kamera di tengah ujian
+        const videoTracks = cameraStream.getVideoTracks();
+        if (videoTracks && videoTracks.length > 0) {
+            videoTracks.forEach(track => {
+                track.onended = () => {
+                    console.warn("[Kamera] Video track terputus / izin kamera dimatikan di tengah ujian!");
+                    tampilkanModalKamera(
+                        "<b>PERINGATAN PENGAWASAN UJIAN:</b><br><br>" +
+                        "Akses webcam Anda terputus atau dinonaktifkan di tengah ujian.<br>" +
+                        "Demi integritas dan validitas asesmen PT Altrak 1978, webcam WAJIB aktif selama ujian berlangsung.<br><br>" +
+                        "Silakan aktifkan kembali izin kamera pada browser Anda dan klik tombol di bawah untuk melanjutkan."
+                    );
+                };
+            });
+        }
+
         // Hubungkan stream ke elemen video latar
         if (videoEl) {
             videoEl.srcObject = cameraStream;

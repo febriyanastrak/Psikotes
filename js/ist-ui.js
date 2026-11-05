@@ -413,7 +413,7 @@ const istUI = {
 
     
     // =====================================================================
-    // 2A. FASE MENGHAFAL KATA (KHUSUS SUBTES 09 - WAKTU 3 MENIT)
+    // 2A. FASE MENGHAFAL KATA (KHUSUS SUBTES 09 - WAKTU 4 MENIT)
     // =====================================================================
 
     /**
@@ -453,7 +453,7 @@ const istUI = {
                             </div>
                         </div>
 
-                        <!-- Waktu Berjalan Fase Menghafal (3 Menit) -->
+                        <!-- Waktu Berjalan Fase Menghafal (4 Menit) -->
                         <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 text-center shrink-0 self-start sm:self-auto">
                             <div class="w-8 h-8 rounded-full bg-[#f5b300] text-[#051627] flex items-center justify-center font-black text-sm">
                                 <i class="fa-solid fa-brain"></i>
@@ -468,7 +468,7 @@ const istUI = {
                     </div>
                 </div>
 
-                <!-- Progress Bar Timer 3 Menit -->
+                <!-- Progress Bar Timer 4 Menit -->
                 <div class="w-full bg-slate-100 h-1.5 overflow-hidden">
                     <div id="hafalan-progress-bar" class="h-full bg-gradient-to-r from-[#f5b300] to-[#ffbe1a] transition-all duration-1000 ease-linear" style="width: 100%;"></div>
                 </div>
@@ -564,7 +564,7 @@ const istUI = {
     },
 
     /**
-     * Memperbarui angka hitung mundur waktu menghafal 3 menit
+     * Memperbarui angka hitung mundur waktu menghafal 4 menit
      */
     updateWaktuHafalan(sisaDetik) {
         const timerDisplay = document.getElementById('hafalan-timer-display');
@@ -658,7 +658,7 @@ const istUI = {
                                 <div>
                                     <h4 class="text-sm sm:text-base font-black text-red-800 uppercase tracking-wide flex items-center gap-2">
                                         <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
-                                        PERHATIAN - WAKTU MENGHAFAL 3 MENIT
+                                        PERHATIAN - WAKTU MENGHAFAL 4 MENIT
                                     </h4>
                                     <p class="text-xs text-red-700 font-semibold mt-0.5">
                                         Pengawasan webcam aktif • Posisi tangan wajib terlihat jelas
@@ -930,7 +930,7 @@ const istUI = {
                         <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">${isHafalan ? 'Petunjuk & Layar Hafalan Kata' : 'Petunjuk & Latihan Contoh Soal'}</h2>
                     </div>
 
-                    <!-- Waktu Berjalan Fase Percobaan (30 Detik / 3 Menit) -->
+                    <!-- Waktu Berjalan Fase Percobaan (30 Detik / 4 Menit) -->
                     <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 shrink-0 self-start sm:self-auto">
                         <div class="w-8 h-8 rounded-full bg-[#f5b300] text-[#051627] flex items-center justify-center font-black text-sm">
                             <i class="fa-solid ${isHafalan ? 'fa-brain' : 'fa-hourglass-half'}"></i>

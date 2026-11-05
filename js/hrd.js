@@ -291,7 +291,7 @@ async function loadHrdData() {
                         } catch (e) {}
                     }
                     // Deteksi pelanggaran dari modul DISC dan Asesmen Tahap 2 (MSDT, EPPS, CFIT, MBTI)
-                    ['hasil_disc', 'hasil_msdt', 'hasil_epps', 'hasil_cfit', 'hasil_mbti', 'hasil_mcmi'].forEach(modKey => {
+                    ['hasil_disc', 'hasil_msdt', 'hasil_epps', 'hasil_cfit', 'hasil_mbti', 'hasil_mcmi', 'hasil_apm'].forEach(modKey => {
                         if (row[modKey]) {
                             try {
                                 const m = typeof row[modKey] === 'string' ? JSON.parse(row[modKey]) : row[modKey];
@@ -396,6 +396,7 @@ async function loadHrdData() {
             if (!target.hasil_cfit && source.hasil_cfit) target.hasil_cfit = source.hasil_cfit;
             if (!target.hasil_mbti && source.hasil_mbti) target.hasil_mbti = source.hasil_mbti;
             if (!target.hasil_mcmi && source.hasil_mcmi) target.hasil_mcmi = source.hasil_mcmi;
+            if (!target.hasil_apm && source.hasil_apm) target.hasil_apm = source.hasil_apm;
             if (!target.jawaban_ist && source.jawaban_ist) target.jawaban_ist = source.jawaban_ist;
             if (!target.jawaban_disc && source.jawaban_disc) target.jawaban_disc = source.jawaban_disc;
             if (!target.token_tahap_2 && source.token_tahap_2) target.token_tahap_2 = source.token_tahap_2;
@@ -471,12 +472,12 @@ function viewCandidateChart(index) {
 
     // Cek apakah kandidat mengikuti asesmen manajerial tahap 2
     const hasDataTahap2 = !!(
-        row.hasil_msdt || row.hasil_cfit || row.hasil_mbti || row.hasil_mcmi ||
+        row.hasil_msdt || row.hasil_cfit || row.hasil_mbti || row.hasil_mcmi || row.hasil_apm ||
         row.token_tahap_2 || row.status_tahap_2
     );
 
     // Atur visibilitas tombol tab Tahap 2 secara dinamis
-    ['tabBtnMsdt', 'tabBtnCfit', 'tabBtnMbti'].forEach(btnId => {
+    ['tabBtnMsdt', 'tabBtnCfit', 'tabBtnMbti', 'tabBtnApm'].forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
             btn.style.display = hasDataTahap2 ? 'inline-flex' : 'none';
@@ -497,6 +498,7 @@ function viewCandidateChart(index) {
         renderMsdtResults(row.hasil_msdt);
         renderCfitResults(row.hasil_cfit);
         renderMbtiResults(row.hasil_mbti || row.hasil_mcmi);
+        renderApmResults(row.hasil_apm);
     }
     switchHrdTab('ist');
 
@@ -1141,11 +1143,11 @@ let currentSelectedCandidate = null;
  */
 function switchHrdTab(tabId) {
     if (tabId === 'mcmi') tabId = 'mbti';
-    const tabs = ['grafis', 'pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'foto'];
+    const tabs = ['grafis', 'pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'apm', 'foto'];
     const hasDataTahap2 = currentSelectedCandidate && !!(
         currentSelectedCandidate.hasil_msdt ||
         currentSelectedCandidate.hasil_cfit || currentSelectedCandidate.hasil_mbti ||
-        currentSelectedCandidate.hasil_mcmi ||
+        currentSelectedCandidate.hasil_mcmi || currentSelectedCandidate.hasil_apm ||
         currentSelectedCandidate.token_tahap_2 || currentSelectedCandidate.status_tahap_2
     );
 
@@ -1157,7 +1159,7 @@ function switchHrdTab(tabId) {
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         const panel = document.getElementById('panelTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        const isTahap2Tab = ['msdt', 'cfit', 'mbti'].includes(t);
+        const isTahap2Tab = ['msdt', 'cfit', 'mbti', 'apm'].includes(t);
 
         if (btn) {
             if (isTahap2Tab && !hasDataTahap2) {
@@ -1224,6 +1226,10 @@ function switchHrdTab(tabId) {
 
     if (tabId === 'mbti' && currentSelectedCandidate) {
         renderMbtiResults(currentSelectedCandidate.hasil_mbti || currentSelectedCandidate.hasil_mcmi);
+    }
+
+    if (tabId === 'apm' && currentSelectedCandidate) {
+        renderApmResults(currentSelectedCandidate.hasil_apm);
     }
 }
 
@@ -2324,10 +2330,40 @@ function renderCfitResults(rawData) {
 
     const a = parsed.analisis || parsed;
     const totalBenar = a.total_benar !== undefined ? a.total_benar : (a.raw_score !== undefined ? a.raw_score : "-");
-    const skorIq = a.skor_iq !== undefined ? a.skor_iq : (a.iq_score !== undefined ? a.iq_score : "-");
+
+    // Tabel Norma Resmi CFIT Skala 3A (Dewasa 16+) Sesuai Software Skorings Excel PT Altrak 1978
+    const CFIT_OFFICIAL_NORMS = {
+        0: 38, 1: 40, 2: 43, 3: 45, 4: 47, 5: 48, 6: 52, 7: 55, 8: 57, 9: 60,
+        10: 63, 11: 67, 12: 70, 13: 72, 14: 75, 15: 78, 16: 81, 17: 85, 18: 88, 19: 91,
+        20: 94, 21: 96, 22: 100, 23: 103, 24: 106, 25: 109, 26: 113, 27: 116, 28: 119, 29: 121,
+        30: 124, 31: 128, 32: 131, 33: 133, 34: 137, 35: 140, 36: 142, 37: 145, 38: 149, 39: 152,
+        40: 155, 41: 157, 42: 161, 43: 165, 44: 167, 45: 169, 46: 173, 47: 176, 48: 179, 49: 183, 50: 183
+    };
+
+    function getCfitClassification(iqNum) {
+        const val = Number(iqNum) || 0;
+        if (val >= 130) return "Very Superior";
+        if (val >= 120) return "Superior";
+        if (val >= 110) return "High Average";
+        if (val >= 90) return "Average";
+        if (val >= 80) return "Low Average";
+        if (val >= 70) return "Borderline";
+        return "Mentally Defective";
+    }
+
+    let skorIq = a.skor_iq !== undefined ? a.skor_iq : (a.iq_score !== undefined ? a.iq_score : "-");
     let katIq = a.kategori_iq || a.kategori || "Average";
-    if (katIq === "Mentally Retardation") katIq = "Sangat Kurang (Very Low)";
-    if (katIq === "Borderline Defective") katIq = "Kurang (Borderline)";
+
+    // Sinkronisasi otomatis ke Norma Resmi jika total skor mentah tersedia
+    if (totalBenar !== "-" && !isNaN(Number(totalBenar))) {
+        const nb = Number(totalBenar);
+        if (CFIT_OFFICIAL_NORMS[nb] !== undefined) {
+            skorIq = CFIT_OFFICIAL_NORMS[nb];
+            katIq = getCfitClassification(skorIq);
+        }
+    } else if (skorIq !== "-" && !isNaN(Number(skorIq))) {
+        katIq = getCfitClassification(Number(skorIq));
+    }
 
     if (rawEl) rawEl.innerText = `${totalBenar} / 50`;
     if (iqEl) iqEl.innerText = skorIq;
@@ -2428,23 +2464,10 @@ function renderCfitResults(rawData) {
                 if (s3El) s3El.innerText = `${s3Count} / 13`;
                 if (s4El) s4El.innerText = `${s4Count} / 10`;
 
-                const CFIT_IQ_MAP = {
-                    0: 62, 1: 64, 2: 66, 3: 68, 4: 70, 5: 72, 6: 74, 7: 76, 8: 78, 9: 80,
-                    10: 82, 11: 84, 12: 86, 13: 88, 14: 90, 15: 92, 16: 94, 17: 96, 18: 98, 19: 100,
-                    20: 102, 21: 104, 22: 106, 23: 108, 24: 110, 25: 112, 26: 114, 27: 116, 28: 118, 29: 120,
-                    30: 122, 31: 124, 32: 126, 33: 128, 34: 130, 35: 132, 36: 134, 37: 136, 38: 138, 39: 140,
-                    40: 142, 41: 144, 42: 146, 43: 148, 44: 150, 45: 152, 46: 154, 47: 156, 48: 158, 49: 160, 50: 162
-                };
-                const calcIq = CFIT_IQ_MAP[calculatedTotal] || 62;
+                const calcIq = CFIT_OFFICIAL_NORMS[calculatedTotal] !== undefined ? CFIT_OFFICIAL_NORMS[calculatedTotal] : 38;
                 if (iqEl) iqEl.innerText = calcIq;
                 if (katEl) {
-                    let cat = "Average";
-                    if (calcIq >= 130) cat = "Very Superior";
-                    else if (calcIq >= 120) cat = "Superior";
-                    else if (calcIq >= 110) cat = "High Average";
-                    else if (calcIq >= 90) cat = "Average";
-                    else if (calcIq >= 80) cat = "Low Average";
-                    else cat = "Kurang (Borderline)";
+                    const cat = getCfitClassification(calcIq);
                     katEl.innerText = cat;
                     if (calcIq >= 120) katEl.className = "text-lg font-black text-emerald-600 mt-2";
                     else if (calcIq >= 90) katEl.className = "text-lg font-black text-blue-600 mt-2";
@@ -2514,6 +2537,159 @@ function renderCfitResults(rawData) {
         });
 
         sheetContainer.innerHTML = sheetsHtml;
+    }
+}
+
+/**
+ * Merender Hasil Tes Intelegent 3 (Raven Advanced Progressive Matrices) di Modal HRD
+ */
+function renderApmResults(rawData) {
+    const emptyNotice = document.getElementById('apmEmptyNotice');
+    const rawEl = document.getElementById('apmRptRaw');
+    const gradeEl = document.getElementById('apmRptGrade');
+    const persentilEl = document.getElementById('apmRptPersentil');
+    const katEl = document.getElementById('apmRptKategori');
+    const s1El = document.getElementById('apmSub1');
+    const s2El = document.getElementById('apmSub2');
+    const tabEl = document.getElementById('apmRptPelanggaranBadge');
+    const sheetContainer = document.getElementById('apmCorrectionSheetsContainer');
+
+    if (!rawData) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (rawEl) rawEl.innerText = "-";
+        if (gradeEl) gradeEl.innerText = "-";
+        if (persentilEl) persentilEl.innerText = "-";
+        if (katEl) katEl.innerText = "-";
+        if (s1El) s1El.innerText = "-";
+        if (s2El) s2El.innerText = "-";
+        if (sheetContainer) sheetContainer.innerHTML = "";
+        return;
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+
+    let parsed = rawData;
+    if (typeof rawData === 'string') {
+        try { parsed = JSON.parse(rawData); } catch (e) {}
+    }
+
+    // Auto-Evaluator Fallback jika data di Supabase baru berupa jawaban mentah
+    if (parsed && typeof parsed === 'object' && parsed.total_skor_mentah === undefined && (parsed.answers || parsed.jawaban || parsed.raw_answers)) {
+        const ansSource = parsed.answers || parsed.jawaban || parsed.raw_answers || {};
+        const s1Ans = ansSource.subtes_1 || ansSource.subtes1 || {};
+        const s2Ans = ansSource.subtes_2 || ansSource.subtes2 || {};
+
+        const k1 = {"1":"8","2":"4","3":"5","4":"1","5":"2","6":"6","7":"3","8":"7","9":"8","10":"7","11":"6","12":"4"};
+        const k2 = {"1":"5","2":"1","3":"7","4":"4","5":"3","6":"1","7":"6","8":"1","9":"8","10":"4","11":"5","12":"6","13":"2","14":"1","15":"2","16":"4","17":"6","18":"7","19":"3","20":"8","21":"8","22":"7","23":"6","24":"3","25":"7","26":"2","27":"7","28":"5","29":"6","30":"5","31":"4","32":"8","33":"5","34":"1","35":"3","36":"2"};
+
+        let c1 = 0, c2 = 0;
+        const rincian1 = [], rincian2 = [];
+
+        for (let i = 1; i <= 12; i++) {
+            const jwb = String(s1Ans[i] || s1Ans[String(i)] || '').trim();
+            const kunci = k1[String(i)];
+            const isBenar = jwb !== '' && jwb === kunci;
+            if (isBenar) c1++;
+            rincian1.push({ no: i, jawaban: jwb, kunci: kunci, benar: isBenar });
+        }
+
+        for (let i = 1; i <= 36; i++) {
+            const jwb = String(s2Ans[i] || s2Ans[String(i)] || '').trim();
+            const kunci = k2[String(i)];
+            const isBenar = jwb !== '' && jwb === kunci;
+            if (isBenar) c2++;
+            rincian2.push({ no: i, jawaban: jwb, kunci: kunci, benar: isBenar });
+        }
+
+        let gr = 'Grade V', per = '< 10%', kat = 'Intelektual Rendah (Intellectually Defective)';
+        if (c2 >= 32) {
+            gr = 'Grade I'; per = '> 95%'; kat = 'Intelektual Superior (Taraf Sangat Tinggi)';
+        } else if (c2 >= 28) {
+            gr = 'Grade II+'; per = '90% - 94%'; kat = 'Intelektual di Atas Rata-rata Tinggi (Above Average)';
+        } else if (c2 >= 24) {
+            gr = 'Grade II'; per = '75% - 89%'; kat = 'Intelektual di Atas Rata-rata (Above Average)';
+        } else if (c2 >= 19) {
+            gr = 'Grade III+'; per = '50% - 74%'; kat = 'Intelektual Rata-rata Tinggi (High Average)';
+        } else if (c2 >= 15) {
+            gr = 'Grade III'; per = '50%'; kat = 'Intelektual Rata-rata / Cukup (Average)';
+        } else if (c2 >= 10) {
+            gr = 'Grade IV'; per = '25% - 49%'; kat = 'Intelektual Di Bawah Rata-rata (Below Average)';
+        }
+
+        parsed.skor_mentah_subtes1 = c1;
+        parsed.skor_mentah_subtes2 = c2;
+        parsed.total_skor_mentah = c1 + c2;
+        parsed.grade = gr;
+        parsed.persentil = per;
+        parsed.kategori_intelektual = kat;
+        parsed.rincian_subtes1 = rincian1;
+        parsed.rincian_subtes2 = rincian2;
+    }
+
+    const s1 = parsed.skor_mentah_subtes1 !== undefined ? parsed.skor_mentah_subtes1 : "-";
+    const s2 = parsed.skor_mentah_subtes2 !== undefined ? parsed.skor_mentah_subtes2 : "-";
+    const totalRaw = parsed.total_skor_mentah !== undefined ? parsed.total_skor_mentah : (Number(s1) + Number(s2));
+    const grade = parsed.grade || "-";
+    const persentil = parsed.persentil || "-";
+    const kategori = parsed.kategori_intelektual || "-";
+    const tabSwitch = parsed.pelanggaran_tab_switch || 0;
+
+    if (rawEl) rawEl.innerText = `${totalRaw} / 48`;
+    if (gradeEl) gradeEl.innerText = String(grade).startsWith('Grade') ? grade : `Grade ${grade}`;
+    if (persentilEl) persentilEl.innerText = persentil;
+    if (katEl) katEl.innerText = kategori;
+    if (s1El) s1El.innerText = `${s1} / 12`;
+    if (s2El) s2El.innerText = `${s2} / 36`;
+
+    if (tabEl) {
+        tabEl.innerText = `Tab Switch: ${tabSwitch}x`;
+        tabEl.className = tabSwitch > 0
+            ? "text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-300"
+            : "text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300";
+    }
+
+    if (sheetContainer) {
+        const r1 = parsed.rincian_subtes1 || [];
+        const r2 = parsed.rincian_subtes2 || [];
+
+        function renderSubGrid(rList, title, total) {
+            let cells = '';
+            rList.forEach(item => {
+                const isBenar = !!item.benar;
+                const bg = isBenar ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-red-50 border-red-200 text-red-800';
+                const badge = isBenar ? '<i class="fa-solid fa-check text-emerald-600"></i>' : '<i class="fa-solid fa-xmark text-red-500"></i>';
+                cells += `
+                    <div class="p-2 rounded-xl border text-xs flex items-center justify-between ${bg}">
+                        <span class="font-bold">No ${item.no}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-mono font-black">${escapeHtml(item.jawaban || '-')}</span>
+                            ${badge}
+                        </div>
+                    </div>
+                `;
+            });
+
+            return `
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
+                        <span class="font-extrabold text-[#003865] text-xs">${title}</span>
+                        <span class="text-xs text-slate-500 font-semibold">${rList.filter(x => x.benar).length} / ${total} Benar</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                        ${cells}
+                    </div>
+                </div>
+            `;
+        }
+
+        let html = '';
+        if (r1.length > 0) {
+            html += renderSubGrid(r1, 'Subtes 1 (Pola Matriks Geometris Dasar)', 12);
+        }
+        if (r2.length > 0) {
+            html += renderSubGrid(r2, 'Subtes 2 (Pola Matriks Analitik Lanjutan)', 36);
+        }
+        sheetContainer.innerHTML = html || '<p class="text-xs text-slate-400">Tidak ada lembar koreksi.</p>';
     }
 }
 
@@ -4708,6 +4884,7 @@ async function renderCandidatePhotos(candidate) {
         // Helper untuk mengekstrak informasi modul, subtes, fase, dan waktu dari nama file
         const parsePhotoMeta = (fileName, folderHint = '') => {
             let namaModul = (folderHint || 'IST').toUpperCase();
+            if (namaModul === 'APM') namaModul = 'INTELEGENT 3';
             let namaSubtes = '';
             let subtesNo = 0;
             let namaFase = 'Awal';
@@ -4715,8 +4892,11 @@ async function renderCandidatePhotos(candidate) {
             const parts = fileName.replace(/\.[^/.]+$/, '').split('_');
 
             // 1. Modul
-            const modPart = parts.find(p => /^(ist|cfit|pauli|papi|disc|epps|msdt|mbti|mcmi)$/i.test(p));
-            if (modPart) namaModul = modPart.toUpperCase();
+            const modPart = parts.find(p => /^(ist|cfit|pauli|papi|disc|epps|msdt|mbti|mcmi|apm)$/i.test(p));
+            if (modPart) {
+                const upperMod = modPart.toUpperCase();
+                namaModul = upperMod === 'APM' ? 'INTELEGENT 3' : upperMod;
+            }
 
             // 2. Subtes
             const subtesPart = parts.find(p => /subtes/i.test(p));
@@ -4788,7 +4968,7 @@ async function renderCandidatePhotos(candidate) {
             }
 
             // 2. PRIORITAS 2: Ambil foto dari subfolder per modul tes (Format Opsi B: <folderName>/<candId>/<fileName> atau legacy <folderName>/<fileName>)
-            const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC', 'MSDT', 'EPPS', 'CFIT', 'MBTI', 'MCMI'];
+            const targetFolders = ['IST', 'PAULI', 'PAPI', 'DISC', 'MSDT', 'EPPS', 'CFIT', 'MBTI', 'MCMI', 'APM'];
             for (const folderName of targetFolders) {
                 const foldersToScan = candId ? [`${folderName}/${candId}`, folderName] : [folderName];
                 for (const pathScan of foldersToScan) {

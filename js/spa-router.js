@@ -66,6 +66,10 @@ function pindahFase(targetId) {
         'mbti': 'view-mbti',
         'view-mbti': 'view-mbti',
 
+        'page-apm': 'view-apm',
+        'apm': 'view-apm',
+        'view-apm': 'view-apm',
+
         'page-grafis': 'view-grafis',
         'grafis': 'view-grafis',
         'view-grafis': 'view-grafis'
@@ -93,7 +97,7 @@ function pindahFase(targetId) {
         if (targetSection.classList.contains('corporate-modern-bg')) {
             document.body.style.backgroundColor = '#071f38';
             document.documentElement.style.backgroundColor = '#071f38';
-        } else if (finalTargetId === 'view-ist' || finalTargetId === 'view-cfit' || finalTargetId === 'view-msdt' || finalTargetId === 'view-epps' || finalTargetId === 'view-mbti' || finalTargetId === 'view-pauli') {
+        } else if (finalTargetId === 'view-ist' || finalTargetId === 'view-cfit' || finalTargetId === 'view-apm' || finalTargetId === 'view-msdt' || finalTargetId === 'view-epps' || finalTargetId === 'view-mbti' || finalTargetId === 'view-pauli') {
             document.body.style.backgroundColor = '#f8fafc';
             document.documentElement.style.backgroundColor = '#f8fafc';
         } else {
@@ -358,6 +362,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (redirectIfCompleted(8)) return;
                 if (typeof startMbtiTest === 'function') {
                     startMbtiTest();
+                }
+            }
+            // Modul 9: Intelegent 3
+            else if (activeFase === 'view-apm') {
+                if (redirectIfCompleted(9)) return;
+                if (typeof startApmTest === 'function') {
+                    startApmTest();
                 }
             }
             // Dashboard Asesmen Reguler

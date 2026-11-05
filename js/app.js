@@ -167,6 +167,14 @@ function handleStartModule(testNum) {
         } else if (typeof pindahFase === 'function') {
             pindahFase('view-mbti');
         }
+    } else if (testNum === 9 || testNum === 'apm') {
+        const modal = document.getElementById('modal-module-apm');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        } else if (typeof startApmTest === 'function') {
+            startApmTest();
+        }
     }
 }
 
@@ -206,7 +214,8 @@ function completeModule(testNum) {
         5: 'pauli_selesai',
         6: 'msdt_selesai',
         7: 'cfit_selesai',
-        8: 'mbti_selesai'
+        8: 'mbti_selesai',
+        9: 'apm_selesai'
     };
     if (flags[testNum]) {
         localStorage.setItem(flags[testNum], 'true');
@@ -377,6 +386,10 @@ function isTestActive() {
     const isMbti = mbtiView && !mbtiView.classList.contains('hide-section') && !(window.tahap2State && window.tahap2State.modulSelesai && window.tahap2State.modulSelesai.mbti);
     if (isMbti) return { active: true, testType: 'MBTI' };
 
+    const apmView = document.getElementById('view-apm');
+    const isApm = apmView && !apmView.classList.contains('hide-section') && localStorage.getItem('apm_selesai') !== 'true';
+    if (isApm) return { active: true, testType: 'APM' };
+
     return { active: false, testType: null };
 }
 
@@ -395,6 +408,7 @@ window.addEventListener('beforeunload', (e) => {
         let displayType = testStatus.testType;
         if (testStatus.testType === 'IST') displayType = 'Inteligent 1';
         else if (testStatus.testType === 'CFIT') displayType = 'Inteligent 2';
+        else if (testStatus.testType === 'APM') displayType = 'Intelegent 3';
         const namaTes = displayType ? `Tes ${displayType}` : 'Tes Asesmen';
         e.returnValue = `${namaTes} sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!`;
         return e.returnValue;
@@ -491,10 +505,11 @@ function handleIntegrityViolation(reason) {
         } catch (errSnap) {}
     }
     const isPauli = testStatus.testType === 'Pauli';
-    const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI'].includes(testStatus.testType);
+    const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI', 'APM'].includes(testStatus.testType);
     let displayNamaTes = testStatus.testType;
     if (testStatus.testType === 'IST') displayNamaTes = 'Inteligent 1';
     else if (testStatus.testType === 'CFIT') displayNamaTes = 'Inteligent 2';
+    else if (testStatus.testType === 'APM') displayNamaTes = 'Intelegent 3';
     const namaTes = displayNamaTes || 'Asesmen';
 
     if (tabSwitchViolations <= 3) {
@@ -763,6 +778,21 @@ if (typeof window !== 'undefined') {
     window.tampilkanHalamanSelesai = tampilkanHalamanSelesai;
     window.checkDashboardFullscreen = checkDashboardFullscreen;
     window.startISTTest = startISTTest;
+
+function startApmFromModal() {
+    closeModal('modal-module-apm');
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+    if (typeof startApmTest === 'function') {
+        startApmTest();
+    } else if (window.apmEngine && typeof window.apmEngine.start === 'function') {
+        window.apmEngine.start();
+    } else if (typeof pindahFase === 'function') {
+        pindahFase('view-apm');
+    }
+}
+window.startApmFromModal = startApmFromModal;
     window.openConsentModal = openConsentModal;
 }
 

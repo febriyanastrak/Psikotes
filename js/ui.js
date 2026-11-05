@@ -158,7 +158,8 @@ const ALL_ASSESSMENT_MODULES = [
     { id: 5, key: 'pauli', name: 'Pauli (Tes Koran)', flag: 'pauli_selesai', btnText: 'Mulai Tes 6' },
     { id: 6, key: 'msdt', name: 'MSDT (Gaya Kepemimpinan)', flag: 'msdt_selesai', btnText: 'Mulai Tes 7' },
     { id: 7, key: 'cfit', name: 'Inteligent 2', flag: 'cfit_selesai', btnText: 'Mulai Tes 8' },
-    { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 9' }
+    { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 9' },
+    { id: 9, key: 'apm', name: 'Intelegent 3', flag: 'apm_selesai', btnText: 'Mulai Tes 10' }
 ];
 
 /**
@@ -185,6 +186,7 @@ function isModuleCompleted(num) {
     if (num === 6) return localStorage.getItem('msdt_selesai') === 'true';
     if (num === 7) return localStorage.getItem('cfit_selesai') === 'true';
     if (num === 8) return localStorage.getItem('mbti_selesai') === 'true' || localStorage.getItem('mcmi_selesai') === 'true';
+    if (num === 9 || num === 'apm') return localStorage.getItem('apm_selesai') === 'true';
     return false;
 }
 

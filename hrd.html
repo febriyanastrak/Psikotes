@@ -310,6 +310,10 @@
                             class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
                             <i class="fa-solid fa-compass text-indigo-600"></i> <span>Hasil MBTI</span>
                         </button>
+                        <button type="button" id="tabBtnApm" onclick="switchHrdTab('apm')" style="display: none;"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-cubes text-emerald-600"></i> <span>Hasil APM</span>
+                        </button>
 
                         <!-- PEMISAH SEBELUM DOKUMENTASI FOTO -->
                         <div class="h-5 w-[1px] bg-slate-300 mx-0.5 shrink-0"></div>
@@ -1628,6 +1632,86 @@
                     <div id="cfitEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
                         <i class="fa-solid fa-shapes text-3xl mb-2 text-slate-300"></i>
                         <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen CFIT Tahap 2.</p>
+                    </div>
+                </div>
+
+                <!-- PANEL TAB INTELEGENT 3 -->
+                <div id="panelTabApm" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">TOTAL SKOR RAW</p>
+                            <p class="text-3xl font-black text-[#003865]" id="apmRptRaw">-</p>
+                            <p class="text-xs text-slate-500 mt-1">Dari total 48 soal (2 subtes)</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">GRADE NORMA</p>
+                            <p class="text-3xl font-black text-emerald-600" id="apmRptGrade">-</p>
+                            <p class="text-xs text-slate-500 mt-1">Standar Norma Matriks</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">ESTIMASI PERSENTIL</p>
+                            <p class="text-3xl font-black text-amber-600" id="apmRptPersentil">-</p>
+                            <p class="text-xs text-slate-500 mt-1">Persentil Populasi</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
+                            <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">KATEGORI INTELEKTUAL</p>
+                            <p class="text-lg font-black text-slate-800 mt-2" id="apmRptKategori">-</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Klasifikasi Analitik</p>
+                        </div>
+                    </div>
+
+                    <!-- TABEL 2 SUBTES INTELEGENT 3 -->
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Subtes</th>
+                                    <th class="p-3 text-center">Deskripsi Materi</th>
+                                    <th class="p-3 text-center">Alokasi Waktu</th>
+                                    <th class="p-3 text-center">Jawaban Benar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700" id="apmSubtestTableBody">
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 1</td>
+                                    <td class="p-3 text-center">Penalaran Pola Matriks Geometris Dasar</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">7 Menit (12 Soal)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="apmSub1">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold">Subtes 2</td>
+                                    <td class="p-3 text-center">Penalaran Matriks Analitik Lanjutan</td>
+                                    <td class="p-3 text-center text-slate-500 font-medium">45 Menit (36 Soal)</td>
+                                    <td class="p-3 text-center font-black text-[#003865]" id="apmSub2">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- LEMBAR RINCIAN KOREKSI 48 SOAL INTELEGENT 3 -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-[#003865]"></i> Lembar Rincian Koreksi 48 Soal Intelegent 3
+                                </h3>
+                                <p class="text-xs text-slate-500">Evaluasi per nomor: Baris Hijau (Jawaban Benar = 1), Baris Merah (Jawaban Salah = 0)</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="apmRptPelanggaranBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                    Tab Switch: 0x
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="apmCorrectionSheetsContainer" class="space-y-6">
+                            <!-- Di-render dinamis oleh js/hrd.js -->
+                        </div>
+                    </div>
+
+                    <div id="apmEmptyNotice" class="hidden text-center py-12 text-slate-400 text-sm">
+                        <i class="fa-solid fa-cubes text-3xl mb-2 text-slate-300"></i>
+                        <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen Intelegent 3.</p>
                     </div>
                 </div>
 
