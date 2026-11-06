@@ -315,7 +315,7 @@
         const menit = Math.floor((subtesData.waktuDetik || 420) / 60);
 
         container.innerHTML = `
-            <div class="w-full max-w-3xl mx-auto space-y-6 animate-fade-in pb-12">
+            <div class="w-full max-w-3xl mx-auto flex flex-col gap-6 animate-fade-in pb-12">
                 <!-- Header Card Panduan -->
                 <div class="bg-gradient-to-r from-[#003865] via-[#0a4980] to-[#003865] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-blue-400/30">
                     <div class="flex items-center justify-between gap-3 mb-2">
@@ -328,52 +328,78 @@
                     <p class="text-xs sm:text-sm text-slate-200 mt-2">Harap baca petunjuk pengerjaan di bawah ini dengan seksama sebelum memulai.</p>
                 </div>
 
-                <!-- Isi Petunjuk Pengerjaan -->
-                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-700">
-                    <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
-                        <div class="w-9 h-9 rounded-xl bg-[#003865] text-white flex items-center justify-center text-lg shrink-0">
-                            <i class="fa-solid fa-circle-info"></i>
+                <!-- Isi Petunjuk Pengerjaan (Lega & Berestetika Tinggi) -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-md flex flex-col gap-6 sm:gap-7 text-slate-700">
+                    <!-- Box 1: Petunjuk Cara Menjawab -->
+                    <div class="p-5 sm:p-6 rounded-2xl bg-blue-50/60 border border-blue-200/80 shadow-xs">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#003865] text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <h4 class="font-bold text-[#003865] text-sm sm:text-base">Petunjuk Cara Menjawab:</h4>
                         </div>
-                        <div class="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                            <p class="font-bold text-[#003865] text-sm">Petunjuk Cara Menjawab:</p>
-                            <p>${subtesData.petunjuk || 'Perhatikan pola gambar yang tersedia, lalu pilihlah satu jawaban yang paling tepat dari pilihan 1 sampai 8.'}</p>
-                            <ul class="list-disc list-inside space-y-1 font-medium text-slate-600 pt-1">
-                                <li>Setiap soal memiliki <strong>8 pilihan jawaban (1 s/d 8),Pilihlah <strong>satu angka jawaban</strong> yang menurut Anda paling tepat melengkapi pola.</li>
-                                <li>Anda dapat berpindah antar soal dengan mengklik nomor soal pada papan navigasi.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Ringkasan Alokasi Waktu & Jumlah Soal -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Soal</span>
-                            <span class="text-xl sm:text-2xl font-black text-slate-800">${subtesData.totalSoal || 0} Soal</span>
-                        </div>
-                        <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-center">
-                            <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">Waktu Ujian</span>
-                            <span class="text-xl sm:text-2xl font-black text-amber-600">${menit} Menit</span>
-                        </div>
-                    </div>
-
-                    <!-- Peringatan Integritas & Pengawasan Kamera -->
-                    <div class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 space-y-1.5 shadow-xs">
-                        <div class="flex items-center gap-2 text-amber-800 font-black text-xs uppercase tracking-wider">
-                            <i class="fa-solid fa-shield-halved text-amber-600"></i>
-                            <span>Ketentuan Pengawasan Digital</span>
-                        </div>
-                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                            Kamera webcam dan sistem integritas browser aktif selama ujian berlangsung. Dilarang berpindah jendela atau tab. Waktu akan berjalan otomatis segera setelah tombol di bawah ditekan.
+                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal mb-3.5">
+                            ${subtesData.petunjuk || 'Perhatikan pola gambar yang tersedia, lalu pilihlah satu jawaban yang paling tepat dari pilihan 1 sampai 8.'}
                         </p>
+                        <div class="flex flex-col gap-2.5 pt-1 text-xs sm:text-sm text-slate-700">
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Setiap soal memiliki <strong>8 pilihan jawaban (1 s/d 8)</strong>. Pilihlah <strong>satu angka jawaban</strong> yang menurut Anda paling tepat melengkapi pola.</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Anda dapat berpindah antar soal dengan mengklik nomor soal pada papan navigasi.</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Tombol Aksi Langsung Ujian -->
-                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
+                    <!-- Box 2: Ringkasan Alokasi Waktu & Jumlah Soal (Bento Cards) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                        <!-- Bento 1: Total Soal -->
+                        <div class="bg-gradient-to-br from-slate-50 to-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs hover:border-[#003865]/30 hover:shadow-md transition-all flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-[#003865] flex items-center justify-center text-xl shrink-0 shadow-xs">
+                                <i class="fa-solid fa-list-ol"></i>
+                            </div>
+                            <div>
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Total Soal</span>
+                                <div class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">${subtesData.totalSoal || 0} <span class="text-sm font-semibold text-slate-500">Soal</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Bento 2: Waktu Ujian -->
+                        <div class="bg-gradient-to-br from-amber-50/40 to-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-xs hover:border-amber-400/50 hover:shadow-md transition-all flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-200 text-amber-600 flex items-center justify-center text-xl shrink-0 shadow-xs">
+                                <i class="fa-regular fa-clock"></i>
+                            </div>
+                            <div>
+                                <span class="text-[11px] font-bold text-amber-700 uppercase tracking-widest block mb-1">Waktu Pengerjaan</span>
+                                <div class="text-2xl sm:text-3xl font-black text-amber-600 tracking-tight leading-none">${menit} <span class="text-sm font-semibold text-amber-700/80">Menit</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Box 3: Peringatan Integritas & Pengawasan Kamera (Security Badge) -->
+                    <div class="p-5 rounded-2xl bg-slate-50/80 border-l-4 border-l-amber-500 border border-slate-200/80 flex items-start gap-4 shadow-xs">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center text-base shrink-0 mt-0.5 shadow-xs">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="space-y-1 text-slate-700">
+                            <h5 class="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                                Ketentuan Pengawasan Digital
+                            </h5>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                                Kamera webcam dan sistem integritas browser aktif selama ujian berlangsung. Dilarang berpindah jendela atau tab. Waktu akan berjalan otomatis segera setelah tombol di bawah ditekan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Box 4: Tombol Aksi Langsung Ujian -->
+                    <div class="pt-5 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
                         <button type="button" onclick="window.apmEngine.renderMenu2Subtes()" class="w-full sm:w-auto px-5 py-3 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-arrow-left"></i>
                             <span>Kembali ke Menu</span>
                         </button>
-                        <button type="button" onclick="window.apmEngine.mulaiUjianUtama(${subtesNo})" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-2xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="button" onclick="window.apmEngine.mulaiUjianUtama(${subtesNo})" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
                             <span>Mulai Ujian Subtes ${subtesNo}</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>

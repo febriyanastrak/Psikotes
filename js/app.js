@@ -175,6 +175,14 @@ function handleStartModule(testNum) {
         } else if (typeof startApmTest === 'function') {
             startApmTest();
         }
+    } else if (testNum === 10 || testNum === 'dass') {
+        const modal = document.getElementById('modal-module-dass');
+        if (modal) {
+            modal.classList.remove('hide-section');
+            modal.style.display = 'flex';
+        } else if (typeof startDassTest === 'function') {
+            startDassTest();
+        }
     }
 }
 
@@ -793,6 +801,19 @@ function startApmFromModal() {
     }
 }
 window.startApmFromModal = startApmFromModal;
+
+function startDassFromModal() {
+    closeModal('modal-module-dass');
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+    if (typeof startDassTest === 'function') {
+        startDassTest();
+    } else if (typeof pindahFase === 'function') {
+        pindahFase('view-dass');
+    }
+}
+window.startDassFromModal = startDassFromModal;
     window.openConsentModal = openConsentModal;
 }
 

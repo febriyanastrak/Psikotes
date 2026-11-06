@@ -70,6 +70,10 @@ function pindahFase(targetId) {
         'apm': 'view-apm',
         'view-apm': 'view-apm',
 
+        'page-dass': 'view-dass',
+        'dass': 'view-dass',
+        'view-dass': 'view-dass',
+
         'page-grafis': 'view-grafis',
         'grafis': 'view-grafis',
         'view-grafis': 'view-grafis'
@@ -97,7 +101,7 @@ function pindahFase(targetId) {
         if (targetSection.classList.contains('corporate-modern-bg')) {
             document.body.style.backgroundColor = '#071f38';
             document.documentElement.style.backgroundColor = '#071f38';
-        } else if (finalTargetId === 'view-ist' || finalTargetId === 'view-cfit' || finalTargetId === 'view-apm' || finalTargetId === 'view-msdt' || finalTargetId === 'view-epps' || finalTargetId === 'view-mbti' || finalTargetId === 'view-pauli') {
+        } else if (finalTargetId === 'view-ist' || finalTargetId === 'view-cfit' || finalTargetId === 'view-apm' || finalTargetId === 'view-msdt' || finalTargetId === 'view-epps' || finalTargetId === 'view-mbti' || finalTargetId === 'view-pauli' || finalTargetId === 'view-dass') {
             document.body.style.backgroundColor = '#f8fafc';
             document.documentElement.style.backgroundColor = '#f8fafc';
         } else {
@@ -369,6 +373,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (redirectIfCompleted(9)) return;
                 if (typeof startApmTest === 'function') {
                     startApmTest();
+                }
+            }
+            // Modul 10: DASS-21 (Kesehatan Mental & Daya Tahan Stres)
+            else if (activeFase === 'view-dass') {
+                if (redirectIfCompleted(10) || redirectIfCompleted('dass')) return;
+                if (typeof startDassTest === 'function') {
+                    startDassTest();
                 }
             }
             // Dashboard Asesmen Reguler

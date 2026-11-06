@@ -18,7 +18,7 @@ AS $$
 DECLARE
     -- KUNCI MASTER RESMI (HANYA ADA DI SERVER SUPABASE, TIDAK BISA DIINTIP PESERTA)
     -- Set 1: 12 Soal
-    v_kunci_set1 jsonb := '{"1":"8","2":"4","3":"5","4":"1","5":"2","6":"6","7":"3","8":"7","9":"8","10":"7","11":"6","12":"4"}'::jsonb;
+    v_kunci_set1 jsonb := '{"1":"8","2":"4","3":"5","4":"1","5":"2","6":"5","7":"6","8":"3","9":"7","10":"8","11":"7","12":"6"}'::jsonb;
     -- Set 2: 36 Soal
     v_kunci_set2 jsonb := '{"1":"5","2":"1","3":"7","4":"4","5":"3","6":"1","7":"6","8":"1","9":"8","10":"4","11":"5","12":"6","13":"2","14":"1","15":"2","16":"4","17":"6","18":"7","19":"3","20":"8","21":"8","22":"7","23":"6","24":"3","25":"7","26":"2","27":"7","28":"5","29":"6","30":"5","31":"4","32":"8","33":"5","34":"1","35":"3","36":"2"}'::jsonb;
 
@@ -36,6 +36,10 @@ DECLARE
     v_key text;
     v_benar boolean;
     i integer;
+
+    v_lolos_skrining boolean := false;
+    v_status_skrining text := 'GUGUR SKRINING (TIDAK MEMENUHI SYARAT)';
+    v_rekomendasi_hrd text;
 
     v_grade text := 'Grade V';
     v_persentil text := '< 10%';
@@ -81,36 +85,49 @@ BEGIN
     END LOOP;
 
     v_total_skor := v_skor1 + v_skor2;
+    v_lolos_skrining := (v_skor1 >= 10);
 
-    -- 3. Konversi Norma Raven APM (Berdasarkan Subtes 2 / Set II)
-    IF v_skor2 >= 33 THEN
-        v_grade := 'Grade I';
-        v_persentil := '>= 95%';
-        v_kategori := 'Intelektual Superior / Luar Biasa (Intellectually Superior)';
-    ELSIF v_skor2 >= 29 THEN
-        v_grade := 'Grade II+';
-        v_persentil := '90% - 94%';
-        v_kategori := 'Intelektual Sangat Tinggi (Distinctly Above Average)';
-    ELSIF v_skor2 >= 25 THEN
-        v_grade := 'Grade II';
-        v_persentil := '75% - 89%';
-        v_kategori := 'Intelektual Di Atas Rata-rata (Above Average)';
-    ELSIF v_skor2 >= 20 THEN
-        v_grade := 'Grade III+';
-        v_persentil := '50% - 74%';
-        v_kategori := 'Intelektual Rata-rata Tinggi (High Average)';
-    ELSIF v_skor2 >= 15 THEN
-        v_grade := 'Grade III';
-        v_persentil := '50%';
-        v_kategori := 'Intelektual Rata-rata / Cukup (Average)';
-    ELSIF v_skor2 >= 10 THEN
-        v_grade := 'Grade IV';
-        v_persentil := '25% - 49%';
-        v_kategori := 'Intelektual Di Bawah Rata-rata (Below Average)';
+    -- 3. Aturan Skrining Raven APM: Wajib Minimal 10 Benar di Subtes 1
+    IF v_lolos_skrining THEN
+        v_status_skrining := 'LOLOS (MEMENUHI SYARAT)';
+        v_rekomendasi_hrd := 'Kandidat memenuhi ambang dasar penalaran pola. Hasil Subtes 2 valid untuk evaluasi kapasitas kognitif.';
+
+        -- Konversi Norma Raven APM (Berdasarkan Subtes 2 / Set II)
+        IF v_skor2 >= 33 THEN
+            v_grade := 'Grade I';
+            v_persentil := '>= 95%';
+            v_kategori := 'Intelektual Superior / Luar Biasa (Intellectually Superior)';
+        ELSIF v_skor2 >= 29 THEN
+            v_grade := 'Grade II+';
+            v_persentil := '90% - 94%';
+            v_kategori := 'Intelektual Sangat Tinggi (Distinctly Above Average)';
+        ELSIF v_skor2 >= 25 THEN
+            v_grade := 'Grade II';
+            v_persentil := '75% - 89%';
+            v_kategori := 'Intelektual Di Atas Rata-rata (Above Average)';
+        ELSIF v_skor2 >= 20 THEN
+            v_grade := 'Grade III+';
+            v_persentil := '50% - 74%';
+            v_kategori := 'Intelektual Rata-rata Tinggi (High Average)';
+        ELSIF v_skor2 >= 15 THEN
+            v_grade := 'Grade III';
+            v_persentil := '50%';
+            v_kategori := 'Intelektual Rata-rata / Cukup (Average)';
+        ELSIF v_skor2 >= 10 THEN
+            v_grade := 'Grade IV';
+            v_persentil := '25% - 49%';
+            v_kategori := 'Intelektual Di Bawah Rata-rata (Below Average)';
+        ELSE
+            v_grade := 'Grade V';
+            v_persentil := '< 10%';
+            v_kategori := 'Intelektual Rendah (Intellectually Defective)';
+        END IF;
     ELSE
-        v_grade := 'Grade V';
-        v_persentil := '< 10%';
-        v_kategori := 'Intelektual Rendah (Intellectually Defective)';
+        v_status_skrining := 'GUGUR SKRINING (TIDAK MEMENUHI SYARAT)';
+        v_grade := 'Diskualifikasi Skrining';
+        v_persentil := '< 10% (Gugur Set 1)';
+        v_kategori := 'Tidak Memenuhi Syarat Skrining Matriks (< 10 Benar)';
+        v_rekomendasi_hrd := 'Kandidat tidak memenuhi ambang batas penalaran matriks dasar (hanya ' || v_skor1::text || '/12 benar, syarat minimal 10). Hasil Subtes 2 tidak valid untuk interpretasi Grade APM lanjut.';
     END IF;
 
     -- 4. Rakit JSON Hasil yang kompatibel dengan renderApmResults() di HRD
@@ -120,6 +137,9 @@ BEGIN
         'skor_mentah_subtes1', v_skor1,
         'skor_mentah_subtes2', v_skor2,
         'total_skor_mentah', v_total_skor,
+        'lolos_skrining', v_lolos_skrining,
+        'status_skrining', v_status_skrining,
+        'rekomendasi_hrd', v_rekomendasi_hrd,
         'grade', v_grade,
         'persentil', v_persentil,
         'kategori_intelektual', v_kategori,

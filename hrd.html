@@ -314,6 +314,10 @@
                             class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
                             <i class="fa-solid fa-cubes text-emerald-600"></i> <span>Hasil APM</span>
                         </button>
+                        <button type="button" id="tabBtnDass" onclick="switchHrdTab('dass')"
+                            class="hrd-tab-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 shrink-0 whitespace-nowrap">
+                            <i class="fa-solid fa-heart-pulse text-rose-600"></i> <span>Hasil DASS-21</span>
+                        </button>
 
                         <!-- PEMISAH SEBELUM DOKUMENTASI FOTO -->
                         <div class="h-5 w-[1px] bg-slate-300 mx-0.5 shrink-0"></div>
@@ -1637,6 +1641,33 @@
 
                 <!-- PANEL TAB INTELEGENT 3 -->
                 <div id="panelTabApm" class="hidden space-y-6">
+                    <!-- BANNER STATUS KELAYAKAN SKRINING SET 1 & REKOMENDASI KLINIS -->
+                    <div id="apmScreeningBanner" class="p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50 border-slate-200 shadow-xs">
+                        <div class="flex items-start sm:items-center gap-3.5">
+                            <div id="apmScreeningIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-slate-200 text-slate-700 shadow-2xs">
+                                <i class="fa-solid fa-filter"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[10px] uppercase font-black tracking-widest text-slate-400">Aturan Skrining Raven APM</span>
+                                    <span id="apmRptStatusSkrining" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-slate-200 text-slate-700">
+                                        Memeriksa...
+                                    </span>
+                                </div>
+                                <h4 class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug" id="apmScreeningTitle">
+                                    Verifikasi Ambang Batas Subtes 1
+                                </h4>
+                                <p class="text-xs text-slate-600 font-medium mt-0.5" id="apmRekomendasiHrd">
+                                    Memuat analisis kualifikasi peserta...
+                                </p>
+                            </div>
+                        </div>
+                        <div class="shrink-0 flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200/80 shadow-2xs self-start md:self-auto">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Syarat Lolos:</span>
+                            <span class="text-xs font-black text-[#003865] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">&ge; 10 / 12 Benar</span>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm">
                             <p class="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">TOTAL SKOR RAW</p>
@@ -1923,6 +1954,352 @@
                         <p>Kandidat ini belum mengerjakan atau bukan peserta Asesmen MBTI Tahap 2.</p>
                     </div>
                 </div>
+
+                <!-- PANEL TAB DASS-21 -->
+                <div id="panelTabDass" class="hidden space-y-6">
+                    <!-- Notice jika data DASS-21 belum ada -->
+                    <div id="dassEmptyNotice" class="hidden bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3">
+                        <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center text-2xl mx-auto">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-700">Data Asesmen DASS-21 Belum Tersedia</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto">
+                            Kandidat belum menyelesaikan modul Tes 11: DASS-21 (Depression Anxiety Stress Scales). Hasil diagnosis dan stabilitas klinis akan muncul otomatis setelah kandidat mengirimkan lembar jawaban.
+                        </p>
+                    </div>
+
+                    <div id="dassResultsContainer" class="space-y-6">
+                        <!-- HEADER PROFIL DASS-21 -->
+                        <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#0a4980] rounded-3xl p-6 sm:p-7 text-white shadow-md relative overflow-hidden">
+                            <div class="absolute right-0 top-0 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 rounded-2xl bg-white/10 text-rose-400 border border-white/20 flex items-center justify-center text-3xl font-black shadow-inner shrink-0">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                Modul Asesmen 11
+                                            </span>
+                                            <span class="text-xs text-sky-200 font-bold">Standard Lovibond &amp; Lovibond (1995)</span>
+                                        </div>
+                                        <h3 class="text-2xl sm:text-3xl font-black text-white leading-tight">
+                                            DASS-21 Mental Health &amp; Stress Scale
+                                        </h3>
+                                        <p class="text-xs sm:text-sm text-slate-200 mt-1 font-medium">
+                                            Diagnosis Klinis Depresi, Kecemasan, dan Daya Tahan Stres Beban Kerja
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Ringkasan Metrik Cepat -->
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
+                                        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Indeks Stabilitas (MHSI)</span>
+                                        <span class="text-xl sm:text-2xl font-black text-[#ffbe1a]" id="dassRptMHSI">-</span>
+                                    </div>
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
+                                        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Durasi Pengerjaan</span>
+                                        <span class="text-sm sm:text-base font-black text-white" id="dassRptDurasi">-</span>
+                                    </div>
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
+                                        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Integritas Tab</span>
+                                        <span id="dassRptPelanggaranBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                                            0x Pindah Tab
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3 KARTU METRIK DIMENSI (DEPRESI, KECEMASAN, STRES) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- KARTU 1: DEPRESI -->
+                            <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-black text-sm">
+                                            D
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 1</span>
+                                            <h4 class="text-base font-black text-slate-800">Depresi (Depression)</h4>
+                                        </div>
+                                    </div>
+                                    <span id="dassRptDepresiLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Normal
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-baseline justify-between mb-1.5">
+                                        <span class="text-xs text-slate-500 font-semibold">Skor Mentah:</span>
+                                        <span class="text-2xl font-black text-[#003865]"><strong id="dassRptDepresiScore">0</strong> <span class="text-xs text-slate-400 font-normal">/ 21</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                        <div id="dassRptDepresiBar" class="h-full bg-blue-600 transition-all duration-500 rounded-full" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-medium">
+                                        <span>Normal: 0-4</span>
+                                        <span>Sedang: 7-10</span>
+                                        <span>Ekstrem: 14+</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- KARTU 2: KECEMASAN -->
+                            <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-black text-sm">
+                                            A
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 2</span>
+                                            <h4 class="text-base font-black text-slate-800">Kecemasan (Anxiety)</h4>
+                                        </div>
+                                    </div>
+                                    <span id="dassRptKecemasanLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Normal
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-baseline justify-between mb-1.5">
+                                        <span class="text-xs text-slate-500 font-semibold">Skor Mentah:</span>
+                                        <span class="text-2xl font-black text-[#003865]"><strong id="dassRptKecemasanScore">0</strong> <span class="text-xs text-slate-400 font-normal">/ 21</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                        <div id="dassRptKecemasanBar" class="h-full bg-amber-500 transition-all duration-500 rounded-full" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-medium">
+                                        <span>Normal: 0-3</span>
+                                        <span>Sedang: 6-7</span>
+                                        <span>Ekstrem: 10+</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- KARTU 3: STRES -->
+                            <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center font-black text-sm">
+                                            S
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 3</span>
+                                            <h4 class="text-base font-black text-slate-800">Stres (Stress)</h4>
+                                        </div>
+                                    </div>
+                                    <span id="dassRptStresLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Normal
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-baseline justify-between mb-1.5">
+                                        <span class="text-xs text-slate-500 font-semibold">Skor Mentah:</span>
+                                        <span class="text-2xl font-black text-[#003865]"><strong id="dassRptStresScore">0</strong> <span class="text-xs text-slate-400 font-normal">/ 21</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                        <div id="dassRptStresBar" class="h-full bg-rose-500 transition-all duration-500 rounded-full" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-medium">
+                                        <span>Normal: 0-7</span>
+                                        <span>Sedang: 10-12</span>
+                                        <span>Ekstrem: 17+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRAFIK BATANG PERBANDINGAN CHART.JS & AMBANG BATAS NORMA -->
+                        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                <div>
+                                    <h4 class="text-sm font-black uppercase text-[#003865] flex items-center gap-2">
+                                        <i class="fa-solid fa-chart-column text-rose-500"></i>
+                                        <span>Grafik Profil Klinis 3 Dimensi vs Ambang Batas Normal:</span>
+                                    </h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi perbandingan skor kandidat terhadap batas wajar populasi umum.</p>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs font-semibold">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Zona Normal
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
+                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Zona Perhatian Klinis
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="w-full h-64 sm:h-72">
+                                <canvas id="dassChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- KOTAK REKOMENDASI PENEMPATAN KERJA PT ALTRAK 1978 -->
+                        <div class="bg-gradient-to-br from-slate-50 to-sky-50/50 border border-[#b9d0e7] rounded-3xl p-6 shadow-sm space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-10 h-10 rounded-xl bg-[#003865] text-[#ffbe1a] flex items-center justify-center text-lg font-black shadow-xs">
+                                        <i class="fa-solid fa-briefcase"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kebugaran Psikologis &amp; Karir</span>
+                                        <h4 class="text-base font-black text-[#003865]">Rekomendasi Penempatan Kerja Operasional</h4>
+                                    </div>
+                                </div>
+                                <span id="dassFitnessBadge" class="text-xs font-black px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    Sangat Prima &amp; Resilien (Fit to Work)
+                                </span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium bg-white p-4 rounded-2xl border border-slate-200" id="dassRekomendasiKerja">
+                                -
+                            </p>
+                        </div>
+
+                        <!-- 3 KOTAK NARASI DIAGNOSIS KLINIS LENGKAP DARI NORMA EXCEL -->
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-2">
+                                <i class="fa-solid fa-file-medical text-blue-600"></i>
+                                <span>Deskripsi Naratif Klinis (Berdasarkan Pedoman DASS-21 Resmi):</span>
+                            </h4>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Narasi D -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2">
+                                    <span class="text-xs font-black text-blue-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle text-[8px]"></i> Evaluasi Depresi:
+                                    </span>
+                                    <p class="text-xs text-slate-600 leading-relaxed font-medium" id="dassNarrativeD">-</p>
+                                </div>
+
+                                <!-- Narasi A -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2">
+                                    <span class="text-xs font-black text-amber-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle text-[8px]"></i> Evaluasi Kecemasan:
+                                    </span>
+                                    <p class="text-xs text-slate-600 leading-relaxed font-medium" id="dassNarrativeA">-</p>
+                                </div>
+
+                                <!-- Narasi S -->
+                                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-2">
+                                    <span class="text-xs font-black text-rose-700 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle text-[8px]"></i> Evaluasi Stres:
+                                    </span>
+                                    <p class="text-xs text-slate-600 leading-relaxed font-medium" id="dassNarrativeS">-</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TABEL LEMBAR JAWABAN LENGKAP 21 BUTIR SOAL -->
+                        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h4 class="text-xs font-black uppercase text-[#003865] flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-slate-500"></i>
+                                    <span>Rincian Lembar Jawaban 21 Butir Soal:</span>
+                                </h4>
+                                <span class="text-[11px] text-slate-400">Skala Skor: 0 s/d 3</span>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 text-slate-600 uppercase font-black tracking-wider border-b border-slate-200">
+                                        <tr>
+                                            <th class="py-3 px-3 w-12 text-center">No</th>
+                                            <th class="py-3 px-3 w-28 text-center">Dimensi</th>
+                                            <th class="py-3 px-4">Pernyataan DASS-21</th>
+                                            <th class="py-3 px-3 w-24 text-center">Skor</th>
+                                            <th class="py-3 px-4 w-44">Respon Kandidat</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dassCorrectionSheetBody" class="divide-y divide-slate-100 text-slate-700">
+                                        <!-- Diisi secara dinamis via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TABEL NORMA SKORING KLINIS & AMBANG BATAS DASS-21 (PERSIS FOTO REFERENSI) -->
+                        <div class="bg-white border-2 border-slate-800 rounded-2xl overflow-hidden shadow-md">
+                            <div class="h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 w-full"></div>
+                            <div class="bg-slate-900 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-table-list text-amber-400"></i>
+                                    <span>Tabel Norma Skoring Klinis &amp; Ambang Batas DASS-21 (Panduan Penilaian HRD)</span>
+                                </h3>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+                                    Standard Lovibond &amp; Lovibond (1995)
+                                </span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-center text-xs border-collapse font-sans">
+                                    <thead>
+                                        <tr class="font-black text-sm border-b-2 border-slate-800 text-white">
+                                            <th class="py-3 px-4 bg-[#1e293b] border-r-2 border-slate-800 tracking-wider w-1/4">DASS - 21</th>
+                                            <th class="py-3 px-4 bg-[#dc2626] border-r-2 border-slate-800 tracking-wider w-1/4">DEPRESSION</th>
+                                            <th class="py-3 px-4 bg-[#ea580c] border-r-2 border-slate-800 tracking-wider w-1/4">ANXIETY</th>
+                                            <th class="py-3 px-4 bg-[#eab308] text-slate-950 tracking-wider w-1/4">STRESS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-slate-800 font-bold divide-y divide-slate-300">
+                                        <!-- 1. NORMAL -->
+                                        <tr class="bg-white hover:bg-slate-50 transition">
+                                            <td class="py-3 px-4 bg-slate-100 border-r-2 border-slate-800 font-black text-slate-900 uppercase tracking-wider">NORMAL</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">0 - 4</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">0 - 3</td>
+                                            <td class="py-3 px-4 text-sm font-bold text-slate-800">0 - 7</td>
+                                        </tr>
+                                        <!-- 2. MILD -->
+                                        <tr class="bg-white hover:bg-slate-50 transition">
+                                            <td class="py-3 px-4 bg-slate-100 border-r-2 border-slate-800 font-black text-slate-900 uppercase tracking-wider">MILD</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">5 - 6</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">4 - 5</td>
+                                            <td class="py-3 px-4 text-sm font-bold text-slate-800">8 - 9</td>
+                                        </tr>
+                                        <!-- 3. MODERATE -->
+                                        <tr class="bg-white hover:bg-slate-50 transition">
+                                            <td class="py-3 px-4 bg-slate-100 border-r-2 border-slate-800 font-black text-slate-900 uppercase tracking-wider">MODERATE</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">7 - 10</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">6 - 7</td>
+                                            <td class="py-3 px-4 text-sm font-bold text-slate-800">10 - 12</td>
+                                        </tr>
+                                        <!-- 4. SEVERE -->
+                                        <tr class="bg-white hover:bg-slate-50 transition">
+                                            <td class="py-3 px-4 bg-slate-100 border-r-2 border-slate-800 font-black text-slate-900 uppercase tracking-wider">SEVERE</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">11 - 13</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">8 - 9</td>
+                                            <td class="py-3 px-4 text-sm font-bold text-slate-800">13 - 16</td>
+                                        </tr>
+                                        <!-- 5. EXTREME -->
+                                        <tr class="bg-white hover:bg-slate-50 transition">
+                                            <td class="py-3 px-4 bg-slate-100 border-r-2 border-slate-800 font-black text-slate-900 uppercase tracking-wider">EXTREME</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">&ge; 14</td>
+                                            <td class="py-3 px-4 border-r border-slate-300 text-sm font-bold text-slate-800">&ge; 10</td>
+                                            <td class="py-3 px-4 text-sm font-bold text-slate-800">&ge; 17</td>
+                                        </tr>
+                                        <!-- 6. RW (SKOR MENTAH KANDIDAT AKTIF) -->
+                                        <tr class="border-t-2 border-slate-800">
+                                            <td class="py-3 px-4 bg-[#262626] border-r-2 border-slate-800 font-black text-white text-sm uppercase tracking-wider">RW</td>
+                                            <td id="dassNormRwD" class="py-3 px-4 border-r border-slate-400 font-black text-base text-rose-700 bg-rose-50 transition-colors">-</td>
+                                            <td id="dassNormRwA" class="py-3 px-4 border-r border-slate-400 font-black text-base text-orange-700 bg-orange-50 transition-colors">-</td>
+                                            <td id="dassNormRwS" class="py-3 px-4 font-black text-base text-amber-700 bg-amber-50 transition-colors">-</td>
+                                        </tr>
+                                        <!-- 7. RESULT (HASIL KATEGORI KLINIS KANDIDAT AKTIF) -->
+                                        <tr class="border-t border-slate-300">
+                                            <td class="py-3 px-4 bg-[#c7e9c0] border-r-2 border-slate-800 font-black text-slate-900 text-xs uppercase tracking-wider">RESULT</td>
+                                            <td id="dassNormResD" class="py-3 px-4 border-r border-slate-300 font-black text-xs text-slate-800 bg-white transition-colors">-</td>
+                                            <td id="dassNormResA" class="py-3 px-4 border-r border-slate-300 font-black text-xs text-slate-800 bg-white transition-colors">-</td>
+                                            <td id="dassNormResS" class="py-3 px-4 font-black text-xs text-slate-800 bg-white transition-colors">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2026,6 +2403,7 @@
     <script src="js/data/cfit-data.js"></script>
     <script src="js/data/epps-data.js"></script>
     <script src="js/data/mbti-data.js"></script>
+    <script src="js/data/dass-data.js"></script>
     <script src="js/state.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
