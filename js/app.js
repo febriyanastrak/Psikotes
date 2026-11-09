@@ -168,12 +168,15 @@ function handleStartModule(testNum) {
             pindahFase('view-mbti');
         }
     } else if (testNum === 9 || testNum === 'apm') {
-        const modal = document.getElementById('modal-module-apm');
-        if (modal) {
-            modal.classList.remove('hide-section');
-            modal.style.display = 'flex';
-        } else if (typeof startApmTest === 'function') {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+        if (typeof startApmTest === 'function') {
             startApmTest();
+        } else if (window.apmEngine && typeof window.apmEngine.start === 'function') {
+            window.apmEngine.start();
+        } else if (typeof pindahFase === 'function') {
+            pindahFase('view-apm');
         }
     } else if (testNum === 10 || testNum === 'dass') {
         const modal = document.getElementById('modal-module-dass');

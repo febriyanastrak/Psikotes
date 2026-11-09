@@ -5,12 +5,12 @@
 // =========================================================================
 
 const APM_CONFIG = {
-    namaTes: "Intelegent 3",
+    namaTes: "Inteligensi 3",
     deskripsi: "Mengukur kapasitas penalaran logika analitik dan pemecahan masalah pola matriks non-verbal tingkat lanjut.",
     subtes: [
         {
             no: 1,
-            nama: "Subtes 1 (Intelegent 3)",
+            nama: "Subtes 1",
             waktuDetik: 420, // 7 Menit (420.000 ms)
             totalSoal: 12,
             opsiCount: 8,
@@ -19,7 +19,7 @@ const APM_CONFIG = {
         },
         {
             no: 2,
-            nama: "Subtes 2 (Intelegent 3)",
+            nama: "Subtes 2",
             waktuDetik: 2700, // 45 Menit (2.700.000 ms)
             totalSoal: 36,
             opsiCount: 8,

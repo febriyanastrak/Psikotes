@@ -236,8 +236,7 @@
                             <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">BAGIAN ${noStr} / 02</span>
                             ${badgeHtml}
                         </div>
-                        <h3 class="text-base sm:text-lg font-black text-slate-900 mb-2">${sub.nama}</h3>
-                        <p class="text-xs text-slate-600 leading-relaxed mb-4">${sub.petunjuk}</p>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 mb-4">${sub.nama}</h3>
                     </div>
                     <div class="pt-4 border-t border-slate-100">
                         <div class="grid grid-cols-2 gap-2 text-xs mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -271,7 +270,7 @@
                                     <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kemampuan Analitik
                                 </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
-                                    Intelegent 3
+                                    Inteligensi 3
                                 </h1>
                                 <p class="text-xs sm:text-sm text-slate-200 mt-1">
                                     Tes terdiri dari <strong>2 bagian subtes</strong> yang wajib dikerjakan secara berurutan.
