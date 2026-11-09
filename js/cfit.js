@@ -244,7 +244,7 @@
                                     <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2
                                 </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
-                                    Inteligent 2
+                                    Inteligensi 2
                                 </h1>
                                 <p class="text-xs sm:text-sm text-slate-200 mt-1">
                                     Pengukuran Fluid Intelligence &amp; Penalaran Abstrak (4 Subtes Berurutan)
@@ -270,7 +270,7 @@
                 ${totalSelesai >= 4 ? `
                 <div class="flex justify-end items-center pt-2">
                     <button type="button" onclick="window.cfitEngine.selesaiSeluruhCfit()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition flex items-center gap-2 shadow-md cursor-pointer">
-                        <i class="fa-solid fa-flag-checkered"></i> <span>Kirim &amp; Selesaikan Modul Inteligent 2</span>
+                        <i class="fa-solid fa-flag-checkered"></i> <span>Kirim &amp; Selesaikan Modul Inteligensi 2</span>
                     </button>
                 </div>
                 ` : ''}
@@ -1201,7 +1201,7 @@
                 </div>
                 <div>
                     <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">MODUL SELESAI</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Tes Inteligent 2 Telah Selesai</h2>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Tes Inteligensi 2 Telah Selesai</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-2.5 leading-relaxed max-w-lg mx-auto">
                         Seluruh jawaban 4 subtes Anda telah berhasil disimpan dan dikirim ke server asesmen PT Altrak 1978.
                     </p>
@@ -1253,7 +1253,7 @@
 
                 let msg = `Peringatan ke-${count}! Anda terdeteksi meninggalkan tab/jendela ujian. Harap tetap berada di halaman tes demi integritas asesmen PT Altrak 1978.`;
                 if (count >= cfitState.toleransiTab) {
-                    msg = `PERINGATAN TERAKHIR (${count}x)! Toleransi perpindahan tab telah terlampaui. Sesi tes Inteligent 2 Anda dihentikan dan jawaban dikirimkan secara otomatis ke server demi integritas tes.`;
+                    msg = `PERINGATAN TERAKHIR (${count}x)! Toleransi perpindahan tab telah terlampaui. Sesi tes Inteligensi 2 Anda dihentikan dan jawaban dikirimkan secara otomatis ke server demi integritas tes.`;
                     alertModal(`Pelanggaran Integritas (${count}x)`, msg, () => {
                         selesaiSeluruhCfit();
                     });

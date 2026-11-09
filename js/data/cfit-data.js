@@ -5,12 +5,12 @@
 // =========================================================================
 
 const CFIT_CONFIG = {
-    namaTes: "Inteligent 2",
+    namaTes: "Inteligensi 2",
     deskripsi: "Mengukur kecerdasan murni (Fluid Intelligence) dan kemampuan penalaran abstrak tanpa bias budaya maupun bahasa.",
     subtes: [
         {
             no: 1,
-            nama: "Subtes 1: Seriation (Pola Deret Garis & Bentuk)",
+            nama: "Subtes 1 (Seri)",
             waktuDetik: 180, // 3 Menit
             totalSoal: 13,
             opsiCount: 6,
@@ -18,7 +18,7 @@ const CFIT_CONFIG = {
         },
         {
             no: 2,
-            nama: "Subtes 2: Classification (Klasifikasi Gambar Ganjil)",
+            nama: "Subtes 2 (Klasifikasi)",
             waktuDetik: 240, // 4 Menit
             totalSoal: 14,
             opsiCount: 5,
@@ -28,7 +28,7 @@ const CFIT_CONFIG = {
         },
         {
             no: 3,
-            nama: "Subtes 3: Matrices (Matriks Gambar 2x2 & 3x3)",
+            nama: "Subtes 3 (Matriks)",
             waktuDetik: 180, // 3 Menit
             totalSoal: 13,
             opsiCount: 6,
@@ -36,7 +36,7 @@ const CFIT_CONFIG = {
         },
         {
             no: 4,
-            nama: "Subtes 4: Conditions / Topology (Kesesuaian Titik & Garis)",
+            nama: "Subtes 4 (Tipologi)",
             waktuDetik: 150, // 2.5 Menit (2 Menit 30 Detik)
             totalSoal: 10,
             opsiCount: 5,
