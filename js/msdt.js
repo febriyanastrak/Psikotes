@@ -204,14 +204,25 @@
                         </div>
                     </div>
 
-                    <div class="p-3.5 bg-[#edf3f9] rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-2">
-                        <p class="font-medium">
-                            ${ped.deskripsi}
-                        </p>
-                        <p class="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-blue-100">
-                            <i class="fa-solid fa-circle-info text-blue-600 mr-1.5"></i>
-                            ${ped.catatan}
-                        </p>
+                    <div class="bg-[#edf3f9] p-4 sm:p-5 rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-2.5">
+                        <ul class="space-y-2.5 leading-relaxed text-slate-700">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Pada tes ini terdapat 64 pasang pernyataan mengenai tindakan yang mungkin Anda lakukan dalam tugas Anda di perusahaan.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Anda diminta untuk memilih SATU pernyataan dari setiap pasangan yang paling sesuai dengan diri Anda, atau paling mungkin Anda lakukan.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Terkadang Anda merasa kedua tindakan sama-sama mungkin Anda lakukan, atau sebaliknya keduanya sama-sama tidak sesuai. Meskipun demikian, Anda TETAP HARUS MEMILIH SATU di antara keduanya yang paling mendekati diri Anda.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Ini bukan tes kemampuan teknis; tidak ada jawaban 'Benar' atau 'Salah'. Bekerjalah secepat yang Anda bisa, secara jujur dan spontan, serta pastikan seluruh 64 nomor terisi lengkap.</span>
+                            </li>
+                        </ul>
                     </div>
 
                     <!-- KOTAK CONTOH SOAL -->
@@ -240,28 +251,6 @@
 
                         <div class="text-xs text-slate-600 leading-relaxed bg-white p-3 rounded-xl border border-slate-200">
                             <strong class="text-[#003865]">Penjelasan:</strong> ${ped.contoh.penjelasan}
-                        </div>
-                    </div>
-
-                    <!-- KETENTUAN TES -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-list-ol text-lg text-[#003865] mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Jumlah Soal</p>
-                            <p class="text-sm sm:text-base font-black text-[#003865] mt-0.5">64 Soal</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Wajib dijawab seluruhnya</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-stopwatch text-lg text-blue-600 mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi Waktu</p>
-                            <p class="text-sm sm:text-base font-black text-blue-700 mt-0.5">30 Menit</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Gunakan waktu secara efisien</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-scale-balanced text-lg text-emerald-600 mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Karakter Pilihan</p>
-                            <p class="text-sm sm:text-base font-black text-emerald-700 mt-0.5">Tidak Ada Salah/Benar</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Jawablah sesuai diri Anda</p>
                         </div>
                     </div>
 

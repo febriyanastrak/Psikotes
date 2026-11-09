@@ -162,31 +162,25 @@
                         </div>
                     </div>
 
-                    <div class="p-4 bg-[#edf3f9] rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3">
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-[#003865] text-amber-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
-                            <p>
-                                Pada tes ini, Anda akan dihadapkan pada <strong>60 pernyataan berpasangan (Pilihan A dan Pilihan B)</strong>. Pernyataan tersebut menggambarkan kecenderungan cara pandang, reaksi emosional, pengambilan keputusan, dan gaya kerja sehari-hari.
-                            </p>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-[#003865] text-amber-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
-                            <p>
-                                <strong>Tidak ada pilihan jawaban yang "BENAR" atau "SALAH".</strong> Pilihlah pernyataan yang <strong>paling spontan dan jujur menggambarkan diri Anda yang sebenarnya</strong>, bukan apa yang Anda anggap ideal atau disukai orang lain.
-                            </p>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-[#003865] text-amber-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
-                            <p>
-                                <strong>Estimasi Waktu Pengerjaan:</strong> Disarankan selesai dalam kurun waktu <strong>15 hingga 20 menit</strong>. Jawablah dengan tempo wajar dan jangan berpikir terlalu lama pada satu nomor tertentu.
-                            </p>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-[#003865] text-amber-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
-                            <p>
-                                <strong>Anti-Skip:</strong> Seluruh 60 nomor <strong>wajib terisi lengkap</strong> sebelum Anda dapat mengumpulkan lembar jawaban. Soal dibagi ke dalam 4 halaman (15 nomor per halaman).
-                            </p>
-                        </div>
+                    <div class="bg-[#edf3f9] p-5 sm:p-6 rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3">
+                        <ul class="space-y-2.5 leading-relaxed text-slate-700">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Pada tes ini terdapat 60 pasang pernyataan (Pilihan A dan Pilihan B).</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Anda diminta untuk memilih SATU pernyataan dari setiap pasangan yang paling spontan dan jujur menggambarkan diri atau preferensi alamiah Anda.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Terkadang Anda merasa kedua pernyataan sama-sama cocok, atau sebaliknya keduanya sama-sama tidak sesuai. Meskipun demikian, Anda TETAP HARUS MEMILIH SATU di antara keduanya yang paling mendekati diri Anda.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Tidak ada jawaban yang 'Benar' atau 'Salah' dalam tes ini. Estimasi pengerjaan 15 hingga 20 menit, dan seluruh 60 nomor wajib terisi lengkap sebelum dikumpulkan.</span>
+                            </li>
+                        </ul>
                     </div>
 
                     <!-- KOTAK SIMULASI CONTOH SOAL (INTERAKTIF) -->
@@ -222,19 +216,6 @@
                                 <span class="text-left leading-relaxed flex-1">Saya lebih fokus saat menganalisis pekerjaan dan merancang strategi secara mandiri.</span>
                             </button>
                         </div>
-                    </div>
-
-                    <!-- PAKTA KEAMANAN & PENGAWASAN UJIAN -->
-                    <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs space-y-1.5">
-                        <div class="font-extrabold flex items-center gap-1.5 text-amber-950">
-                            <i class="fa-solid fa-shield-halved text-amber-600"></i>
-                            <span>Protokol Integritas &amp; Pengawasan Sistem PT Altrak 1978:</span>
-                        </div>
-                        <ul class="list-disc list-inside space-y-1 text-slate-700 pl-1 leading-relaxed">
-                            <li>Kamera pengawasan webcam aktif secara berkala demi menjamin keaslian identitas peserta.</li>
-                            <li>Sistem otomatis mendeteksi perpindahan tab atau jendela aplikasi lain (anti tab-switch).</li>
-                            <li>Setelah Anda mengklik tombol di bawah, sistem otomatis beralih ke mode layar penuh (<em>fullscreen</em>).</li>
-                        </ul>
                     </div>
 
                     <!-- TOMBOL MULAI PENGERJAAN -->

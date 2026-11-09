@@ -365,11 +365,15 @@
                         <i class="fa-solid fa-circle-info text-amber-500"></i>
                         <span>Petunjuk Pengerjaan:</span>
                     </div>
-                    <ul class="list-disc list-inside space-y-1 text-slate-600 text-xs sm:text-sm pl-1">
-                        <li>Setiap nomor memiliki 4 baris pernyataan yang mendeskripsikan sifat/perilaku.</li>
-                        <li>Pilihlah <strong>tepat satu [P]</strong> untuk pernyataan yang <em>PALING</em> menggambarkan diri Anda.</li>
-                        <li>Pilihlah <strong>tepat satu [K]</strong> untuk pernyataan yang <em>PALING TIDAK</em> menggambarkan diri Anda (Kecil/Kurang).</li>
-                        <li><strong>Perhatian:</strong> Anda tidak diperkenankan memilih [P] dan [K] pada baris pernyataan yang sama.</li>
+                    <ul class="list-disc list-inside space-y-1.5 text-slate-600 text-xs sm:text-sm pl-1">
+                        <li>Merupakan tes kepribadian; tidak ada jawaban yang benar atau salah.</li>
+                        <li>Waktu pengerjaan 15 menit.</li>
+                        <li>Terdapat 4 pernyataan di setiap nomor.</li>
+                        <li>Pilih satu pernyataan yang <strong>paling menggambarkan diri</strong> di kolom [P].</li>
+                        <li>Pilih satu pernyataan yang <strong>paling tidak menggambarkan diri</strong> di kolom [K].</li>
+                        <li>Hanya memilih satu pernyataan [P] dan [K] di setiap kotak.</li>
+                        <li>Saat mengerjakan bayangkan Anda berada di setting lingkungan kerja.</li>
+                        <li>Jawab dengan spontan dan jujur.</li>
                     </ul>
                 </div>
 

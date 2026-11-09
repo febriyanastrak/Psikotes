@@ -129,9 +129,9 @@
             renderContohSubtes(savedSubtes, savedContohIdx);
             return;
         } else if (savedFase === 'PANDUAN' && savedSubtes >= 1 && savedSubtes <= 4) {
-            cfitState.fase = "PANDUAN";
+            cfitState.fase = "CONTOH";
             cfitState.currentSubtesNo = savedSubtes;
-            renderPanduanSubtes(savedSubtes);
+            renderContohSubtes(savedSubtes, 0);
             return;
         }
 
@@ -210,8 +210,7 @@
                             <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">BAGIAN ${noStr} / 04</span>
                             ${badgeHtml}
                         </div>
-                        <h3 class="text-base sm:text-lg font-black text-slate-900 mb-2">${sub.nama}</h3>
-                        <p class="text-xs text-slate-600 leading-relaxed mb-4">${sub.petunjuk}</p>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 mb-4">${sub.nama}</h3>
                     </div>
                     <div class="pt-4 border-t border-slate-100">
                         <div class="grid grid-cols-2 gap-2 text-xs mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -296,134 +295,18 @@
         cfitState.currentSubtesNo = noInt;
         cfitState.currentSoalIdx = 0;
         try {
-            localStorage.setItem('cfit_fase', 'PANDUAN');
+            localStorage.setItem('cfit_fase', 'CONTOH');
             localStorage.setItem('cfit_current_subtes', String(noInt));
+            localStorage.setItem('cfit_current_contoh_idx', '0');
         } catch (e) {}
-        renderPanduanSubtes(noInt);
+        renderContohSubtes(noInt, 0);
     }
 
     // =========================================================================
-    // 2. FASE PANDUAN SUBTES RESMI (GAYA MSDT)
+    // 2. FASE PANDUAN SUBTES RESMI (LANGSUNG DILANJUTKAN KE CONTOH SOAL)
     // =========================================================================
     function renderPanduanSubtes(noInt) {
-        cfitState.fase = "PANDUAN";
-        cfitState.currentSubtesNo = noInt;
-        bersihkanTimer();
-        try {
-            localStorage.setItem('cfit_fase', 'PANDUAN');
-            localStorage.setItem('cfit_current_subtes', String(noInt));
-        } catch (e) {}
-
-        const container = document.getElementById('cfit-app-container');
-        if (!container) return;
-
-        const config = window.CFIT_CONFIG && window.CFIT_CONFIG.subtes && window.CFIT_CONFIG.subtes[noInt - 1];
-        if (!config) return;
-
-        const menit = Math.floor(config.waktuDetik / 60);
-        const detik = config.waktuDetik % 60;
-        const waktuStr = detik > 0 ? `${menit} Menit ${detik} Detik` : `${menit} Menit`;
-
-        container.innerHTML = `
-            <div class="space-y-4 animate-fade-in pb-4">
-                <!-- HEADER BANNER PEDOMAN (GAYA MSDT) -->
-                <div class="bg-gradient-to-r from-[#051627] via-[#003865] to-[#0a4980] rounded-2xl p-4 sm:p-5 text-white shadow-xl border border-blue-400/20 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/10 text-amber-400 flex items-center justify-center text-xl sm:text-2xl font-black border border-white/20 shadow-inner shrink-0">
-                                <i class="fa-solid fa-shapes"></i>
-                            </div>
-                            <div>
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider mb-1">
-                                    <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2 &bull; Subtes ${noInt} dari 4
-                                </div>
-                                <h1 class="text-lg sm:text-xl font-black text-white leading-tight">
-                                    ${config.nama}
-                                </h1>
-                                <p class="text-[11px] sm:text-xs text-slate-200">
-                                    Pedoman Pelaksanaan &amp; Petunjuk Mengerjakan Subtes
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 text-center">
-                                <span class="text-[9px] uppercase font-bold text-sky-200 block">Waktu Ujian</span>
-                                <span class="text-sm font-black text-amber-300">${waktuStr}</span>
-                            </div>
-                            <button type="button" onclick="window.cfitEngine.renderMenu4Subtes()"
-                                class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-1.5 border border-white/20 cursor-pointer">
-                                <i class="fa-solid fa-arrow-left"></i>
-                                <span>Menu Subtes</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KARTU PETUNJUK RESMI & PEDOMAN (GAYA MSDT) -->
-                <div class="bg-white rounded-3xl border border-[#b9d0e7] shadow-xl p-5 sm:p-6 space-y-4">
-                    <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-[#003865] flex items-center justify-center text-base font-bold border border-blue-200 shrink-0">
-                            <i class="fa-solid fa-book-open"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-base sm:text-lg font-black text-[#003865]">Petunjuk Mengerjakan Subtes ${noInt}</h2>
-                            <p class="text-[11px] text-slate-500">Bacalah petunjuk di bawah ini dengan seksama sebelum memulai latihan contoh soal</p>
-                        </div>
-                    </div>
-
-                    <div class="p-3.5 bg-[#edf3f9] rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-1">
-                        <h4 class="font-black text-[#003865] text-xs sm:text-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-info text-amber-500"></i> Penjelasan Soal:
-                        </h4>
-                        <p class="font-medium text-slate-800">${config.petunjuk}</p>
-                    </div>
-
-                    <!-- KETENTUAN TES (3 KOTAK METRIK PERSIS GAYA MSDT) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-list-ol text-lg text-[#003865] mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Jumlah Soal</p>
-                            <p class="text-sm sm:text-base font-black text-[#003865] mt-0.5">${config.totalSoal} Soal</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Wajib dikerjakan berurutan</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-stopwatch text-lg text-blue-600 mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Alokasi Waktu</p>
-                            <p class="text-sm sm:text-base font-black text-blue-700 mt-0.5">${waktuStr}</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Berjalan otomatis di latar</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                            <i class="fa-solid fa-circle-check text-lg text-emerald-600 mb-1"></i>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Karakter Pilihan</p>
-                            <p class="text-sm sm:text-base font-black text-emerald-700 mt-0.5">${noInt === 2 ? 'Wajib 2 Kotak' : 'Pilih 1 Jawaban'}</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">${noInt === 2 ? 'Tepat 2 pilihan per nomor' : 'Pilihan A, B, C, D, E, F'}</p>
-                        </div>
-                    </div>
-
-                    ${noInt === 2 ? `
-                        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm shrink-0"></i>
-                            <span>PENTING KHUSUS SUBTES 2: Anda WAJIB memilih tepat 2 (DUA) kotak jawaban pada setiap nomor soal!</span>
-                        </div>
-                    ` : ''}
-
-                    <!-- TOMBOL MULAI PENGERJAAN (PERSIS GAYA MSDT) -->
-                    <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <button type="button" onclick="window.cfitEngine.renderMenu4Subtes()"
-                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-arrow-left"></i>
-                            <span>Kembali ke Menu</span>
-                        </button>
-                        <button type="button" onclick="window.cfitEngine.renderContohSubtes(${noInt}, 0)"
-                            class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
-                            <span>Lanjut ke Latihan Contoh Soal</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+        renderContohSubtes(noInt, 0);
     }
 
     function jalankanTimerContoh(subtesNo) {
@@ -652,8 +535,8 @@
 
                     <!-- 6. TOMBOL AKSI CONTOH (LANGSUNG LANJUT KE CONTOH BERIKUTNYA / MULAI UJIAN UTAMA) -->
                     <div class="pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-slate-100">
-                        <button type="button" onclick="window.cfitEngine.renderPanduanSubtes(${subtesNo})" class="px-5 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5">
-                            <i class="fa-solid fa-arrow-left mr-1"></i> Panduan
+                        <button type="button" onclick="window.cfitEngine.renderMenu4Subtes()" class="px-5 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Menu Subtes
                         </button>
                         <button type="button" onclick="window.cfitEngine.renderContohSubtes(${subtesNo}, ${contohIdx + 1})" class="px-8 py-3.5 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all flex items-center gap-2 cursor-pointer rounded-xl">
                             <span>${contohIdx + 1 < contohList.length ? 'Contoh Berikutnya' : `Mulai Ujian Utama Subtes ${subtesNo}`}</span> <i class="fa-solid fa-arrow-right"></i>

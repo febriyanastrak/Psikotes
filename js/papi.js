@@ -422,7 +422,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-black uppercase tracking-wider text-[#003865] flex items-center gap-1.5">
                                 <i class="fa-solid fa-vial-circle-check text-blue-600"></i>
-                                Contoh Latihan Soal Interaktif (2 Contoh)
+                                Contoh Latihan Soal
                             </span>
                             <span class="text-[11px] font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200">
                                 Coba Klik Opsi A atau B

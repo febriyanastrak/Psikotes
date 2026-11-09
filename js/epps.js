@@ -183,42 +183,33 @@
                         </div>
                     </div>
 
-                    <!-- KOTAK HIGHLIGHT KHUSUS KUTIPAN RESMI HALAMAN 3 -->
-                    <div class="p-6 bg-gradient-to-br from-amber-50/80 via-blue-50/40 to-slate-50 rounded-2xl border-2 border-amber-300 text-slate-700 text-sm leading-relaxed space-y-4 shadow-sm relative overflow-hidden">
-                        <div class="absolute -top-3 -right-3 w-28 h-28 bg-amber-400/10 rounded-full blur-xl pointer-events-none"></div>
-                        <div class="flex items-center gap-2 pb-2 border-b border-amber-200/80">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white uppercase tracking-wider shadow-xs">
-                                <i class="fa-solid fa-bookmark mr-1"></i> Kutipan Resmi Halaman 3 Buku Pedoman EPPS
-                            </span>
-                            <span class="text-[11px] text-slate-500 font-semibold italic">Pedoman Standar Psikodiagnostik</span>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <span class="p-2.5 rounded-xl bg-[#003865] text-amber-400 text-base shadow flex-shrink-0 mt-0.5">
-                                <i class="fa-solid fa-quote-left"></i>
-                            </span>
-                            <div class="space-y-3.5 text-slate-800 font-medium">
-                                <div class="bg-amber-100/90 p-4 rounded-xl border border-amber-300 text-amber-950 font-bold leading-relaxed shadow-xs">
-                                    <span class="bg-amber-300/80 px-1 py-0.5 rounded">Setiap pilihan Anda hendaknya didasarkan atas kemiripan dengan gambaran atau perasaan Anda sekarang. Dan tidak didasarkan atas hal-hal yang Anda anggap wajar.</span>
-                                </div>
-                                <p class="leading-relaxed text-slate-700">
-                                    Ini adalah tes kepribadian, tidak ada jawaban yang benar atau salah. Jawablah yang paling mengambarkan perasaan anda.
-                                </p>
-                                <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-950 font-black flex items-center gap-2.5">
-                                    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg flex-shrink-0"></i>
-                                    <span>Tetapkan pilihan Anda setelah membaca pernyataan yang berpasangan ini, dan <span class="underline decoration-rose-500 decoration-2">JANGAN ADA YANG ANDA LEWATI TANPA MEMILIH</span>.</span>
-                                </div>
-                                <p class="text-xs text-slate-600 leading-relaxed">
-                                    Pasangan-pasangan pernyataan pada lembar tes serupa dengan contoh yang telah diberikan di bawah ini. Bacalah setiap pasangan dan pilihlah pernyataan yang <strong>"lebih menggambarkan diri Anda"</strong> dengan cara memilih huruf <strong>A</strong> atau <strong>B</strong>.
-                                </p>
-                            </div>
-                        </div>
+                    <!-- KARTU PETUNJUK RESMI & PEDOMAN GAYA PAPI -->
+                    <div class="bg-[#edf3f9] p-5 sm:p-6 rounded-2xl border border-[#b9d0e7] text-slate-700 text-xs sm:text-sm leading-relaxed space-y-3">
+                        <ul class="space-y-2.5 leading-relaxed text-slate-700">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Pada tes ini terdapat 225 pasang pernyataan (Pilihan A dan Pilihan B).</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Anda diminta untuk memilih SATU pernyataan dari setiap pasangan yang paling mendekati gambaran diri Anda, atau yang paling mendekati gambaran perasaan Anda.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Terkadang Anda merasa kedua pernyataan sama-sama cocok, atau sebaliknya kedua pernyataan sama-sama tidak sesuai dengan diri Anda. Meskipun demikian, Anda TETAP HARUS MEMILIH SATU di antara keduanya yang paling mendekati diri Anda.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 shrink-0 text-sm"></i>
+                                <span>Tidak ada jawaban yang 'Benar' atau 'Salah' dalam tes ini. Bekerjalah secepat yang Anda bisa, dengan jujur dan spontan, serta pastikan tidak ada nomor yang terlewatkan tanpa memilih.</span>
+                            </li>
+                        </ul>
                     </div>
 
                     <!-- KOTAK CONTOH SIMULASI SOAL -->
                     <div class="border-2 border-dashed border-[#003865]/30 rounded-2xl p-5 sm:p-6 bg-slate-50/70 space-y-4">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-black uppercase tracking-wider text-[#003865] bg-blue-100/70 px-3 py-1 rounded-full border border-blue-200">
-                                <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Contoh Soal Pasangan
+                                <i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Contoh Soal
                             </span>
                             <span class="text-xs text-slate-500 font-semibold">Simulasi Pilihan A vs B</span>
                         </div>
