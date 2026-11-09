@@ -6833,6 +6833,24 @@ function renderDassResults(rawData) {
         }
     };
 
+    // Helper untuk style progress bar severity (sinkron dengan warna badge)
+    const getProgressBarClass = (lvl) => {
+        switch (lvl) {
+            case 'NORMAL':
+                return 'h-full bg-emerald-500 transition-all duration-500 rounded-full';
+            case 'MILD':
+                return 'h-full bg-amber-400 transition-all duration-500 rounded-full';
+            case 'MODERATE':
+                return 'h-full bg-amber-500 transition-all duration-500 rounded-full';
+            case 'SEVERE':
+                return 'h-full bg-rose-600 transition-all duration-500 rounded-full';
+            case 'EXTREME':
+                return 'h-full bg-red-600 transition-all duration-500 rounded-full';
+            default:
+                return 'h-full bg-emerald-500 transition-all duration-500 rounded-full';
+        }
+    };
+
     // Update Metrik Ringkasan
     if (mhsiEl) mhsiEl.innerText = `${mhsi !== null ? mhsi : Math.max(0, Math.round(100 - ((rawD + rawA + rawS) / 63) * 100))}%`;
     if (durasiEl) durasiEl.innerText = parsed.durasi_format || (parsed.durasi_detik ? `${Math.floor(parsed.durasi_detik / 60)} Menit` : '-');
@@ -6856,7 +6874,7 @@ function renderDassResults(rawData) {
     }
     if (depBarEl) {
         depBarEl.style.width = `${Math.min(100, Math.round((rawD / 21) * 100))}%`;
-        depBarEl.className = lvlD === 'NORMAL' ? 'h-full bg-blue-600 transition-all duration-500 rounded-full' : (lvlD === 'MILD' ? 'h-full bg-amber-500 transition-all duration-500 rounded-full' : 'h-full bg-rose-600 transition-all duration-500 rounded-full');
+        depBarEl.className = getProgressBarClass(lvlD);
     }
 
     // Update Dimensi Kecemasan (A)
@@ -6867,7 +6885,7 @@ function renderDassResults(rawData) {
     }
     if (kecBarEl) {
         kecBarEl.style.width = `${Math.min(100, Math.round((rawA / 21) * 100))}%`;
-        kecBarEl.className = lvlA === 'NORMAL' ? 'h-full bg-amber-500 transition-all duration-500 rounded-full' : 'h-full bg-rose-600 transition-all duration-500 rounded-full';
+        kecBarEl.className = getProgressBarClass(lvlA);
     }
 
     // Update Dimensi Stres (S)
@@ -6878,7 +6896,7 @@ function renderDassResults(rawData) {
     }
     if (strBarEl) {
         strBarEl.style.width = `${Math.min(100, Math.round((rawS / 21) * 100))}%`;
-        strBarEl.className = lvlS === 'NORMAL' ? 'h-full bg-rose-500 transition-all duration-500 rounded-full' : 'h-full bg-red-700 transition-all duration-500 rounded-full';
+        strBarEl.className = getProgressBarClass(lvlS);
     }
 
     // Rekomendasi Kebugaran Kerja
@@ -6905,7 +6923,7 @@ function renderDassResults(rawData) {
     if (narasiAEl) narasiAEl.innerText = nA;
     if (narasiSEl) narasiSEl.innerText = nS;
 
-    // Render Grafik Chart.js
+    // Render Grafik Chart.js Modern
     const canvas = document.getElementById('dassChart');
     if (canvas && typeof Chart !== 'undefined') {
         if (dassChartInstance) {
@@ -6914,6 +6932,61 @@ function renderDassResults(rawData) {
         }
 
         const ctx = canvas.getContext('2d');
+
+        // Helper linear gradient modern
+        const getBarGradient = (context, colTop, colBottom) => {
+            const chart = context.chart;
+            const { ctx: c, chartArea } = chart;
+            if (!chartArea) {
+                const g = c.createLinearGradient(0, 0, 0, 320);
+                g.addColorStop(0, colTop);
+                g.addColorStop(1, colBottom);
+                return g;
+            }
+            const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            g.addColorStop(0, colTop);
+            g.addColorStop(1, colBottom);
+            return g;
+        };
+
+        // Custom inline plugin untuk menampilkan floating data labels di atas batang
+        const dassFloatingLabelsPlugin = {
+            id: 'dassFloatingLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx: c, chartArea } = chart;
+                if (!chartArea) return;
+                c.save();
+                chart.data.datasets.forEach((dataset, dIdx) => {
+                    const meta = chart.getDatasetMeta(dIdx);
+                    if (!meta || meta.hidden) return;
+                    meta.data.forEach((bar, idx) => {
+                        const val = dataset.data[idx];
+                        if (val === undefined || val === null) return;
+
+                        if (dIdx === 0) {
+                            // Skor Kandidat
+                            const isClinical = (idx === 0 && lvlD !== 'NORMAL') ||
+                                               (idx === 1 && lvlA !== 'NORMAL') ||
+                                               (idx === 2 && lvlS !== 'NORMAL');
+                            c.font = 'bold 13px "Plus Jakarta Sans", sans-serif';
+                            c.fillStyle = isClinical ? '#e11d48' : '#0284c7';
+                            c.textAlign = 'center';
+                            c.textBaseline = 'bottom';
+                            c.fillText(`${val}`, bar.x, bar.y - 5);
+                        } else if (dIdx === 1) {
+                            // Ambang Batas Normal
+                            c.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+                            c.fillStyle = '#059669';
+                            c.textAlign = 'center';
+                            c.textBaseline = 'bottom';
+                            c.fillText(`Maks ${val}`, bar.x, bar.y - 5);
+                        }
+                    });
+                });
+                c.restore();
+            }
+        };
+
         dassChartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -6922,34 +6995,67 @@ function renderDassResults(rawData) {
                     {
                         label: 'Skor Kandidat (0 - 21)',
                         data: [rawD, rawA, rawS],
-                        backgroundColor: [
-                            lvlD === 'NORMAL' ? 'rgba(37, 99, 235, 0.85)' : 'rgba(239, 68, 68, 0.85)',
-                            lvlA === 'NORMAL' ? 'rgba(245, 158, 11, 0.85)' : 'rgba(239, 68, 68, 0.85)',
-                            lvlS === 'NORMAL' ? 'rgba(244, 63, 94, 0.85)' : 'rgba(185, 28, 28, 0.85)'
-                        ],
-                        borderColor: [
-                            lvlD === 'NORMAL' ? '#2563eb' : '#ef4444',
-                            lvlA === 'NORMAL' ? '#f59e0b' : '#ef4444',
-                            lvlS === 'NORMAL' ? '#f43f5e' : '#b91c1c'
-                        ],
+                        backgroundColor: (context) => {
+                            const idx = context.dataIndex;
+                            const isClinical = (idx === 0 && lvlD !== 'NORMAL') ||
+                                               (idx === 1 && lvlA !== 'NORMAL') ||
+                                               (idx === 2 && lvlS !== 'NORMAL');
+                            return isClinical
+                                ? getBarGradient(context, '#f43f5e', '#fb7185') // Rose to Coral
+                                : getBarGradient(context, '#0284c7', '#38bdf8'); // Sky to Cyan
+                        },
+                        borderColor: (context) => {
+                            const idx = context.dataIndex;
+                            const isClinical = (idx === 0 && lvlD !== 'NORMAL') ||
+                                               (idx === 1 && lvlA !== 'NORMAL') ||
+                                               (idx === 2 && lvlS !== 'NORMAL');
+                            return isClinical ? '#e11d48' : '#0369a1';
+                        },
                         borderWidth: 1.5,
-                        borderRadius: 10,
-                        barPercentage: 0.55
+                        borderRadius: {
+                            topLeft: 8,
+                            topRight: 8,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        },
+                        borderSkipped: 'bottom',
+                        maxBarThickness: 34,
+                        categoryPercentage: 0.55,
+                        barPercentage: 0.92
                     },
                     {
                         label: 'Ambang Batas Maksimal Normal',
                         data: [4, 3, 7],
-                        backgroundColor: 'rgba(16, 185, 129, 0.25)',
-                        borderColor: '#10b981',
-                        borderWidth: 1.5,
-                        borderRadius: 10,
-                        barPercentage: 0.55
+                        backgroundColor: (context) => {
+                            return getBarGradient(context, 'rgba(16, 185, 129, 0.28)', 'rgba(5, 150, 105, 0.12)');
+                        },
+                        borderColor: '#059669',
+                        borderWidth: 2,
+                        borderRadius: {
+                            topLeft: 8,
+                            topRight: 8,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        },
+                        borderSkipped: 'bottom',
+                        maxBarThickness: 34,
+                        categoryPercentage: 0.55,
+                        barPercentage: 0.92
                     }
                 ]
             },
+            plugins: [dassFloatingLabelsPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 24,
+                        bottom: 4,
+                        left: 12,
+                        right: 12
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -6957,15 +7063,29 @@ function renderDassResults(rawData) {
                             font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: 'bold' },
                             color: '#334155',
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            padding: 16
                         }
                     },
                     tooltip: {
                         backgroundColor: '#071f38',
-                        titleFont: { size: 12, weight: 'bold' },
-                        bodyFont: { size: 11 },
-                        padding: 10,
-                        cornerRadius: 10
+                        titleFont: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: 'bold' },
+                        bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                        padding: 12,
+                        cornerRadius: 12,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                const val = context.parsed.y;
+                                if (context.datasetIndex === 0) {
+                                    const labels = [lblD, lblA, lblS];
+                                    const status = labels[context.dataIndex] || 'Normal';
+                                    return ` Skor Kandidat: ${val} / 21 (${status})`;
+                                } else {
+                                    return ` Batas Maksimal Normal: ${val} / 21`;
+                                }
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -6975,18 +7095,25 @@ function renderDassResults(rawData) {
                         ticks: {
                             stepSize: 3,
                             color: '#64748b',
-                            font: { size: 10, weight: '600' }
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' }
                         },
                         grid: {
-                            color: 'rgba(226, 232, 240, 0.7)'
+                            color: 'rgba(226, 232, 240, 0.7)',
+                            borderDash: [4, 4]
+                        },
+                        border: {
+                            display: false
                         }
                     },
                     x: {
                         ticks: {
                             color: '#003865',
-                            font: { size: 11, weight: 'bold' }
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: 'bold' }
                         },
-                        grid: { display: false }
+                        grid: { display: false },
+                        border: {
+                            display: false
+                        }
                     }
                 }
             }

@@ -1982,7 +1982,7 @@
                                             <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
                                                 Modul Asesmen 11
                                             </span>
-                                            <span class="text-xs text-sky-200 font-bold">Standard Lovibond &amp; Lovibond (1995)</span>
+                                            <span class="text-xs text-sky-200 font-semibold flex items-center gap-1.5"><span class="text-sky-400">•</span> Standar Lovibond &amp; Lovibond (1995)</span>
                                         </div>
                                         <h3 class="text-2xl sm:text-3xl font-black text-white leading-tight">
                                             DASS-21 Mental Health &amp; Stress Scale
@@ -1994,18 +1994,18 @@
                                 </div>
 
                                 <!-- Ringkasan Metrik Cepat -->
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[120px] flex flex-col justify-center">
                                         <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Indeks Stabilitas (MHSI)</span>
                                         <span class="text-xl sm:text-2xl font-black text-[#ffbe1a]" id="dassRptMHSI">-</span>
                                     </div>
-                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[120px] flex flex-col justify-center">
                                         <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Durasi Pengerjaan</span>
                                         <span class="text-sm sm:text-base font-black text-white" id="dassRptDurasi">-</span>
                                     </div>
-                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[110px]">
-                                        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Integritas Tab</span>
-                                        <span id="dassRptPelanggaranBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                                    <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/15 text-center min-w-[120px] flex flex-col justify-center items-center">
+                                        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block mb-1">Integritas Tab</span>
+                                        <span id="dassRptPelanggaranBadge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                                             0x Pindah Tab
                                         </span>
                                     </div>
@@ -2024,7 +2024,7 @@
                                         </div>
                                         <div>
                                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 1</span>
-                                            <h4 class="text-base font-black text-slate-800">Depresi (Depression)</h4>
+                                            <h4 class="text-base font-black text-slate-800">Depresi <span class="block text-xs font-bold text-slate-400">(Depression)</span></h4>
                                         </div>
                                     </div>
                                     <span id="dassRptDepresiLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -2057,7 +2057,7 @@
                                         </div>
                                         <div>
                                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 2</span>
-                                            <h4 class="text-base font-black text-slate-800">Kecemasan (Anxiety)</h4>
+                                            <h4 class="text-base font-black text-slate-800">Kecemasan <span class="block text-xs font-bold text-slate-400">(Anxiety)</span></h4>
                                         </div>
                                     </div>
                                     <span id="dassRptKecemasanLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -2090,7 +2090,7 @@
                                         </div>
                                         <div>
                                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dimensi 3</span>
-                                            <h4 class="text-base font-black text-slate-800">Stres (Stress)</h4>
+                                            <h4 class="text-base font-black text-slate-800">Stres <span class="block text-xs font-bold text-slate-400">(Stress)</span></h4>
                                         </div>
                                     </div>
                                     <span id="dassRptStresLevel" class="text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -2116,25 +2116,25 @@
                         </div>
 
                         <!-- GRAFIK BATANG PERBANDINGAN CHART.JS & AMBANG BATAS NORMA -->
-                        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                                 <div>
                                     <h4 class="text-sm font-black uppercase text-[#003865] flex items-center gap-2">
                                         <i class="fa-solid fa-chart-column text-rose-500"></i>
                                         <span>Grafik Profil Klinis 3 Dimensi vs Ambang Batas Normal:</span>
                                     </h4>
-                                    <p class="text-xs text-slate-500 mt-0.5">Visualisasi perbandingan skor kandidat terhadap batas wajar populasi umum.</p>
+                                    <p class="text-xs text-slate-500 mt-1">Visualisasi perbandingan skor kandidat terhadap batas wajar populasi umum.</p>
                                 </div>
-                                <div class="flex items-center gap-2 text-xs font-semibold">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Zona Normal
+                                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Zona Normal
                                     </span>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
-                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Zona Perhatian Klinis
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Zona Perhatian Klinis
                                     </span>
                                 </div>
                             </div>
-                            <div class="w-full h-64 sm:h-72">
+                            <div class="w-full h-80 sm:h-88 min-h-[320px] relative pt-2">
                                 <canvas id="dassChart"></canvas>
                             </div>
                         </div>
