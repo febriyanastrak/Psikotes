@@ -143,9 +143,8 @@
                 if (typeof updateDashboardProgress === 'function') {
                     updateDashboardProgress();
                 }
-
                 // Tandai bahwa perpindahan ini berasal dari penyelesaian IST
-                sessionStorage.setItem('kembali_dari_ist', 'true');
+                sessionStorage.setItem('kembali_dari_inteligensi 1', 'true');
 
                 // Pop-up modal pemberitahuan resmi sesuai instruksi
                 const pesanSelesai = "Selamat! Anda telah menyelesaikan Tes Inteligensi 1. Lembar jawaban Anda telah tersimpan aman di server PT Altrak 1978. Anda dapat memilih modul tes lainnya pada Dashboard Asesmen.";
@@ -162,7 +161,7 @@
 
                 if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
                     istUI.showModal({
-                        title: "Tes inteligensi 1 Selesai",
+                        title: "Tes Inteligensi 1 Selesai",
                         message: pesanSelesai,
                         type: "success",
                         iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
@@ -170,7 +169,7 @@
                         onOk: aksiKembali
                     });
                 } else if (typeof customAlert === 'function') {
-                    customAlert("Tes 1: IST Selesai", pesanSelesai, "success", false, aksiKembali);
+                    customAlert("Tes Inteligensi 1 Selesai", pesanSelesai, "success", false, aksiKembali);
                 } else {
                     alert(pesanSelesai);
                     aksiKembali();

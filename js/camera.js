@@ -171,12 +171,25 @@ async function jepretDanUpload(emailKandidat, namaFolderTes = 'IST', namaSubtes 
             return true;
         }
 
-        canvasEl.width = videoEl.videoWidth || 640;
-        canvasEl.height = videoEl.videoHeight || 480;
-        const ctx = canvasEl.getContext('2d');
-        ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+        // Optimasi Dimensi & Kompresi untuk Koneksi Rumah (Max Width 800px & Aspect Ratio Proposional)
+        const rawWidth = videoEl.videoWidth || 640;
+        const rawHeight = videoEl.videoHeight || 480;
+        const maxWidth = 800;
+        let targetWidth = rawWidth;
+        let targetHeight = rawHeight;
 
-        const dataUrl = canvasEl.toDataURL('image/jpeg', 0.85);
+        if (targetWidth > maxWidth) {
+            targetHeight = Math.round((rawHeight * maxWidth) / rawWidth);
+            targetWidth = maxWidth;
+        }
+
+        canvasEl.width = targetWidth;
+        canvasEl.height = targetHeight;
+        const ctx = canvasEl.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
+
+        // Kompresi kualitas JPEG 0.65 (Hemat Bandwidth ~80% & Anti-Lag di Koneksi Rumah)
+        const dataUrl = canvasEl.toDataURL('image/jpeg', 0.65);
         // Cegah QuotaExceededError (5MB): Jangan simpan Base64 gambar besar ke localStorage.
         try { localStorage.removeItem('kandidat_snapshot_login'); } catch (e) {}
 

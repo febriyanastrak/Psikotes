@@ -11,7 +11,7 @@ const CFIT_CONFIG = {
         {
             no: 1,
             nama: "Subtes 1 (Seri)",
-            waktuDetik: 180, // 3 Menit
+            waktuDetik: 210, // 3.5 Menit (3 Menit 30 Detik)
             totalSoal: 13,
             opsiCount: 6,
             petunjuk: "Setiap soal memperlihatkan deret gambar yang memiliki urutan pola tertentu. Pilihlah satu gambar dari pilihan (A, B, C, D, E, F) yang paling tepat untuk mengisi kotak kosong/putus-putus selanjutnya."
@@ -19,7 +19,7 @@ const CFIT_CONFIG = {
         {
             no: 2,
             nama: "Subtes 2 (Klasifikasi)",
-            waktuDetik: 240, // 4 Menit
+            waktuDetik: 300, // 5 Menit
             totalSoal: 14,
             opsiCount: 5,
             isMultiSelect: true,
@@ -28,8 +28,8 @@ const CFIT_CONFIG = {
         },
         {
             no: 3,
-            nama: "Subtes (Matriks)",
-            waktuDetik: 180, // 3 Menit
+            nama: "Subtes 3 (Matriks)",
+            waktuDetik: 210, // 3.5 Menit (3 Menit 30 Detik)
             totalSoal: 13,
             opsiCount: 6,
             petunjuk: "Terdapat gambar dengan pola hubungan mendatar dan menurun. Lengkapilah bagian kotak garis putus-putus dengan memilih salah satu jawaban dari (A, B, C, D, E, F) yang paling konsisten."
@@ -37,7 +37,7 @@ const CFIT_CONFIG = {
         {
             no: 4,
             nama: "Subtes 4 (Tipologi)",
-            waktuDetik: 150, // 2.5 Menit (2 Menit 30 Detik)
+            waktuDetik: 180, // 3 Menit
             totalSoal: 10,
             opsiCount: 5,
             petunjuk: "Perhatikanlah letak sebuah titik hitam pada gambar patokan di kotak sebelah kiri. Carilah satu gambar dari pilihan (A, B, C, D, E) yang memungkinkan titik diletakkan di dalam kondisi bidang dan ruang yang persis sama."
