@@ -162,7 +162,7 @@
 
                 if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
                     istUI.showModal({
-                        title: "Tes 1: IST Selesai",
+                        title: "Tes inteligensi 1 Selesai",
                         message: pesanSelesai,
                         type: "success",
                         iconHtml: '<i class="fa-solid fa-circle-check text-emerald-400"></i>',
