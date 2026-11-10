@@ -25,11 +25,15 @@ function tampilkanModalKamera(pesan) {
  */
 function tutupModalKamera() {
     const modal = document.getElementById('kameraModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    // Picu ulang percobaan aktivasi kamera saat peserta menutup modal
-    aktifkanKamera();
+    // Picu aktivasi kamera dan perbarui status modal
+    aktifkanKamera().then(() => {
+        if (typeof isCameraStreamLive === 'function' && isCameraStreamLive() && modal) {
+            modal.style.display = 'none';
+        }
+    }).catch(() => {
+        // Jika gagal mengaktifkan, modal tetap terbuka demi pengawasan ketat
+        if (modal) modal.style.display = 'flex';
+    });
 }
 
 /**
@@ -440,11 +444,63 @@ function stopProctoringCamera() {
     }
 }
 
+let cameraWatchdogInterval = null;
+
+/**
+ * Memeriksa apakah stream kamera fisik aktif dan sedang menyala (live)
+ * @returns {boolean}
+ */
+function isCameraStreamLive() {
+    if (!cameraStream || !cameraStream.active) return false;
+    const tracks = cameraStream.getVideoTracks();
+    if (!tracks || tracks.length === 0) return false;
+    return tracks.some(t => t.readyState === 'live' && t.enabled);
+}
+
+/**
+ * Watchdog Pengawas Kamera Latar Belakang:
+ * Memastikan stream kamera webcam tetap aktif dan 'live' sepanjang ujian berlangsung (tiap 10 detik).
+ * Jika kamera dimatikan/dicabut izinnya saat tes aktif, layar akan dikunci oleh modal darurat
+ * dan hanya terbuka kembali begitu kamera aktif kembali.
+ */
+function startCameraWatchdog() {
+    if (cameraWatchdogInterval) {
+        clearInterval(cameraWatchdogInterval);
+    }
+
+    cameraWatchdogInterval = setInterval(() => {
+        // Hanya awasi saat ada ujian aktif (memanfaatkan fungsi isTestActive dari app.js jika tersedia)
+        const testStatus = (typeof isTestActive === 'function') ? isTestActive() : { active: false };
+        if (!testStatus || !testStatus.active) {
+            return;
+        }
+
+        const isLive = isCameraStreamLive();
+        const modal = document.getElementById('kameraModal');
+        const isModalVisible = modal && modal.style.display === 'flex';
+
+        if (!isLive) {
+            console.warn(`[Camera Watchdog] Kamera terputus/nonaktif saat ujian ${testStatus.testType || 'Asesmen'} berlangsung! Mengunci layar ujian...`);
+            tampilkanModalKamera(
+                "<b>KAMERA PENGAWASAN TERPUTUS:</b><br><br>" +
+                `Akses kamera webcam Anda tidak terdeteksi saat ujian <b>${testStatus.testType || 'Asesmen'}</b> berlangsung.<br>` +
+                "Demi integritas dan validitas ujian jarak jauh PT Altrak 1978, akses kamera <b>WAJIB selalu aktif</b>.<br><br>" +
+                "Harap pastikan webcam Anda tidak tertutup dan izin kamera diizinkan pada browser, lalu klik tombol <b>Aktifkan Kembali Kamera</b> di bawah untuk membuka kembali layar ujian."
+            );
+        } else if (isModalVisible) {
+            // Kamera sudah kembali hidup, buka kunci layar otomatis
+            modal.style.display = 'none';
+            console.log('[Camera Watchdog] Kamera terdeteksi kembali aktif. Layar ujian dibuka otomatis.');
+        }
+    }, 10000); // Evaluasi tiap 10 detik
+}
+
 // Jalankan fungsi aktifkanKamera() secara otomatis saat halaman pertama kali dimuat
 document.addEventListener('DOMContentLoaded', () => {
     aktifkanKamera();
     const container = document.getElementById('proctoring-camera-container');
     if (container) makeProctoringCameraDraggable(container);
+    startCameraWatchdog();
 });
 
 // Daftarkan fungsi ke window
@@ -455,4 +511,6 @@ window.tutupModalKamera = tutupModalKamera;
 window.startProctoringCamera = startProctoringCamera;
 window.stopProctoringCamera = stopProctoringCamera;
 window.makeProctoringCameraDraggable = makeProctoringCameraDraggable;
+window.startCameraWatchdog = startCameraWatchdog;
+window.isCameraStreamLive = isCameraStreamLive;
 

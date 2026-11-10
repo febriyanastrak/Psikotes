@@ -53,7 +53,7 @@
 
         // 1. Pulihkan pelanggaran tab jika ada
         try {
-            const savedViolations = localStorage.getItem('cfit_pelanggaran_tab');
+            const savedViolations = localStorage.getItem('cfit_pelanggaran_tab') || localStorage.getItem('altrak_tab_violations');
             if (savedViolations) {
                 cfitState.pelanggaranTab = parseInt(savedViolations, 10) || 0;
             }
@@ -1235,6 +1235,13 @@
     // =========================================================================
     let lastTabSwitchTime = 0;
     function pasangDeteksiPindahTab() {
+        // Penanganan perpindahan tab telah dikelola secara terpusat oleh sistem pengawasan global di app.js
+        // (handleIntegrityViolation) guna mencegah tabrakan modal popup ganda dan duplikasi upload foto.
+        if (typeof window.handleIntegrityViolation === 'function') {
+            return;
+        }
+
+        // Fallback mandiri jika app.js tidak aktif:
         const handler = () => {
             if (cfitState.fase !== "UJIAN") return;
             if (document.visibilityState === 'hidden') {

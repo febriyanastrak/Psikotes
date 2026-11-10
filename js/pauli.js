@@ -198,22 +198,69 @@ function startTrialPauliTest() {
 }
 
 /**
+ * Menyimpan cadangan berkala progres tes Pauli ke localStorage
+ * Menjamin Zero Data Loss jika terjadi crash browser, baterai habis, atau reload
+ */
+function simpanBackupLokalPauli() {
+    if (isTrialMode || !state.pauli || !state.pauli.isActive || state.pauli._hasFinished) return;
+    try {
+        const backup = {
+            garisArray: state.pauli.garisArray || [],
+            intervalCounter: state.pauli.intervalCounter || 0,
+            lastProcessedInterval: state.pauli.lastProcessedInterval || 0,
+            startTimestamp: state.pauli.startTimestamp,
+            index: state.pauli.index || 1,
+            totalAnswered: state.pauli.totalAnswered || 0,
+            correct: state.pauli.correct || 0,
+            wrong: state.pauli.wrong || 0,
+            range1Correct: state.pauli.range1Correct || 0,
+            range1Wrong: state.pauli.range1Wrong || 0,
+            range2Correct: state.pauli.range2Correct || 0,
+            range2Wrong: state.pauli.range2Wrong || 0,
+            range3Correct: state.pauli.range3Correct || 0,
+            range3Wrong: state.pauli.range3Wrong || 0,
+            trialCompleted: true,
+            savedAt: Date.now()
+        };
+        localStorage.setItem('pauli_progress_backup', JSON.stringify(backup));
+    } catch (e) {
+        console.warn('[Pauli] Gagal mencatat cadangan progres:', e);
+    }
+}
+
+/**
  * Memulai tes Pauli sebenarnya (durasi 60 menit)
  * Wajib menyelesaikan sesi latihan terlebih dahulu sebelum tes asli dapat dibuka
+ * Dilengkapi Crash Recovery otomatis jika peserta tidak sengaja me-refresh halaman
  */
 function startPauliTest() {
+    // 1. Cek apakah ada cadangan progres sebelumnya untuk dipulihkan (Crash Recovery)
+    let backup = null;
+    try {
+        const rawBackup = localStorage.getItem('pauli_progress_backup');
+        if (rawBackup && localStorage.getItem('pauli_selesai') !== 'true') {
+            backup = JSON.parse(rawBackup);
+        }
+    } catch (e) {}
+
     // Validasi ketat: peserta WAJIB mengerjakan sesi latihan (percobaan) terlebih dahulu
     if (!trialCompleted) {
-        customAlert(
-            "Wajib Latihan Dahulu",
-            "Anda wajib menyelesaikan sesi latihan (percobaan) terlebih dahulu sebelum dapat memulai Tes Pauli yang sebenarnya. Tes tidak dapat dimulai langsung tanpa latihan.",
-            "info",
-            false,
-            () => {
-                showPauliTutorial();
-            }
-        );
-        return;
+        if (backup && backup.startTimestamp) {
+            trialCompleted = true;
+        } else if (localStorage.getItem('pauli_trial_completed') === 'true') {
+            trialCompleted = true;
+        } else {
+            customAlert(
+                "Wajib Latihan Dahulu",
+                "Anda wajib menyelesaikan sesi latihan (percobaan) terlebih dahulu sebelum dapat memulai Tes Pauli yang sebenarnya. Tes tidak dapat dimulai langsung tanpa latihan.",
+                "info",
+                false,
+                () => {
+                    showPauliTutorial();
+                }
+            );
+            return;
+        }
     }
 
     // Bersihkan timer sebelumnya dengan aman
@@ -228,6 +275,10 @@ function startPauliTest() {
     // Pastikan semua modal tertutup sebelum memulai tes
     closeModal('modal-message');
     showPage('page-pauli');
+    try {
+        localStorage.setItem('altrak_fase_aktif', 'view-pauli');
+        sessionStorage.setItem('altrak_fase_aktif', 'view-pauli');
+    } catch (e) {}
 
     const fullDuration = (typeof PAULI_DURATION_SECONDS !== 'undefined')
         ? PAULI_DURATION_SECONDS
@@ -240,28 +291,70 @@ function startPauliTest() {
         state.pauli.numbers = state.pauli.numbers.concat(LEMBAR_PAULI_ASLI);
     }
 
-    // Pastikan seluruh jawaban sesi latihan tidak ikut dihitung di tes asli
-    state.pauli.index = 1;
-    state.pauli.totalAnswered = 0;
-    state.pauli.correct = 0;
-    state.pauli.wrong = 0;
-    state.pauli.timeLeft = fullDuration;
-    state.pauli.startTimestamp = Date.now();
-    state.pauli.lastProcessedInterval = 0;
-    state.pauli.intervalCounter = 0;
-    state.pauli.garisArray = [];
+    // Periksa apakah ini proses pemulihan (Resume) dari crash/reload
+    if (backup && backup.startTimestamp) {
+        const now = Date.now();
+        const elapsed = Math.floor((now - backup.startTimestamp) / 1000);
+
+        if (elapsed < fullDuration) {
+            // Sesi masih valid dan waktu tersisa mencukupi
+            state.pauli.startTimestamp = backup.startTimestamp;
+            state.pauli.timeLeft = Math.max(0, fullDuration - elapsed);
+            state.pauli.garisArray = Array.isArray(backup.garisArray) ? backup.garisArray : [];
+            state.pauli.intervalCounter = backup.intervalCounter || 0;
+            state.pauli.lastProcessedInterval = backup.lastProcessedInterval || 0;
+            state.pauli.index = backup.index || 1;
+            state.pauli.totalAnswered = backup.totalAnswered || 0;
+            state.pauli.correct = backup.correct || 0;
+            state.pauli.wrong = backup.wrong || 0;
+            state.pauli.range1Correct = backup.range1Correct || 0;
+            state.pauli.range1Wrong = backup.range1Wrong || 0;
+            state.pauli.range2Correct = backup.range2Correct || 0;
+            state.pauli.range2Wrong = backup.range2Wrong || 0;
+            state.pauli.range3Correct = backup.range3Correct || 0;
+            state.pauli.range3Wrong = backup.range3Wrong || 0;
+            console.log(`[Pauli Crash Recovery] Progres tes dipulihkan! Interval selesai: ${state.pauli.garisArray.length}, Sisa waktu: ${state.pauli.timeLeft} detik.`);
+        } else {
+            // Waktu 60 menit telah habis saat browser ditutup -> langsung kumpulkan
+            state.pauli.startTimestamp = backup.startTimestamp;
+            state.pauli.timeLeft = 0;
+            state.pauli.garisArray = Array.isArray(backup.garisArray) ? backup.garisArray : [];
+            state.pauli.intervalCounter = backup.intervalCounter || 0;
+            state.pauli.index = backup.index || 1;
+            state.pauli.totalAnswered = backup.totalAnswered || 0;
+            state.pauli.correct = backup.correct || 0;
+            state.pauli.wrong = backup.wrong || 0;
+            prosesSimpanPauli(true);
+            return;
+        }
+    } else {
+        // Pastikan seluruh jawaban sesi latihan tidak ikut dihitung di tes asli baru
+        state.pauli.index = 1;
+        state.pauli.totalAnswered = 0;
+        state.pauli.correct = 0;
+        state.pauli.wrong = 0;
+        state.pauli.timeLeft = fullDuration;
+        state.pauli.startTimestamp = Date.now();
+        state.pauli.lastProcessedInterval = 0;
+        state.pauli.intervalCounter = 0;
+        state.pauli.garisArray = [];
+
+        // Reset counter skoring per-range
+        state.pauli.range1Correct = 0;
+        state.pauli.range1Wrong = 0;
+        state.pauli.range2Correct = 0;
+        state.pauli.range2Wrong = 0;
+        state.pauli.range3Correct = 0;
+        state.pauli.range3Wrong = 0;
+    }
+
     state.pauli.isActive = true;
     state.pauli._hasFinished = false;
     isProcessing = false;
     lastPauliInputTime = 0;
 
-    // Reset counter skoring per-range
-    state.pauli.range1Correct = 0;
-    state.pauli.range1Wrong = 0;
-    state.pauli.range2Correct = 0;
-    state.pauli.range2Wrong = 0;
-    state.pauli.range3Correct = 0;
-    state.pauli.range3Wrong = 0;
+    // Simpan cadangan awal
+    simpanBackupLokalPauli();
 
     const timerLabel = document.getElementById('pauliTimerLabel');
     if (timerLabel) timerLabel.innerText = 'Sisa Waktu';
@@ -412,6 +505,11 @@ function handlePauliInput(num) {
     p.totalAnswered = (p.totalAnswered || 0) + 1;
     p.intervalCounter = (p.intervalCounter || 0) + 1;
 
+    // Auto-save ringan ke localStorage setiap 10 jawaban (Zero Data Loss)
+    if (!isTrialMode && p.totalAnswered % 10 === 0) {
+        simpanBackupLokalPauli();
+    }
+
     const mainBox = document.getElementById('mainAnswerBox');
     if (mainBox) {
         mainBox.innerText = digit;
@@ -488,10 +586,20 @@ function runPauliTimer() {
         const currentIntervalIndex = Math.floor(elapsedSeconds / intervalDuration);
 
         // Sinkronisasi perpindahan garis interval 3 menit (Hanya jika tes asli)
+        let intervalBerpindah = false;
         while (state.pauli.lastProcessedInterval < currentIntervalIndex && state.pauli.garisArray.length < 19) {
             state.pauli.garisArray.push(state.pauli.intervalCounter);
             state.pauli.intervalCounter = 0;
             state.pauli.lastProcessedInterval++;
+            intervalBerpindah = true;
+        }
+        if (intervalBerpindah) {
+            simpanBackupLokalPauli();
+        }
+
+        // Auto-save periodik tiap 15 detik saat ujian asli berlangsung
+        if (elapsedSeconds > 0 && elapsedSeconds % 15 === 0) {
+            simpanBackupLokalPauli();
         }
 
         state.pauli.timeLeft = Math.max(0, fullDuration - elapsedSeconds);
@@ -563,6 +671,7 @@ function finishPauliTest(isTimeUp = false) {
         }
         isTrialMode = false;
         trialCompleted = true;
+        try { localStorage.setItem('pauli_trial_completed', 'true'); } catch (e) {}
         isProcessing = false;
 
         // Kunci keypad dan timer agar peserta benar-benar tidak bisa mengerjakan percobaan lagi
@@ -809,9 +918,11 @@ function prosesSimpanPauli(isTimeUp = false) {
         }
     }
 
-    // 7. Pauli selesai -> Tandai selesai di dashboard
+    // 7. Pauli selesai -> Tandai selesai di dashboard dan bersihkan cadangan progres lokal
     try {
         localStorage.setItem('pauli_selesai', 'true');
+        localStorage.removeItem('pauli_progress_backup');
+        localStorage.removeItem('pauli_trial_completed');
         localStorage.setItem('altrak_fase_aktif', 'view-dashboard');
         sessionStorage.setItem('altrak_fase_aktif', 'view-dashboard');
     } catch (e) {

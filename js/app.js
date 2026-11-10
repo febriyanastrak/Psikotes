@@ -401,6 +401,10 @@ function isTestActive() {
     const isApm = apmView && !apmView.classList.contains('hide-section') && localStorage.getItem('apm_selesai') !== 'true';
     if (isApm) return { active: true, testType: 'APM' };
 
+    const dassView = document.getElementById('view-dass');
+    const isDass = dassView && !dassView.classList.contains('hide-section') && localStorage.getItem('dass_selesai') !== 'true';
+    if (isDass) return { active: true, testType: 'DASS-21' };
+
     return { active: false, testType: null };
 }
 
@@ -516,11 +520,12 @@ function handleIntegrityViolation(reason) {
         } catch (errSnap) {}
     }
     const isPauli = testStatus.testType === 'Pauli';
-    const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI', 'APM'].includes(testStatus.testType);
+    const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI', 'APM', 'DASS-21'].includes(testStatus.testType);
     let displayNamaTes = testStatus.testType;
     if (testStatus.testType === 'IST') displayNamaTes = 'Inteligensi 1';
     else if (testStatus.testType === 'CFIT') displayNamaTes = 'Inteligensi 2';
     else if (testStatus.testType === 'APM') displayNamaTes = 'Inteligensi 3';
+    else if (testStatus.testType === 'DASS-21') displayNamaTes = 'DASS-21';
     const namaTes = displayNamaTes || 'Asesmen';
 
     if (tabSwitchViolations <= 3) {

@@ -439,22 +439,49 @@ async function handleUnifiedCandidateLogin(e) {
 
     // Bersihkan sesi tes jika pendaftaran baru, atau pulihkan jika Resume Session
     if (!isResume) {
-    const keysToClear = [
-        'ist_selesai', 'papi_selesai', 'disc_selesai', 'epps_selesai', 'pauli_selesai',
-        'grafis_selesai', 'msdt_selesai', 'cfit_selesai', 'mbti_selesai', 'mcmi_selesai',
-        'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
-        'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
-        'epps_answers', 'epps_payload', 'epps_start_time',
-        'hasil_papi', 'hasil_disc', 'hasil_epps', 'hasil_pauli', 'hasil_ist',
-        'pauli_matrix', 'pauli_line', 'altrak_fase_aktif'
-    ];
-    keysToClear.forEach(k => localStorage.removeItem(k));
-    try { sessionStorage.removeItem('altrak_fase_aktif'); } catch (e) {}
+        const keysToClear = [
+            'ist_selesai', 'papi_selesai', 'disc_selesai', 'epps_selesai', 'pauli_selesai',
+            'grafis_selesai', 'msdt_selesai', 'cfit_selesai', 'mbti_selesai', 'mcmi_selesai',
+            'apm_selesai', 'dass_selesai',
+            'ist_terkirim_supabase', 'altrak_ist_completed_subtests',
+            'papi_answers', 'papi_terkirim', 'papi_exam_end_time', 'papi_inst_end_time',
+            'epps_answers', 'epps_payload', 'epps_start_time',
+            'hasil_papi', 'hasil_disc', 'hasil_epps', 'hasil_pauli', 'hasil_ist',
+            'pauli_matrix', 'pauli_line', 'pauli_progress_backup', 'altrak_fase_aktif',
+            // APM (Inteligensi 3) Keys
+            'altrak_apm_completed_subtests', 'altrak_apm_answers_subtes_01', 'altrak_apm_answers_subtes_02',
+            'altrak_apm_flagged_subtes_01', 'altrak_apm_flagged_subtes_02', 'altrak_apm_fase',
+            'altrak_apm_current_subtes', 'altrak_apm_current_soal_idx', 'altrak_apm_subtes_end_time',
+            'altrak_apm_pelanggaran_tab',
+            // CFIT (Inteligensi 2) Keys
+            'cfit_completed_subtests', 'cfit_draft_answers', 'cfit_fase', 'cfit_current_subtes',
+            'cfit_current_soal_idx', 'cfit_current_contoh_idx', 'cfit_subtes_end_time',
+            'cfit_pelanggaran_tab', 'cadangan_hasil_cfit',
+            // DASS Keys
+            'dass_answers',
+            // Foto Pengawasan & Integritas
+            'kandidat_foto_pengawasan', 'tabSwitchViolations'
+        ];
+        keysToClear.forEach(k => {
+            try { localStorage.removeItem(k); } catch (e) {}
+        });
 
-    // Reset visual kartu dashboard ke kondisi awal (Tes 1 aktif, 2-4 terkunci, 0/4)
-    if (typeof resetDashboardState === 'function') {
-        resetDashboardState();
-    }
+        // Bersihkan seluruh jawaban dinamis per subtes IST (altrak_ist_jawaban_subtes_*)
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('altrak_ist_jawaban_subtes_') || key.startsWith('altrak_apm_answers_'))) {
+                    localStorage.removeItem(key);
+                }
+            }
+        } catch (e) {}
+
+        try { sessionStorage.removeItem('altrak_fase_aktif'); } catch (e) {}
+
+        // Reset visual kartu dashboard ke kondisi awal (Tes 1 aktif, 2-4 terkunci, 0/4)
+        if (typeof resetDashboardState === 'function') {
+            resetDashboardState();
+        }
     } else {
         // RESUME SESSION (PINDAH DEVICE): Pulihkan modul yang sudah tuntas dari database ke perangkat baru
         if (resumeProgres && typeof resumeProgres === 'object') {
@@ -466,6 +493,8 @@ async function handleUnifiedCandidateLogin(e) {
             if (resumeProgres.pauli_selesai) localStorage.setItem('pauli_selesai', 'true');
             if (resumeProgres.msdt_selesai) localStorage.setItem('msdt_selesai', 'true');
             if (resumeProgres.cfit_selesai) localStorage.setItem('cfit_selesai', 'true');
+            if (resumeProgres.apm_selesai) localStorage.setItem('apm_selesai', 'true');
+            if (resumeProgres.dass_selesai) localStorage.setItem('dass_selesai', 'true');
             if (resumeProgres.mbti_selesai) {
                 localStorage.setItem('mbti_selesai', 'true');
                 localStorage.setItem('mcmi_selesai', 'true');
