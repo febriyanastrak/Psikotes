@@ -135,9 +135,7 @@
                                 <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">
                                     Myers-Briggs Type Indicator (MBTI)
                                 </h1>
-                                <p class="text-xs sm:text-sm text-slate-200 mt-0.5">
-                                    Pedoman Pelaksanaan &amp; Pengenalan Format 60 Soal Pilihan Kepribadian
-                                </p>
+
                             </div>
                         </div>
                         <div>

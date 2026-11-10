@@ -151,15 +151,15 @@ function closeModal(id) {
  */
 const ALL_ASSESSMENT_MODULES = [
     { id: 'grafis', key: 'grafis', name: 'Tes Grafis (DAP, Tree, HTP)', flag: 'grafis_selesai', btnText: 'Mulai Tes 1' },
-    { id: 1, key: 'ist', name: 'Inteligent 1', flag: 'ist_selesai', btnText: 'Mulai Tes 2' },
+    { id: 1, key: 'ist', name: 'Inteligensi 1', flag: 'ist_selesai', btnText: 'Mulai Tes 2' },
     { id: 2, key: 'papi', name: 'PAPI Kostick', flag: 'papi_selesai', btnText: 'Mulai Tes 3' },
     { id: 3, key: 'disc', name: 'DISC Assessment', flag: 'disc_selesai', btnText: 'Mulai Tes 4' },
     { id: 4, key: 'epps', name: 'EPPS', flag: 'epps_selesai', btnText: 'Mulai Tes 5' },
     { id: 5, key: 'pauli', name: 'Pauli (Tes Koran)', flag: 'pauli_selesai', btnText: 'Mulai Tes 6' },
     { id: 6, key: 'msdt', name: 'MSDT (Gaya Kepemimpinan)', flag: 'msdt_selesai', btnText: 'Mulai Tes 7' },
-    { id: 7, key: 'cfit', name: 'Inteligent 2', flag: 'cfit_selesai', btnText: 'Mulai Tes 8' },
+    { id: 7, key: 'cfit', name: 'Inteligensi 2', flag: 'cfit_selesai', btnText: 'Mulai Tes 8' },
     { id: 8, key: 'mbti', name: 'MBTI (Kepribadian)', flag: 'mbti_selesai', btnText: 'Mulai Tes 9' },
-    { id: 9, key: 'apm', name: 'Intelegent 3', flag: 'apm_selesai', btnText: 'Mulai Tes 10' },
+    { id: 9, key: 'apm', name: 'Inteligensi 3', flag: 'apm_selesai', btnText: 'Mulai Tes 10' },
     { id: 10, key: 'dass', name: 'DASS-21 (Kesehatan Mental)', flag: 'dass_selesai', btnText: 'Mulai Tes 11' }
 ];
 

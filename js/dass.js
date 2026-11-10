@@ -279,9 +279,6 @@
                                     </span>
                                     <span class="text-xs text-sky-200 font-bold hidden sm:inline">DASS-21 Scale</span>
                                 </div>
-                                <h2 class="text-base sm:text-lg font-black text-white leading-tight mt-0.5">
-                                    Kesehatan Mental & Daya Tahan Stres
-                                </h2>
                             </div>
                         </div>
 

@@ -453,7 +453,7 @@
                             <i class="fa-solid fa-graduation-cap"></i>
                         </div>
                         <div>
-                            <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider">LATIHAN PERCOBAAN &bull; SUBTES ${subtesNo}</span>
+                            <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider">LATIHAN PERCOBAAN</span>
                             <h3 class="text-base sm:text-lg font-black text-white">Contoh Soal #${contoh.no} dari ${contohList.length} Contoh</h3>
                         </div>
                     </div>
@@ -1159,7 +1159,7 @@
             finalCfitPayload = {
                 ...finalCfitPayload,
                 status: 'selesai',
-                modul: 'Inteligent 2',
+                modul: 'Inteligensi 2',
                 answers: cfitState.answers,
                 jawaban: cfitState.answers,
                 raw_answers: cfitState.answers,

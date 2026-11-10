@@ -328,10 +328,6 @@
                         <span>PT ALTRAK 1978</span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">DASHBOARD</h2>
-                      <p class="text-blue-100/90 text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
-                        Selesaikan seluruh modul asesmen di bawah ini. Anda dapat memilih dan mengerjakan modul tes manapun secara bebas tanpa batasan urutan.
-                    </p>
-
                     <div class="mt-7 sm:mt-9 max-w-sm">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-blue-200 tracking-wide uppercase">Progres Keseluruhan</span>
@@ -433,7 +429,7 @@
                         <button id="btn-test-6" onclick="handleStartModule(6)" class="dash-btn dash-btn-active">Mulai Tes 7</button>
                     </div>
 
-                    <!-- Modul 7: CFIT (Inteligent 2) -->
+                    <!-- Modul 7: CFIT (Inteligensi 2) -->
                     <div id="card-7" class="dash-card is-active flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-3">
@@ -457,7 +453,7 @@
                         <button id="btn-test-8" onclick="handleStartModule(8)" class="dash-btn dash-btn-active">Mulai Tes 9</button>
                     </div>
 
-                    <!-- Modul 9: Intelegent 3 -->
+                    <!-- Modul 9: Inteligensi 3 -->
                     <div id="card-9" class="dash-card is-active flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-3">
@@ -1169,7 +1165,7 @@
             <div id="mbti-app-container" class="w-full max-w-4xl mx-auto"></div>
         </section>
 
-        <!-- FASE 15: MODUL INTELEGENT 3 (SPA VIEW-APM) -->
+        <!-- FASE 15: MODUL INTELIGENSI 3 (SPA VIEW-APM) -->
         <section id="view-apm" class="hide-section flex-grow flex flex-col items-center justify-start p-3 sm:p-5 md:p-6 relative w-full bg-[#f8fafc]">
             <div id="apm-app-container" class="w-full max-w-4xl mx-auto"></div>
         </section>
@@ -1208,22 +1204,9 @@
                         <i class="fa-solid fa-circle-info text-amber-500"></i> Deskripsi Tes Inteligensi 1
                     </h4>
                     <p class="leading-relaxed text-slate-600">
-                        Tes Inteligensi 1 adalah instrumen psikologi terstandar untuk memetakan kapasitas intelektual komprehensif kandidat PT Altrak 1978. Tes ini mengukur 9 sub-kemampuan mental:
+                        Tes ini terdiri dari 9 subtes, setiap subtes memiliki waktu dan instruksi masing - masing.
                     </p>
-                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-medium text-slate-700">
-                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
-                            <i class="fa-solid fa-check text-green-600"></i> Penalaran Logika &amp; Analitik
-                        </li>
-                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
-                            <i class="fa-solid fa-check text-green-600"></i> Pemahaman Verbal &amp; Kosakata
-                        </li>
-                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
-                            <i class="fa-solid fa-check text-green-600"></i> Berhitung &amp; Deret Numerik
-                        </li>
-                        <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
-                            <i class="fa-solid fa-check text-green-600"></i> Kemampuan Ruang &amp; Spasial
-                        </li>
-                    </ul>
+                   
                 </div>
 
                 <div class="space-y-2 text-xs text-slate-600 bg-amber-50/70 p-4 rounded-xl border border-amber-200">
@@ -1233,7 +1216,6 @@
                     <ol class="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed">
                         <li>Pastikan koneksi internet stabil dan perangkat berada dalam posisi nyaman.</li>
                         <li>Kerjakan setiap bagian pertanyaan dengan konsentrasi tinggi.</li>
-                        <li>Setelah menyelesaikan modul ini, <strong>Tes 3: PAPI Kostick</strong> akan otomatis terbuka.</li>
                     </ol>
                 </div>
 
@@ -1457,7 +1439,7 @@
                         <i class="fa-solid fa-circle-info text-rose-500"></i> Deskripsi Asesmen DASS-21
                     </h4>
                     <p class="leading-relaxed text-slate-600">
-                        DASS-21 (<em>Depression Anxiety Stress Scales</em>) mengukur 3 indikator kondisi emosional dan daya tahan mental: <strong>Depresi, Kecemasan, dan Stres</strong>. Tes ini bertujuan memahami kesiapan kerja, kestabilan psikologis, dan kapasitas menghadapi tekanan operasional di PT Altrak 1978.
+                        Kuesioner ini bertujuan untuk melakukan skrining awal guna mengukur tingkat keadaan emosional negatif (depresi, kecemasan, dan stres) yang anda alami selama satu minggu terakhir. Hasil dari kuesioner ini bersifat skrining awal dan bukan merupakan diagnosis medis maupun klinis. 
                     </p>
                     <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs font-medium text-slate-700">
                         <li class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
@@ -1812,7 +1794,7 @@
     <script src="js/epps.js"></script>
     <script src="js/cfit.js"></script>
     <script src="js/mbti.js"></script>
-    <!-- MODUL INTELEGENT 3 -->
+    <!-- MODUL INTELIGENSI 3 -->
     <script src="js/data/apm-data.js"></script>
     <script src="js/apm.js"></script>
     <!-- MODUL 11: DASS-21 (KESEHATAN MENTAL & DAYA TAHAN STRES) -->

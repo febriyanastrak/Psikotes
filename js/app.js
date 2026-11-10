@@ -417,9 +417,9 @@ window.addEventListener('beforeunload', (e) => {
     if (testStatus.active) {
         e.preventDefault();
         let displayType = testStatus.testType;
-        if (testStatus.testType === 'IST') displayType = 'Inteligent 1';
-        else if (testStatus.testType === 'CFIT') displayType = 'Inteligent 2';
-        else if (testStatus.testType === 'APM') displayType = 'Intelegent 3';
+        if (testStatus.testType === 'IST') displayType = 'Inteligensi 1';
+        else if (testStatus.testType === 'CFIT') displayType = 'Inteligensi 2';
+        else if (testStatus.testType === 'APM') displayType = 'Inteligensi 3';
         const namaTes = displayType ? `Tes ${displayType}` : 'Tes Asesmen';
         e.returnValue = `${namaTes} sedang berlangsung. Progres tes Anda akan hilang jika halaman ditutup atau di-refresh!`;
         return e.returnValue;
@@ -518,9 +518,9 @@ function handleIntegrityViolation(reason) {
     const isPauli = testStatus.testType === 'Pauli';
     const isTahap2OrPersonality = ['PAPI Kostick', 'DISC', 'EPPS', 'MSDT', 'CFIT', 'MBTI', 'APM'].includes(testStatus.testType);
     let displayNamaTes = testStatus.testType;
-    if (testStatus.testType === 'IST') displayNamaTes = 'Inteligent 1';
-    else if (testStatus.testType === 'CFIT') displayNamaTes = 'Inteligent 2';
-    else if (testStatus.testType === 'APM') displayNamaTes = 'Intelegent 3';
+    if (testStatus.testType === 'IST') displayNamaTes = 'Inteligensi 1';
+    else if (testStatus.testType === 'CFIT') displayNamaTes = 'Inteligensi 2';
+    else if (testStatus.testType === 'APM') displayNamaTes = 'Inteligensi 3';
     const namaTes = displayNamaTes || 'Asesmen';
 
     if (tabSwitchViolations <= 3) {

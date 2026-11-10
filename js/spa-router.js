@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     startMbtiTest();
                 }
             }
-            // Modul 9: Intelegent 3
+            // Modul 9: Inteligensi 3
             else if (activeFase === 'view-apm') {
                 if (redirectIfCompleted(9)) return;
                 if (typeof startApmTest === 'function') {

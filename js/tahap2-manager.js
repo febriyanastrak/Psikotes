@@ -57,7 +57,7 @@ function updateDashboardTahap2Progress() {
 
     const modulConfig = [
         { key: 'msdt', isSelesai: msdtSelesai, badgeId: 'badge-status-msdt', btnId: 'btn-modul-msdt', label: 'MSDT' },
-        { key: 'cfit', isSelesai: cfitSelesai, badgeId: 'badge-status-cfit', btnId: 'btn-modul-cfit', label: 'Inteligent 2' },
+        { key: 'cfit', isSelesai: cfitSelesai, badgeId: 'badge-status-cfit', btnId: 'btn-modul-cfit', label: 'Inteligensi 2' },
         { key: 'mbti', isSelesai: mbtiSelesai, badgeId: 'badge-status-mbti', btnId: 'btn-modul-mbti', label: 'MBTI' },
         { key: 'epps', isSelesai: eppsSelesai, badgeId: 'badge-status-epps', btnId: 'btn-modul-epps', label: 'EPPS' }
     ];
@@ -103,7 +103,7 @@ async function konfirmasiSelesaiTahap2() {
 
     const selesaiList = [];
     if (msdtSelesai) selesaiList.push("MSDT");
-    if (cfitSelesai) selesaiList.push("Inteligent 2");
+    if (cfitSelesai) selesaiList.push("Inteligensi 2");
     if (mbtiSelesai) selesaiList.push("MBTI");
     if (eppsSelesai && document.getElementById('btn-modul-epps')) selesaiList.push("EPPS");
 
@@ -259,11 +259,11 @@ function bukaModulCFIT() {
         if (typeof customAlert === 'function') {
             customAlert(
                 "Modul Telah Selesai",
-                "Tes Inteligent 2 telah berhasil Anda selesaikan dan lembar jawaban sudah tersimpan aman di server PT Altrak 1978. Modul ini telah dikunci untuk menjaga integritas data.",
+                "Tes Inteligensi 2 telah berhasil Anda selesaikan dan lembar jawaban sudah tersimpan aman di server PT Altrak 1978. Modul ini telah dikunci untuk menjaga integritas data.",
                 "info"
             );
         } else {
-            alert("Tes Inteligent 2 telah selesai dan dikunci.");
+            alert("Tes Inteligensi 2 telah selesai dan dikunci.");
         }
         return;
     }

@@ -1,15 +1,15 @@
 // =========================================================================
-// MODUL LOGIKA & TAMPILAN: INTELEGENT 3
+// MODUL LOGIKA & TAMPILAN: INTELIGENSI 3
 // PT Altrak 1978 - Leadership & Management Assessment System
 // 2 Subtes Penalaran Logika Abstrak & Matriks Non-Verbal
 // Standar Keamanan: Webcam Proctoring, Anti Tab-Switch, Safe Merge Supabase
-// ATURAN MUTLAK: Layar Peserta HANYA menampilkan nama "Intelegent 3"
+// ATURAN MUTLAK: Layar Peserta HANYA menampilkan nama "Inteligensi 3"
 // =========================================================================
 
 (function () {
     'use strict';
 
-    // State Intelegent 3
+    // State Inteligensi 3
     const apmState = {
         fase: "MENU", // "MENU" | "PANDUAN" | "UJIAN" | "SELESAI"
         currentSubtesNo: 1, // 1 atau 2
@@ -113,7 +113,7 @@
                     if (sisa <= 0) {
                         bersihkanTimer();
                         alertModal(
-                            "Waktu Pengerjaan Intelegent 3 Selesai",
+                            "Waktu Pengerjaan Inteligensi 3 Selesai",
                             `Waktu pengerjaan untuk Subtes ${savedSubtes} telah habis. Lembar jawaban Anda telah otomatis dikunci dan tersimpan ke sistem.`,
                             () => {
                                 selesaiSubtes(savedSubtes, true);
@@ -452,7 +452,7 @@
             if (sisa <= 0) {
                 bersihkanTimer();
                 alertModal(
-                    "Waktu Pengerjaan Intelegent 3 Selesai",
+                    "Waktu Pengerjaan Inteligensi 3 Selesai",
                     `Waktu pengerjaan untuk Subtes ${subtesNo} telah habis. Lembar jawaban Anda telah otomatis dikunci dan tersimpan ke sistem.`,
                     () => {
                         selesaiSubtes(subtesNo, true);
@@ -802,7 +802,7 @@
         if (subtesNo === 1) {
             alertModal(
                 "Subtes 1 Selesai",
-                "Subtes 1 telah berhasil dikumpulkan. Anda sekarang dapat melanjutkan ke Subtes 2 (Intelegent 3).",
+                "Subtes 1 telah berhasil dikumpulkan. Anda sekarang dapat melanjutkan ke Subtes 2 (Inteligensi 3).",
                 () => {
                     pilihSubtes(2);
                 }
@@ -838,7 +838,7 @@
                 <div class="p-6 bg-[#002747] border border-[#ffbe1a]/40 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center max-w-sm mx-4">
                     <i class="fa-solid fa-spinner fa-spin text-4xl text-[#ffbe1a]"></i>
                     <div>
-                        <h4 class="text-base font-bold text-white mb-1">Menyimpan Intelegent 3</h4>
+                        <h4 class="text-base font-bold text-white mb-1">Menyimpan Inteligensi 3</h4>
                         <p class="text-xs text-slate-300">Memproses verifikasi lembar jawaban Anda ke database server PT Altrak 1978...</p>
                     </div>
                 </div>
@@ -872,7 +872,7 @@
 
         // 2. Standardisasi Payload & Fallback Aman (Zero Client Leak - Tidak Ada Kunci di Client)
         let finalApmPayload = {
-            modul: 'Intelegent 3',
+            modul: 'Inteligensi 3',
             status: 'selesai',
             answers: apmState.answers,
             jawaban: apmState.answers,
@@ -933,8 +933,8 @@
 
         // Tampilkan modal selesai tanpa membocorkan skor/kunci ke peserta
         alertModal(
-            "Tes: Intelegent 3 Selesai",
-            "Selamat! Anda telah menyelesaikan seluruh bagian Tes: Intelegent 3. Seluruh lembar jawaban Anda telah tersimpan secara aman di database PT Altrak 1978.",
+            "Tes: Inteligensi 3 Selesai",
+            "Selamat! Anda telah menyelesaikan seluruh bagian Tes: Inteligensi 3. Seluruh lembar jawaban Anda telah tersimpan secara aman di database PT Altrak 1978.",
             () => {
                 kembaliKePortalDashboard();
             }

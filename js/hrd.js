@@ -2552,7 +2552,7 @@ function renderCfitResults(rawData) {
 }
 
 /**
- * Merender Hasil Tes Intelegent 3 (Raven Advanced Progressive Matrices) di Modal HRD
+ * Merender Hasil Tes Inteligensi 3 (Raven Advanced Progressive Matrices) di Modal HRD
  */
 function renderApmResults(rawData) {
     const emptyNotice = document.getElementById('apmEmptyNotice');
@@ -5156,7 +5156,7 @@ async function renderCandidatePhotos(candidate) {
         // Helper untuk mengekstrak informasi modul, subtes, fase, dan waktu dari nama file
         const parsePhotoMeta = (fileName, folderHint = '') => {
             let namaModul = (folderHint || 'IST').toUpperCase();
-            if (namaModul === 'APM') namaModul = 'INTELEGENT 3';
+            if (namaModul === 'APM') namaModul = 'INTELIGENSI 3';
             let namaSubtes = '';
             let subtesNo = 0;
             let namaFase = 'Awal';
@@ -5167,7 +5167,7 @@ async function renderCandidatePhotos(candidate) {
             const modPart = parts.find(p => /^(ist|cfit|pauli|papi|disc|epps|msdt|mbti|mcmi|apm|dass)$/i.test(p));
             if (modPart) {
                 const upperMod = modPart.toUpperCase();
-                namaModul = upperMod === 'APM' ? 'INTELEGENT 3' : (upperMod === 'DASS' ? 'DASS-21' : upperMod);
+                namaModul = upperMod === 'APM' ? 'INTELIGENSI 3' : (upperMod === 'DASS' ? 'DASS-21' : upperMod);
             }
 
             // 2. Subtes
@@ -5494,6 +5494,7 @@ async function renderCandidatePhotos(candidate) {
             'MBTI': 8,
             'MCMI': 8,
             'APM': 9,
+            'INTELIGENSI 3': 9,
             'INTELEGENT 3': 9,
             'DASS': 10,
             'DASS-21': 10

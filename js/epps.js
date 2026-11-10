@@ -559,7 +559,7 @@
                         onclick="window.eppsSubmitTest()" 
                         class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-black text-xs rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <span id="btnSubmitEppsText">Kumpulkan Jawaban EPPS (225 Soal)</span>
+                        <span id="btnSubmitEppsText">Kumpulkan Lembar Jawaban (225 Soal)</span>
                     </button>
                 </div>
             </div>
@@ -592,7 +592,7 @@
             if (typeof customAlert === 'function') {
                 customAlert(
                     "Jawaban Belum Lengkap",
-                    `Anda baru menjawab ${answeredCount} dari ${total} soal EPPS. Harap lengkapi semua nomor, mulai dari nomor ${firstMissing}.`,
+                    `Anda baru menjawab ${answeredCount} dari ${total} soal. Harap lengkapi semua nomor, mulai dari nomor ${firstMissing}.`,
                     "warning"
                 );
             } else {
@@ -718,7 +718,7 @@
 
             if (typeof customAlert === 'function') {
                 customAlert(
-                    "Tes EPPS Berhasil Disimpan",
+                    "Tes Berhasil Disimpan",
                     `Seluruh 225 jawaban pilihan motivasi kerja Anda telah tersimpan aman di database server PT Altrak 1978. ${pesanWaktu}. Anda dapat memilih modul tes lainnya pada Dashboard Asesmen.`,
                     "success",
                     false,
@@ -731,7 +731,7 @@
                     }
                 );
             } else {
-                alert(`Tes EPPS Berhasil Disimpan! ${pesanWaktu}.`);
+                alert(`Tes Berhasil Disimpan! ${pesanWaktu}.`);
                 if (typeof pindahFase === 'function') {
                     pindahFase('view-dashboard');
                 } else if (typeof showPage === 'function') {
@@ -742,14 +742,14 @@
 
         if (typeof customAlert === 'function') {
             customAlert(
-                "Kumpulkan Jawaban EPPS?",
-                `Anda telah melengkapi seluruh 225 soal motivasi kerja EPPS. Apakah Anda yakin ingin mengumpulkan lembar jawaban sekarang?`,
+                "Kumpulkan Lembar Jawaban?",
+                `Anda telah melengkapi seluruh 225 soal motivasi kerja. Apakah Anda yakin ingin mengumpulkan lembar jawaban sekarang?`,
                 "warning",
                 true,
                 () => { doSubmit(); }
             );
         } else {
-            if (confirm(`Kumpulkan jawaban EPPS (225 soal)?`)) {
+            if (confirm(`Kumpulkan lembar jawaban (225 soal)?`)) {
                 doSubmit();
             }
         }

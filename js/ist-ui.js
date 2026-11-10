@@ -176,7 +176,7 @@ const istUI = {
                     <button type="button" disabled
                         class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80">
                         <i class="fa-solid fa-lock text-slate-400"></i>
-                        <span>Soal ${sub.no} Selesai &amp; Terkunci</span>
+                        <span>Subtes ${sub.no} Selesai &amp; Terkunci</span>
                     </button>
                 `;
             } else if (isUnlocked) {
@@ -189,7 +189,7 @@ const istUI = {
                 btnHtml = `
                     <button type="button" onclick="istLogic.pilihSubtes(${subNoInt})" 
                         class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Mulai Soal ${sub.no}</span>
+                        <span>Mulai Subtes ${sub.no}</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 `;
@@ -204,7 +204,7 @@ const istUI = {
                     <button type="button" onclick="istLogic.pilihSubtes(${subNoInt})" 
                         class="w-full py-2.5 px-4 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
                         <i class="fa-solid fa-lock"></i>
-                        <span>Selesaikan Soal ${prevCode} Dahulu</span>
+                        <span>Selesaikan Subtes ${prevCode} Dahulu</span>
                     </button>
                 `;
             }
@@ -219,10 +219,10 @@ const istUI = {
                             ${statusBadge}
                         </div>
 
-                        <!-- Penamaan Resmi: HANYA Menggunakan Teks Soal 01 s/d Soal 09 Sesuai Aturan Mutlak -->
+                        <!-- Penamaan Resmi: HANYA Menggunakan Teks Subtes 01 s/d Subtes 09 -->
                         <div class="mb-4">
                             <h3 class="font-extrabold text-slate-800 text-lg md:text-xl leading-snug">
-                                Soal ${sub.no}
+                                Subtes ${sub.no}
                             </h3>
                         </div>
 
@@ -248,11 +248,11 @@ const istUI = {
                         <div class="space-y-1.5">
                             <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-blue-200 border border-white/15">
                                 <i class="fa-solid fa-brain"></i>
-                                <span>TES INTELIGENT 1</span>
+                                <span>TES INTELIGENSI 1</span>
                             </div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">Daftar Bagian Soal</h2>
+                            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-wide">Daftar Subtes</h2>
                             <p class="text-xs sm:text-sm text-blue-100/80 max-w-xl">
-                                Ujian terdiri dari 9 bagian soal (Soal 01 s/d Soal 09) yang <strong>wajib dikerjakan secara berurutan</strong> dimulai dari Soal 01.
+                                Pada tes ini terdapat 9 subtes (subtes 01 s/d subtes 09) yang wajib di kerjakan secara berurutan.
                             </p>
                         </div>
 
@@ -280,9 +280,9 @@ const istUI = {
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 mb-1">
                                         <i class="fa-solid fa-trophy text-[11px] text-emerald-600"></i> Seluruh 9 Subtes Selesai
                                     </span>
-                                    <h3 class="text-lg sm:text-xl font-black text-slate-800">Modul 1 (Inteligent 1) Tuntas</h3>
+                                    <h3 class="text-lg sm:text-xl font-black text-slate-800">Tes Inteligensi 1 Tuntas</h3>
                                     <p class="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
-                                        Seluruh jawaban telah tersimpan. Silakan kembali ke Dashboard untuk melanjutkan ke Tes 2 (PAPI Kostick).
+                                        Seluruh jawaban telah tersimpan. Silakan kembali ke Dashboard untuk melanjutkan ke modul tes berikutnya.
                                     </p>
                                 </div>
                             </div>
@@ -1733,8 +1733,8 @@ const istUI = {
                 </div>
 
                 <div>
-                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#edf3f9] text-[#003865] uppercase tracking-wider">Soal 01 Selesai</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Soal 01 Telah Ditutup</h2>
+                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#edf3f9] text-[#003865] uppercase tracking-wider">Subtes 01 Selesai</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-3">Subtes 01 Telah Ditutup</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-2.5 leading-relaxed max-w-lg mx-auto">Seluruh jawaban Anda untuk 20 soal telah berhasil disimpan ke sistem asesmen.</p>
                 </div>
 
@@ -1746,7 +1746,7 @@ const istUI = {
                     </div>
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Bagian Diselesaikan:</span>
-                        <span class="font-bold text-slate-800">Soal 01</span>
+                        <span class="font-bold text-slate-800">Subtes 01</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <span class="text-slate-500">Jumlah Soal Terisi:</span>

@@ -28,7 +28,7 @@ const CFIT_CONFIG = {
         },
         {
             no: 3,
-            nama: "Subtes 3 (Matriks)",
+            nama: "Subtes (Matriks)",
             waktuDetik: 180, // 3 Menit
             totalSoal: 13,
             opsiCount: 6,
