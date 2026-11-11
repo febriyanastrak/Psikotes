@@ -136,7 +136,13 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `Laporan_Psikotes_Altrak_1978_${new Date().toISOString().slice(0, 10)}.csv`;
+        const tglExportWib = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date());
+        link.download = `Laporan_Psikotes_Altrak_1978_${tglExportWib}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

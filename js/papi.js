@@ -172,7 +172,7 @@
                 if (diffSeconds <= 180 && container && iconWrap) {
                     container.className = "bg-rose-50 border border-rose-300 px-3.5 py-1.5 rounded-2xl flex items-center gap-2.5 shadow-sm animate-pulse";
                     iconWrap.className = "w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center text-sm font-bold shadow-sm";
-                    if (el) el.className = "text-base sm:text-lg font-black text-rose-600 font-mono tracking-wider";
+                    if (el) el.className = "text-base sm:text-lg font-black text-rose-600p4 font-mono tracking-wider";
                 }
             } else {
                 // Batas 25 Menit Habis (Mode Overtime)
@@ -494,7 +494,7 @@
                         <button type="button" id="btn-start-papi-test" disabled onclick="window.papiStartQuestions()"
                             class="w-full sm:w-2/3 py-4 rounded-xl font-extrabold text-sm sm:text-base text-white shadow-lg transition flex items-center justify-center gap-2 bg-slate-300 opacity-60 cursor-not-allowed">
                             <i class="fa-solid fa-play"></i>
-                            <span id="btn-start-papi-text">Silakan coba latihan contoh soal di atas dahulu</span>
+                            <span id="btn-start-papi-text">Silakan coba latihan contoh 2 di atas dahulu</span>
                         </button>
                         <button type="button" onclick="window.papiBackToDashboard()"
                             class="w-full sm:w-1/3 py-4 rounded-xl font-bold text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">

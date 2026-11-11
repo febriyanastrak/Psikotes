@@ -3,6 +3,36 @@
  * @param {string|Date} val Timestamp
  * @returns {string} String waktu terformat
  */
+/**
+ * Parse string tanggal/waktu ke Date dengan normalisasi UTC untuk teks SQL polos.
+ */
+function parseDateNormalizedWib(val) {
+    if (!val || val === '-' || val === 'null' || val === 'undefined') return null;
+    if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+    let str = String(val).trim();
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(str)) {
+        str = str.replace(' ', 'T') + 'Z';
+    } else if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}(:\d{2})?)$/i.test(str)) {
+        str = str.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Format jam (HH.mm) secara konsisten dalam zona waktu WIB (Asia/Jakarta).
+ */
+function formatJamWib(val) {
+    const d = parseDateNormalizedWib(val);
+    if (!d) return '-';
+    try {
+        return d.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        console.warn('[HRD] Gagal memformat jam WIB:', e);
+        return '-';
+    }
+}
+
 function formatWaktuDisplay(val) {
     if (!val || val === '-' || val === 'null' || val === 'undefined') return '-';
     let str = String(val).trim();
@@ -16,9 +46,9 @@ function formatWaktuDisplay(val) {
     }
 
     try {
-        const d = new Date(str);
-        if (!isNaN(d.getTime())) {
-            return d.toLocaleString('id-ID') + note;
+        const d = parseDateNormalizedWib(str);
+        if (d) {
+            return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + note;
         }
     } catch (e) {
         console.warn('[HRD] Gagal memformat waktu:', e);
@@ -81,7 +111,7 @@ function renderHrdTable(dataList) {
         const posisiSafe = escapeHtml(row["Posisi"] || row.posisi || row.posisi_dilamar || '-');
         const penempatanSafe = escapeHtml(row["Penempatan"] || row.penempatan || '-');
         const domisiliSafe = escapeHtml(row["Domisili"] || row.domisili || '-');
-        const waktuMulaiSafe = escapeHtml(row["Waktu Mulai"] || (row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-'));
+        const waktuMulaiSafe = escapeHtml(row["Waktu Mulai"] || (row.created_at ? formatWaktuDisplay(row.created_at) : '-'));
         const waktuSelesaiSafe = escapeHtml(row["Waktu Selesai"] || '-');
 
         // Deteksi riwayat pelanggaran integritas (pindah tab)
@@ -227,7 +257,7 @@ async function loadHrdData() {
                     row["Penempatan"] = row.penempatan || '-';
                     row["Domisili"] = row.domisili || '-';
                     row["Token"] = row.token || '-';
-                    row["Waktu Mulai"] = formatWaktuDisplay(row.waktu_mulai || row["Waktu Mulai"] || (row.created_at ? new Date(row.created_at).toLocaleString('id-ID') : '-'));
+                    row["Waktu Mulai"] = formatWaktuDisplay(row.waktu_mulai || row["Waktu Mulai"] || row.created_at);
                     let rawWaktuSelesai = row.waktu_selesai || row["Waktu Selesai"] || null;
                     if (rawWaktuSelesai === '-') rawWaktuSelesai = null;
 
@@ -1411,8 +1441,8 @@ function renderMsdtResults(rawData) {
 
     if (durasiEl) durasiEl.innerText = durasiTeks;
 
-    const wMulai = parsed.waktu_mulai ? new Date(parsed.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
-    const wSelesai = parsed.waktu_selesai ? new Date(parsed.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+    const wMulai = formatJamWib(parsed.waktu_mulai);
+    const wSelesai = formatJamWib(parsed.waktu_selesai);
     if (waktuMulaiSelesaiEl) waktuMulaiSelesaiEl.innerText = `Mulai: ${wMulai} &bull; Selesai: ${wSelesai}`;
 
     if (overtimeEl) {
@@ -1768,10 +1798,12 @@ function renderEppsResults(rawData) {
     let waktuMulaiStr = '-';
     let waktuSelesaiStr = '-';
     if (parsed.waktu_mulai) {
-        try { waktuMulaiStr = new Date(parsed.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+        const wMulaiWib = formatJamWib(parsed.waktu_mulai);
+        if (wMulaiWib !== '-') waktuMulaiStr = wMulaiWib;
     }
     if (parsed.waktu_selesai) {
-        try { waktuSelesaiStr = new Date(parsed.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+        const wSelesaiWib = formatJamWib(parsed.waktu_selesai);
+        if (wSelesaiWib !== '-') waktuSelesaiStr = wSelesaiWib;
     }
 
     if (durasiEl) durasiEl.innerText = durasiTeks;
@@ -4119,7 +4151,7 @@ async function simpanKoreksiIstKeSupabase() {
             alert("Koreksi manual & nilai SW/IQ berhasil disimpan permanen ke database!");
         }
 
-        if (statusText) statusText.innerText = "✓ Tersimpan pada " + new Date().toLocaleTimeString('id-ID');
+        if (statusText) statusText.innerText = "✓ Tersimpan pada " + new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
 
     } catch (err) {
         console.error("Gagal menyimpan koreksi IST:", err);
@@ -5110,7 +5142,7 @@ async function renderCandidatePhotos(candidate) {
     const kontakEl = document.getElementById('fotoRptKontak');
 
     if (candidate) {
-        if (tglEl) tglEl.innerText = candidate["Waktu Selesai"] || (candidate.created_at ? new Date(candidate.created_at).toLocaleString('id-ID') : '-');
+        if (tglEl) tglEl.innerText = candidate["Waktu Selesai"] || formatWaktuDisplay(candidate.created_at);
         if (namaEl) namaEl.innerText = candidate["Nama Lengkap"] || candidate.nama_lengkap || '-';
         if (kontakEl) kontakEl.innerText = candidate["No WhatsApp"] || candidate.no_wa || candidate["Alamat Email"] || candidate.email || '-';
     }
@@ -5214,7 +5246,7 @@ async function renderCandidatePhotos(candidate) {
                             const filePath = `${candId}/${f.name}`;
                             const meta = parsePhotoMeta(f.name);
                             if (meta.labelWaktu === '-' && f.created_at) {
-                                meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
+                                meta.labelWaktu = formatWaktuDisplay(f.created_at);
                             }
                             const cleanBaseName = f.name.toLowerCase().trim();
                             if (!seenFileNames.has(cleanBaseName)) {
@@ -5262,7 +5294,7 @@ async function renderCandidatePhotos(candidate) {
                                 const filePath = `${pathScan}/${f.name}`;
                                 const meta = parsePhotoMeta(f.name, folderName);
                                 if (meta.labelWaktu === '-' && f.created_at) {
-                                    meta.labelWaktu = new Date(f.created_at).toLocaleString('id-ID');
+                                    meta.labelWaktu = formatWaktuDisplay(f.created_at);
                                 }
 
                                 const cleanBaseName = f.name.toLowerCase().trim();
@@ -5826,9 +5858,7 @@ function renderTokenTable(tokens) {
             ? `${escapeHtml(item.digunakan_oleh)} ${item.nomor_hp ? `(${escapeHtml(item.nomor_hp)})` : ''}`
             : '-';
         
-        const waktuPakai = item.waktu_digunakan
-            ? new Date(item.waktu_digunakan).toLocaleString('id-ID')
-            : (item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '-');
+        const waktuPakai = formatWaktuDisplay(item.waktu_digunakan || item.created_at);
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/40 transition";
@@ -6274,11 +6304,11 @@ async function renderGrafisResults(hasilGrafis, candidate) {
     const waktuEl = document.getElementById('grafisRptWaktu');
 
     if (cand) {
-        if (tglEl) tglEl.innerText = cand["Waktu Selesai"] || (cand.created_at ? new Date(cand.created_at).toLocaleString('id-ID') : '-');
+        if (tglEl) tglEl.innerText = cand["Waktu Selesai"] || formatWaktuDisplay(cand.created_at);
         if (namaEl) namaEl.innerText = cand["Nama Lengkap"] || cand.nama_lengkap || '-';
         if (kontakEl) kontakEl.innerText = cand["No WhatsApp"] || cand.no_wa || cand["Alamat Email"] || cand.email || '-';
         if (posisiEl) posisiEl.innerText = cand["Posisi"] || cand.posisi || cand.posisi_dilamar || '-';
-        if (waktuEl) waktuEl.innerText = cand["Waktu Mulai"] || (cand.created_at ? new Date(cand.created_at).toLocaleString('id-ID') : '-');
+        if (waktuEl) waktuEl.innerText = cand["Waktu Mulai"] || formatWaktuDisplay(cand.created_at);
     }
 
     if (!grid) return;
@@ -6384,7 +6414,7 @@ async function renderGrafisResults(hasilGrafis, candidate) {
                 const fileName = item.nama_file || `${slot.key.toUpperCase()}_Berkas_${subIdx}`;
                 const fileSize = item.ukuran || '';
                 const isPdf = (item.tipe === 'application/pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'));
-                const uploadTime = item.waktu_upload ? new Date(item.waktu_upload).toLocaleString('id-ID') : '-';
+                const uploadTime = formatWaktuDisplay(item.waktu_upload);
                 const subLabel = subIdx === 1 ? 'Lembar 1 (Utama)' : 'Lembar 2 (Tambahan)';
 
                 cardsHtml += `
