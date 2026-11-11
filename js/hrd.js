@@ -158,9 +158,15 @@ function renderHrdTable(dataList) {
                 <div><span class="text-slate-300 font-medium">Selesai:</span> ${waktuSelesaiSafe}</div>
             </td>
             <td class="p-3 text-center">
-                <button onclick="viewCandidateChart(${index})" class="bg-[#003865] hover:bg-[#0a4980] text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow border border-[#0a4980] cursor-pointer">
-                    <i class="fa-solid fa-chart-line mr-1"></i> Buka Laporan
-                </button>
+                <div class="inline-flex items-center justify-center gap-1.5">
+                    <button type="button" onclick="viewCandidateChart(${index})" class="bg-[#003865] hover:bg-[#0a4980] text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow border border-[#0a4980] cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-chart-line mr-1"></i> Buka Laporan
+                    </button>
+                    <button type="button" onclick="openAndPromptPrintAll(${index})" title="Cetak semua tes yang dikerjakan kandidat ini"
+                        class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow cursor-pointer inline-flex items-center gap-1 whitespace-nowrap">
+                        <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">Cetak</span>
+                    </button>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
@@ -499,6 +505,8 @@ function viewCandidateChart(index) {
     if (!row) return;
 
     currentSelectedCandidate = row;
+    if (typeof toggleHrdPrintAllPopover === 'function') toggleHrdPrintAllPopover(false);
+    if (typeof cleanupHrdPrintMode === 'function') cleanupHrdPrintMode();
 
     // Cek apakah kandidat mengikuti asesmen manajerial tahap 2
     const hasDataTahap2 = !!(
@@ -1172,8 +1180,12 @@ let currentSelectedCandidate = null;
  * Berpindah antar tab hasil tes (Pauli, IST, PAPI, DISC, Foto, MSDT, EPPS, CFIT, MBTI)
  * @param {'pauli'|'ist'|'papi'|'disc'|'foto'|'msdt'|'epps'|'cfit'|'mbti'} tabId 
  */
+let currentActiveHrdTabId = 'ist';
+
 function switchHrdTab(tabId) {
     if (tabId === 'mcmi') tabId = 'mbti';
+    currentActiveHrdTabId = tabId;
+    if (typeof toggleHrdPrintAllPopover === 'function') toggleHrdPrintAllPopover(false);
     const tabs = ['grafis', 'pauli', 'ist', 'papi', 'disc', 'epps', 'msdt', 'cfit', 'mbti', 'apm', 'dass', 'foto'];
     const hasDataTahap2 = currentSelectedCandidate && !!(
         currentSelectedCandidate.hasil_msdt ||
@@ -1272,6 +1284,607 @@ function switchHrdTab(tabId) {
             dassChartInstance.resize();
         }, 50);
     }
+}
+
+// =========================================================================
+// MODUL CETAK DOKUMEN HRD (PILIHAN: CETAK TAB AKTIF vs CETAK SEMUA TES)
+// =========================================================================
+const HRD_PRINT_MODULE_SPECS = [
+    { id: 'ist',    panelId: 'panelTabIst',    label: 'IST — Intelligenz Struktur Test',         shortLabel: 'IST' },
+    { id: 'cfit',   panelId: 'panelTabCfit',   label: 'CFIT — Culture Fair Intelligence Test',    shortLabel: 'CFIT' },
+    { id: 'apm',    panelId: 'panelTabApm',    label: 'APM — Advanced Progressive Matrices',      shortLabel: 'APM' },
+    { id: 'pauli',  panelId: 'panelTabPauli',  label: 'Pauli — Ketahanan & Kecepatan Kerja',      shortLabel: 'Pauli' },
+    { id: 'papi',   panelId: 'panelTabPapi',   label: 'PAPI Kostick — Profil Kepribadian Kerja',  shortLabel: 'PAPI_Kostick' },
+    { id: 'disc',   panelId: 'panelTabDisc',   label: 'DISC — Dinamika Perilaku Kerja',           shortLabel: 'DISC' },
+    { id: 'epps',   panelId: 'panelTabEpps',   label: 'EPPS — Edwards Personal Preference',       shortLabel: 'EPPS' },
+    { id: 'msdt',   panelId: 'panelTabMsdt',   label: 'MSDT — Gaya Kepemimpinan 3-D',             shortLabel: 'MSDT' },
+    { id: 'mbti',   panelId: 'panelTabMbti',   label: 'MBTI — Tipe Kepribadian',                  shortLabel: 'MBTI' },
+    { id: 'dass',   panelId: 'panelTabDass',   label: 'DASS-21 — Skrining Kesehatan Mental',      shortLabel: 'DASS-21' },
+    { id: 'grafis', panelId: 'panelTabGrafis', label: 'Tes Grafis (DAP, Tree, HTP)',              shortLabel: 'Tes_Grafis' },
+    { id: 'foto',   panelId: 'panelTabFoto',   label: 'Dokumentasi Foto Pengawasan',              shortLabel: 'Dokumentasi_Foto' }
+];
+
+const HRD_DEFAULT_PANEL_DOM_ORDER = [
+    'grafis', 'pauli', 'ist', 'papi', 'disc', 'foto', 'msdt', 'epps', 'cfit', 'apm', 'mbti', 'dass'
+];
+
+let hrdPrintSession = null;
+let isPreparingHrdPrint = false;
+let hrdPrintMediaQuery = null;
+
+/**
+ * Mengecek apakah field hasil tes kandidat memiliki data nyata (bukan null/kosong/placeholder).
+ */
+function hasMeaningfulTestData(val) {
+    if (val === null || val === undefined || val === false || val === '') return false;
+    if (typeof val === 'number') return !isNaN(val);
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (!trimmed || trimmed === '-' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '{}' || trimmed === '[]') {
+            return false;
+        }
+        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                return hasMeaningfulTestData(parsed);
+            } catch (e) {
+                return true;
+            }
+        }
+        return true;
+    }
+    if (Array.isArray(val)) return val.length > 0;
+    if (typeof val === 'object') return Object.keys(val).length > 0;
+    return false;
+}
+
+/**
+ * Memeriksa kelengkapan berkas Tes Grafis (DAP, Tree, HTP) dan mendeteksi lampiran PDF.
+ */
+function inspectGrafisPayload(hasilGrafis) {
+    const result = { hasFiles: false, totalFiles: 0, hasPdf: false, pdfFiles: [] };
+    if (!hasilGrafis) return result;
+
+    let parsed = hasilGrafis;
+    if (typeof parsed === 'string') {
+        const trimmed = parsed.trim();
+        if (!trimmed || trimmed === 'null' || trimmed === '{}') return result;
+        try {
+            parsed = JSON.parse(trimmed);
+        } catch (e) {
+            return result;
+        }
+    }
+    if (!parsed || typeof parsed !== 'object') return result;
+
+    const extractList = (slotVal) => {
+        if (typeof extractFilesFromCategory === 'function') return extractFilesFromCategory(slotVal);
+        if (!slotVal) return [];
+        if (Array.isArray(slotVal)) return slotVal.filter(Boolean);
+        if (Array.isArray(slotVal.files)) return slotVal.files.filter(Boolean);
+        if (slotVal.url || slotVal.base64) return [slotVal];
+        return [];
+    };
+
+    ['dap', 'tree', 'htp'].forEach(key => {
+        const files = extractList(parsed[key]);
+        files.forEach(item => {
+            if (!item) return;
+            result.totalFiles++;
+            const nameOrUrl = String(item.nama_file || item.url || '').toLowerCase().split('?')[0];
+            if (item.tipe === 'application/pdf' || nameOrUrl.endsWith('.pdf')) {
+                result.hasPdf = true;
+                result.pdfFiles.push(item.nama_file || `${key.toUpperCase()}.pdf`);
+            }
+        });
+    });
+
+    result.hasFiles = result.totalFiles > 0;
+    return result;
+}
+
+/**
+ * Mendeteksi daftar ID modul tes yang sudah dikerjakan kandidat sesuai urutan cetak baku.
+ * @param {Object} candidate
+ * @param {Object} [options] { includeGrafis?: boolean, includeFoto?: boolean }
+ * @returns {string[]}
+ */
+function getCompletedTestsForCandidate(candidate, options = {}) {
+    if (!candidate || typeof candidate !== 'object') return [];
+
+    const grafisInfo = inspectGrafisPayload(candidate.hasil_grafis);
+    const hasIst = hasMeaningfulTestData(candidate.hasil_ist) || hasMeaningfulTestData(candidate.jawaban_ist);
+    const hasPauli = hasMeaningfulTestData(candidate.hasil_pauli) ||
+        Number(candidate['Total Pauli'] || 0) > 0 ||
+        hasMeaningfulTestData(candidate['Garis Interval (3 Menit)']);
+
+    const detectedMap = {
+        ist: hasIst,
+        cfit: hasMeaningfulTestData(candidate.hasil_cfit),
+        apm: hasMeaningfulTestData(candidate.hasil_apm),
+        pauli: hasPauli,
+        papi: hasMeaningfulTestData(candidate.hasil_papi),
+        disc: hasMeaningfulTestData(candidate.hasil_disc),
+        epps: hasMeaningfulTestData(candidate.hasil_epps),
+        msdt: hasMeaningfulTestData(candidate.hasil_msdt),
+        mbti: hasMeaningfulTestData(candidate.hasil_mbti || candidate.hasil_mcmi),
+        dass: hasMeaningfulTestData(candidate.hasil_dass),
+        grafis: options.includeGrafis === false ? false : grafisInfo.hasFiles,
+        foto: options.includeFoto === true
+    };
+
+    return HRD_PRINT_MODULE_SPECS
+        .filter(spec => Boolean(detectedMap[spec.id]))
+        .map(spec => spec.id);
+}
+
+/**
+ * Membangun nama file PDF yang aman dan menggunakan tanggal WIB (Asia/Jakarta).
+ */
+function buildHrdPrintFilename(candidate, modeOrTabId = 'all', dateObj = new Date()) {
+    const sanitizeSegment = (raw, fallback) => {
+        const cleaned = String(raw || '')
+            .trim()
+            .replace(/[<>:"/\\|?*\x00-\x1F]+/g, '_')
+            .replace(/[^\w.\-\s]/g, '_')
+            .replace(/\s+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 48);
+        return cleaned || fallback;
+    };
+
+    const rawName = candidate ? (candidate['Nama Lengkap'] || candidate.nama_lengkap || '') : '';
+    const safeName = sanitizeSegment(rawName, 'Kandidat');
+
+    let rawMode = 'Semua_Tes';
+    if (modeOrTabId && modeOrTabId !== 'all') {
+        const foundSpec = HRD_PRINT_MODULE_SPECS.find(s => s.id === modeOrTabId);
+        rawMode = foundSpec ? foundSpec.shortLabel : String(modeOrTabId);
+    }
+    const safeMode = sanitizeSegment(rawMode, 'Semua_Tes');
+
+    const safeDate = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
+    const tglWib = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(safeDate);
+
+    return `Laporan_Psikotes_${safeName}_${safeMode}_${tglWib}`;
+}
+
+function getHrdPanelElement(tabId) {
+    return document.getElementById('panelTab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+}
+
+function finishChartRenderImmediately(chart) {
+    if (!chart) return;
+    try {
+        if (typeof chart.stop === 'function') chart.stop();
+        if (typeof chart.resize === 'function') chart.resize();
+        if (typeof chart.update === 'function') chart.update('none');
+    } catch (e) {
+        console.warn('[HRD Print] Gagal menyegarkan chart:', e);
+    }
+}
+
+function waitPrintFrames(delayMs = 0) {
+    return new Promise(resolve => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (delayMs > 0) {
+                    setTimeout(resolve, delayMs);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
+function waitForPanelImagesToLoad(panels, timeoutMs = 6000) {
+    const imgs = [];
+    (panels || []).forEach(panel => {
+        if (!panel) return;
+        panel.querySelectorAll('img').forEach(img => {
+            if (img.getAttribute('src')) imgs.push(img);
+        });
+    });
+    if (imgs.length === 0) return Promise.resolve();
+
+    const perImgPromises = imgs.map(img => new Promise(resolve => {
+        if (img.complete) return resolve();
+        const done = () => {
+            img.removeEventListener('load', done);
+            img.removeEventListener('error', done);
+            resolve();
+        };
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+    }));
+
+    return Promise.race([
+        Promise.all(perImgPromises),
+        new Promise(resolve => setTimeout(resolve, timeoutMs))
+    ]);
+}
+
+function ensureModulePrintBanner(panel, spec, candidate) {
+    if (!panel || !spec) return;
+    let banner = panel.querySelector('.hrd-print-module-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'hrd-print-module-banner';
+        panel.prepend(banner);
+    }
+
+    const candName = escapeHtml(candidate ? (candidate['Nama Lengkap'] || candidate.nama_lengkap || '-') : '-');
+    const candPos = escapeHtml(candidate ? (candidate['Posisi'] || candidate.posisi || candidate.posisi_dilamar || '-') : '-');
+    const candDate = escapeHtml(candidate ? ((candidate['Waktu Selesai'] && candidate['Waktu Selesai'] !== '-') ? candidate['Waktu Selesai'] : (candidate['Waktu Mulai'] || '-')) : '-');
+
+    banner.innerHTML = `
+        <div class="flex flex-col">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">PT Altrak 1978 &bull; Laporan Asesmen Psikotes</span>
+            <span class="text-xs font-black text-[#003865]">${escapeHtml(spec.label)}</span>
+        </div>
+        <div class="text-right text-[10px] leading-tight text-slate-600">
+            <div class="font-bold text-slate-800 capitalize">${candName}</div>
+            <div>${candPos} &bull; ${candDate}</div>
+        </div>
+    `;
+}
+
+function populateHrdPrintAllOptions() {
+    const cand = currentSelectedCandidate;
+    const listEl = document.getElementById('hrdPrintDetectedList');
+    const chkGrafis = document.getElementById('chkPrintIncludeGrafis');
+    const hintGrafis = document.getElementById('hrdPrintGrafisHint');
+    const pdfNotice = document.getElementById('hrdPrintGrafisPdfNotice');
+    const pdfNoticeText = document.getElementById('hrdPrintGrafisPdfNoticeText');
+    const chkFoto = document.getElementById('chkPrintIncludeFoto');
+    const btnConfirm = document.getElementById('btnConfirmPrintAll');
+
+    if (!cand) return;
+
+    const coreTests = getCompletedTestsForCandidate(cand, { includeGrafis: false, includeFoto: false });
+    const grafisInfo = inspectGrafisPayload(cand.hasil_grafis);
+
+    if (listEl) {
+        if (coreTests.length === 0 && !grafisInfo.hasFiles) {
+            listEl.innerHTML = '<span class="text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold">Belum ada tes yang selesai dikerjakan.</span>';
+        } else {
+            const chips = coreTests.map(id => {
+                const spec = HRD_PRINT_MODULE_SPECS.find(s => s.id === id);
+                const name = spec ? spec.shortLabel.replace(/_/g, ' ') : id.toUpperCase();
+                return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-[#003865] border border-blue-200 font-bold"><i class="fa-solid fa-check text-[9px] text-emerald-600"></i>${escapeHtml(name)}</span>`;
+            });
+            if (grafisInfo.hasFiles) {
+                chips.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold"><i class="fa-solid fa-palette text-[9px]"></i>Grafis (${grafisInfo.totalFiles} berkas)</span>`);
+            }
+            listEl.innerHTML = chips.join('');
+        }
+    }
+
+    if (chkGrafis) {
+        chkGrafis.disabled = !grafisInfo.hasFiles;
+        chkGrafis.checked = grafisInfo.hasFiles;
+    }
+    if (hintGrafis) {
+        hintGrafis.innerText = grafisInfo.hasFiles
+            ? `${grafisInfo.totalFiles} berkas terdeteksi (gambar JPG/PNG ikut tercetak).`
+            : 'Kandidat belum mengunggah berkas Tes Grafis.';
+    }
+    if (pdfNotice) {
+        if (grafisInfo.hasPdf) {
+            pdfNotice.classList.remove('hidden');
+            pdfNotice.classList.add('flex');
+            if (pdfNoticeText) {
+                pdfNoticeText.innerText = `Terdapat ${grafisInfo.pdfFiles.length} lampiran PDF (${grafisInfo.pdfFiles.join(', ')}) pada Tes Grafis. File PDF eksternal tidak tergabung dalam cetak browser dan perlu diunduh terpisah dari tab Hasil Grafis.`;
+            }
+        } else {
+            pdfNotice.classList.add('hidden');
+            pdfNotice.classList.remove('flex');
+        }
+    }
+    if (chkFoto) {
+        chkFoto.checked = false;
+    }
+    if (btnConfirm) {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>';
+    }
+}
+
+function toggleHrdPrintAllPopover(forceState) {
+    const popover = document.getElementById('hrdPrintAllPopover');
+    const menuBtn = document.getElementById('btnPrintAllMenu');
+    if (!popover) return;
+
+    const currentlyHidden = popover.classList.contains('hidden');
+    const shouldOpen = typeof forceState === 'boolean' ? forceState : currentlyHidden;
+
+    if (shouldOpen) {
+        populateHrdPrintAllOptions();
+        popover.classList.remove('hidden');
+        if (menuBtn) menuBtn.setAttribute('aria-expanded', 'true');
+    } else {
+        popover.classList.add('hidden');
+        if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+    }
+}
+
+function cleanupHrdPrintMode() {
+    window.removeEventListener('afterprint', cleanupHrdPrintMode);
+    if (hrdPrintMediaQuery) {
+        try {
+            if (typeof hrdPrintMediaQuery.removeEventListener === 'function') {
+                hrdPrintMediaQuery.removeEventListener('change', handleHrdPrintMediaChange);
+            }
+        } catch (e) {}
+        hrdPrintMediaQuery = null;
+    }
+
+    const modalChart = document.getElementById('modal-hrd-chart');
+    if (modalChart) {
+        modalChart.classList.remove('print-all-mode');
+    }
+
+    if (hrdPrintSession && hrdPrintSession.restoreOrder && hrdPrintSession.modalBodyEl) {
+        HRD_DEFAULT_PANEL_DOM_ORDER.forEach(tabId => {
+            const panel = getHrdPanelElement(tabId);
+            if (panel && panel.parentNode === hrdPrintSession.modalBodyEl) {
+                hrdPrintSession.modalBodyEl.appendChild(panel);
+            }
+        });
+    }
+
+    HRD_PRINT_MODULE_SPECS.forEach(spec => {
+        const panel = getHrdPanelElement(spec.id);
+        if (panel) {
+            panel.classList.remove('print-all-item', 'print-all-first', 'print-all-page-break', 'print-all-excluded');
+        }
+    });
+
+    if (hrdPrintSession) {
+        if (hrdPrintSession.originalTitle) {
+            document.title = hrdPrintSession.originalTitle;
+        }
+        const prevTab = hrdPrintSession.previousTabId || 'ist';
+        const prevScroll = hrdPrintSession.scrollTop;
+        const bodyEl = hrdPrintSession.modalBodyEl;
+        hrdPrintSession = null;
+
+        if (modalChart && !modalChart.classList.contains('hide-section')) {
+            switchHrdTab(prevTab);
+            if (bodyEl && typeof prevScroll === 'number') {
+                bodyEl.scrollTop = prevScroll;
+            }
+        }
+    }
+
+    const btnConfirm = document.getElementById('btnConfirmPrintAll');
+    if (btnConfirm) {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>';
+    }
+    isPreparingHrdPrint = false;
+}
+
+function handleHrdPrintMediaChange(e) {
+    if (e && !e.matches && hrdPrintSession) {
+        cleanupHrdPrintMode();
+    }
+}
+
+function registerHrdPrintCleanupListeners() {
+    window.removeEventListener('afterprint', cleanupHrdPrintMode);
+    window.addEventListener('afterprint', cleanupHrdPrintMode, { once: true });
+
+    if (typeof window.matchMedia === 'function') {
+        hrdPrintMediaQuery = window.matchMedia('print');
+        if (hrdPrintMediaQuery && typeof hrdPrintMediaQuery.addEventListener === 'function') {
+            hrdPrintMediaQuery.addEventListener('change', handleHrdPrintMediaChange);
+        }
+    }
+}
+
+async function printHrdReport(mode = 'single') {
+    if (mode === 'all') {
+        return executeHrdPrintAll();
+    }
+    if (isPreparingHrdPrint) return;
+
+    toggleHrdPrintAllPopover(false);
+    cleanupHrdPrintMode();
+
+    const originalTitle = document.title;
+    hrdPrintSession = {
+        mode: 'single',
+        previousTabId: currentActiveHrdTabId || 'ist',
+        originalTitle: originalTitle,
+        restoreOrder: false,
+        modalBodyEl: null
+    };
+
+    try {
+        document.title = buildHrdPrintFilename(currentSelectedCandidate, currentActiveHrdTabId || 'ist');
+        if (currentActiveHrdTabId === 'pauli') finishChartRenderImmediately(hrdChartInstance);
+        if (currentActiveHrdTabId === 'ist') finishChartRenderImmediately(istProfileChartInstance);
+        if (currentActiveHrdTabId === 'disc') (discChartInstances || []).forEach(finishChartRenderImmediately);
+        if (currentActiveHrdTabId === 'dass') finishChartRenderImmediately(dassChartInstance);
+
+        await waitPrintFrames(50);
+        registerHrdPrintCleanupListeners();
+        window.print();
+    } catch (err) {
+        console.error('[HRD Print] Gagal mencetak tab aktif:', err);
+        cleanupHrdPrintMode();
+    }
+}
+
+async function executeHrdPrintAll() {
+    if (isPreparingHrdPrint || !currentSelectedCandidate) return;
+
+    const modalChart = document.getElementById('modal-hrd-chart');
+    if (!modalChart) return;
+    const modalBodyEl = modalChart.querySelector('.p-6.overflow-y-auto') || modalChart;
+
+    const chkGrafis = document.getElementById('chkPrintIncludeGrafis');
+    const chkFoto = document.getElementById('chkPrintIncludeFoto');
+    const includeGrafis = chkGrafis ? Boolean(chkGrafis.checked) : false;
+    const includeFoto = chkFoto ? Boolean(chkFoto.checked) : false;
+
+    const selectedModules = getCompletedTestsForCandidate(currentSelectedCandidate, {
+        includeGrafis,
+        includeFoto
+    });
+
+    if (selectedModules.length === 0) {
+        toggleHrdPrintAllPopover(false);
+        customAlert('Belum Ada Data Tes', 'Kandidat ini belum memiliki hasil tes yang dapat dicetak.', 'info');
+        return;
+    }
+
+    isPreparingHrdPrint = true;
+    const btnConfirm = document.getElementById('btnConfirmPrintAll');
+    if (btnConfirm) {
+        btnConfirm.disabled = true;
+        btnConfirm.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Menyiapkan...</span>';
+    }
+
+    const previousTabId = currentActiveHrdTabId || 'ist';
+    const originalTitle = document.title;
+    const prevScrollTop = modalBodyEl ? modalBodyEl.scrollTop : 0;
+
+    toggleHrdPrintAllPopover(false);
+
+    hrdPrintSession = {
+        mode: 'all',
+        previousTabId: previousTabId,
+        originalTitle: originalTitle,
+        scrollTop: prevScrollTop,
+        modalBodyEl: modalBodyEl,
+        restoreOrder: true
+    };
+
+    try {
+        modalChart.classList.add('print-all-mode');
+
+        // Susun urutan panel sesuai alur asesmen baku dan tandai panel yang dicetak
+        const selectedPanels = [];
+        selectedModules.forEach((modId, idx) => {
+            const spec = HRD_PRINT_MODULE_SPECS.find(s => s.id === modId);
+            const panel = getHrdPanelElement(modId);
+            if (!panel || !spec) return;
+
+            if (modalBodyEl && panel.parentNode === modalBodyEl) {
+                modalBodyEl.appendChild(panel);
+            }
+            ensureModulePrintBanner(panel, spec, currentSelectedCandidate);
+
+            panel.classList.remove('hidden', 'print-all-excluded');
+            panel.classList.add('print-all-item');
+            panel.classList.toggle('print-all-first', idx === 0);
+            panel.classList.toggle('print-all-page-break', idx > 0);
+            selectedPanels.push(panel);
+        });
+
+        HRD_PRINT_MODULE_SPECS.forEach(spec => {
+            if (selectedModules.includes(spec.id)) return;
+            const panel = getHrdPanelElement(spec.id);
+            if (!panel) return;
+            panel.classList.add('hidden', 'print-all-excluded');
+            panel.classList.remove('print-all-item', 'print-all-first', 'print-all-page-break');
+        });
+
+        // Tunggu 1 frame agar dimensi kontainer panel tidak lagi 0x0 sebelum grafik digambar ulang
+        await waitPrintFrames(0);
+
+        if (selectedModules.includes('ist')) {
+            const istReadyForCurrent = typeof activeIstCorrection !== 'undefined' &&
+                activeIstCorrection &&
+                activeIstCorrection.candidateId === currentSelectedCandidate.id &&
+                activeIstCorrection.sw &&
+                Object.keys(activeIstCorrection.sw).length > 0;
+            if (!istReadyForCurrent && typeof renderIstResults === 'function') {
+                await renderIstResults(
+                    currentSelectedCandidate.hasil_ist,
+                    currentSelectedCandidate.jawaban_ist,
+                    currentSelectedCandidate
+                );
+            } else if (typeof initOrUpdateIstProfileChart === 'function') {
+                initOrUpdateIstProfileChart();
+            }
+            finishChartRenderImmediately(istProfileChartInstance);
+        }
+
+        if (selectedModules.includes('pauli')) {
+            finishChartRenderImmediately(hrdChartInstance);
+        }
+
+        if (selectedModules.includes('papi') && typeof renderPapiResults === 'function') {
+            renderPapiResults(currentSelectedCandidate.hasil_papi);
+        }
+
+        if (selectedModules.includes('disc') && typeof renderDiscResults === 'function') {
+            renderDiscResults(currentSelectedCandidate.hasil_disc);
+            await new Promise(resolve => setTimeout(resolve, 90));
+            (discChartInstances || []).forEach(finishChartRenderImmediately);
+        }
+
+        if (selectedModules.includes('dass') && typeof renderDassResults === 'function') {
+            renderDassResults(currentSelectedCandidate.hasil_dass);
+            finishChartRenderImmediately(dassChartInstance);
+        }
+
+        if (selectedModules.includes('grafis') && typeof renderGrafisResults === 'function') {
+            await renderGrafisResults(currentSelectedCandidate.hasil_grafis, currentSelectedCandidate);
+        }
+
+        if (selectedModules.includes('foto') && typeof renderCandidatePhotos === 'function') {
+            await renderCandidatePhotos(currentSelectedCandidate);
+        }
+
+        await waitForPanelImagesToLoad(selectedPanels, 6000);
+        document.title = buildHrdPrintFilename(currentSelectedCandidate, 'all');
+        await waitPrintFrames(250);
+
+        registerHrdPrintCleanupListeners();
+        window.print();
+    } catch (err) {
+        console.error('[HRD Print All] Gagal menyiapkan cetak gabungan:', err);
+        cleanupHrdPrintMode();
+        customAlert('Gagal Menyiapkan Dokumen', 'Terjadi kendala saat menyiapkan gabungan laporan untuk dicetak.', 'error');
+    }
+}
+
+function openAndPromptPrintAll(index) {
+    viewCandidateChart(index);
+    requestAnimationFrame(() => {
+        toggleHrdPrintAllPopover(true);
+    });
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+        const popover = document.getElementById('hrdPrintAllPopover');
+        const menuBtn = document.getElementById('btnPrintAllMenu');
+        if (!popover || popover.classList.contains('hidden')) return;
+        if (popover.contains(e.target) || (menuBtn && menuBtn.contains(e.target))) return;
+        toggleHrdPrintAllPopover(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const popover = document.getElementById('hrdPrintAllPopover');
+            if (popover && !popover.classList.contains('hidden')) {
+                toggleHrdPrintAllPopover(false);
+            }
+        }
+    });
 }
 
 /**
@@ -6228,6 +6841,10 @@ if (typeof window !== 'undefined') {
 }
 
 function closeModal(id) {
+    if (id === 'modal-hrd-chart') {
+        if (typeof toggleHrdPrintAllPopover === 'function') toggleHrdPrintAllPopover(false);
+        if (typeof cleanupHrdPrintMode === 'function') cleanupHrdPrintMode();
+    }
     const modal = document.getElementById(id);
     if (modal) {
         modal.classList.add('hide-section');

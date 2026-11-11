@@ -264,7 +264,7 @@
                 </div>
 
                 <!-- BARIS TAB NAVIGASI 4 TES + DOKUMENTASI FOTO -->
-                <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 mb-6 no-print overflow-hidden">
+                <div class="relative flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 border-b border-slate-200 pb-3 mb-6 no-print">
                     <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 custom-scrollbar min-w-0 flex-1">
                         <!-- MODUL 1: TES GRAFIS -->
                         <button type="button" id="tabBtnGrafis" onclick="switchHrdTab('grafis')"
@@ -328,10 +328,79 @@
                             <i class="fa-solid fa-camera"></i> <span>Dokumentasi Foto</span>
                         </button>
                     </div>
-                    <button type="button" onclick="window.print()"
-                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white shadow-sm shrink-0 whitespace-nowrap">
-                        <i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>
-                    </button>
+                    <div class="relative flex items-center gap-1.5 shrink-0">
+                        <button type="button" id="btnPrintSingleTab" onclick="printHrdReport('single')"
+                            title="Cetak hanya tab tes yang sedang aktif dibuka"
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white shadow-sm whitespace-nowrap cursor-pointer">
+                            <i class="fa-solid fa-print"></i> <span>Cetak Tab Ini</span>
+                        </button>
+                        <button type="button" id="btnPrintAllMenu" onclick="toggleHrdPrintAllPopover()"
+                            aria-expanded="false" aria-controls="hrdPrintAllPopover"
+                            title="Cetak gabungan semua tes yang dikerjakan kandidat ini"
+                            class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#003865] hover:bg-[#0a4980] text-white shadow-sm whitespace-nowrap cursor-pointer">
+                            <i class="fa-solid fa-layer-group text-amber-400"></i> <span>Cetak Semua Tes</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] opacity-80"></i>
+                        </button>
+
+                        <!-- Popover Opsi Cetak Semua Tes -->
+                        <div id="hrdPrintAllPopover" role="dialog" aria-modal="false" aria-label="Opsi Cetak Semua Tes"
+                            class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-2.5rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 z-30 text-left">
+                            <div class="flex items-start justify-between gap-2 pb-2.5 mb-3 border-b border-slate-100">
+                                <div>
+                                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                                        <i class="fa-solid fa-file-pdf text-[#003865]"></i>
+                                        <span>Cetak Semua Tes Dikerjakan</span>
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Menggabungkan modul yang selesai menjadi 1 dokumen siap cetak / PDF.</p>
+                                </div>
+                                <button type="button" onclick="toggleHrdPrintAllPopover(false)" aria-label="Tutup opsi cetak"
+                                    class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tes Terdeteksi Sudah Dikerjakan</div>
+                                <div id="hrdPrintDetectedList" class="flex flex-wrap gap-1.5 text-[11px]">
+                                    <span class="text-slate-400 italic">Membaca data kandidat...</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 mb-3 pt-2.5 border-t border-slate-100">
+                                <label id="lblPrintIncludeGrafis" class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80 cursor-pointer hover:bg-slate-100/70 transition">
+                                    <input type="checkbox" id="chkPrintIncludeGrafis" class="mt-0.5 rounded border-slate-300 text-[#003865] focus:ring-[#003865]">
+                                    <span class="text-xs leading-snug">
+                                        <span class="font-bold text-slate-800 block">Sertakan Tes Grafis (DAP, Tree, HTP)</span>
+                                        <span id="hrdPrintGrafisHint" class="text-[10px] text-slate-500">Berkas gambar yang diunggah kandidat ikut dicetak.</span>
+                                    </span>
+                                </label>
+
+                                <div id="hrdPrintGrafisPdfNotice" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-snug items-start gap-2">
+                                    <i class="fa-solid fa-circle-exclamation text-amber-600 mt-0.5 shrink-0"></i>
+                                    <span id="hrdPrintGrafisPdfNoticeText">Terdapat berkas PDF pada Tes Grafis. File PDF eksternal tidak tergabung dalam cetak browser dan perlu diunduh terpisah dari tab Hasil Grafis.</span>
+                                </div>
+
+                                <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80 cursor-pointer hover:bg-slate-100/70 transition">
+                                    <input type="checkbox" id="chkPrintIncludeFoto" class="mt-0.5 rounded border-slate-300 text-[#003865] focus:ring-[#003865]">
+                                    <span class="text-xs leading-snug">
+                                        <span class="font-bold text-slate-800 block">Sertakan Dokumentasi Foto Pengawasan</span>
+                                        <span class="text-[10px] text-slate-500">Opsional; nonaktifkan jika laporan ditujukan untuk user interview yang ringkas.</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                                <button type="button" onclick="toggleHrdPrintAllPopover(false)"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="button" id="btnConfirmPrintAll" onclick="executeHrdPrintAll()"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#003865] hover:bg-[#0a4980] text-white shadow-sm flex items-center gap-1.5 transition cursor-pointer">
+                                    <i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- PANEL TAB HASIL GRAFIS (DAP, TREE, HTP) -->
@@ -378,7 +447,7 @@
                         <div class="mb-2">
                             <div class="flex justify-between items-center mb-4 border-b border-slate-300 pb-1">
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">B. BERKAS HASIL TES GRAFIS (MAKSIMAL 6 GAMBAR)</h4>
-                                <button type="button" onclick="window.print()" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+                                <button type="button" onclick="printHrdReport('single')" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow cursor-pointer">
                                     <i class="fa-solid fa-print"></i> Cetak Lembar Grafis
                                 </button>
                             </div>
@@ -866,7 +935,7 @@
                         <div class="mb-2">
                             <div class="flex justify-between items-center mb-4 border-b border-slate-300 pb-1">
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">B. DOKUMENTASI PELAKSANAAN TES</h4>
-                                <button type="button" onclick="window.print()" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+                                <button type="button" onclick="printHrdReport('single')" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow cursor-pointer">
                                     <i class="fa-solid fa-print"></i> Cetak Lembar Foto
                                 </button>
                             </div>
@@ -1621,7 +1690,7 @@
                                 <span id="cfitRptPelanggaranBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                                     Tab Switch: 0x
                                 </span>
-                                <button type="button" onclick="window.print()" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow">
+                                <button type="button" onclick="printHrdReport('single')" class="no-print bg-[#003865] hover:bg-[#0a4980] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow cursor-pointer">
                                     <i class="fa-solid fa-print"></i> Cetak Lembar CFIT
                                 </button>
                             </div>
