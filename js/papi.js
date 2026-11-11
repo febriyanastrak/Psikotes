@@ -490,15 +490,11 @@
                     </div>
 
                     <!-- Tombol Aksi -->
-                    <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                    <div class="pt-2">
                         <button type="button" id="btn-start-papi-test" disabled onclick="window.papiStartQuestions()"
-                            class="w-full sm:w-2/3 py-4 rounded-xl font-extrabold text-sm sm:text-base text-white shadow-lg transition flex items-center justify-center gap-2 bg-slate-300 opacity-60 cursor-not-allowed">
+                            class="w-full py-4 rounded-xl font-extrabold text-sm sm:text-base text-white shadow-lg transition flex items-center justify-center gap-2 bg-slate-300 opacity-60 cursor-not-allowed">
                             <i class="fa-solid fa-play"></i>
                             <span id="btn-start-papi-text">Silakan coba latihan contoh 2 di atas dahulu</span>
-                        </button>
-                        <button type="button" onclick="window.papiBackToDashboard()"
-                            class="w-full sm:w-1/3 py-4 rounded-xl font-bold text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">
-                            Kembali ke Dashboard
                         </button>
                     </div>
                 </div>
@@ -553,7 +549,7 @@
         // Aktifkan tombol mulai jika salah satu contoh sudah dicoba
         if (startBtn) {
             startBtn.disabled = false;
-            startBtn.className = "w-full sm:w-2/3 py-4 rounded-xl font-extrabold text-sm sm:text-base text-white shadow-lg transition flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b]";
+            startBtn.className = "w-full py-4 rounded-xl font-extrabold text-sm sm:text-base text-white shadow-lg transition flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b]";
             if (startBtnText) {
                 startBtnText.textContent = "Saya Paham & Mulai Ujian PAPI Kostick (90 Soal)";
             }

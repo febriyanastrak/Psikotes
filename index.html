@@ -858,15 +858,22 @@
         <section id="view-pauli-tutorial"
             class="hide-section flex-grow flex items-center justify-center p-4 corporate-modern-bg">
             <div class="w-full max-w-2xl bg-white border border-[#b9d0e7] rounded-3xl p-6 sm:p-8 shadow-xl">
-                <div class="flex items-center gap-3 border-b border-slate-200 pb-4 mb-6">
-                    <div
-                        class="w-12 h-12 rounded-2xl bg-[#003865]/10 text-[#003865] flex items-center justify-center text-2xl font-black">
-                        <i class="fa-solid fa-book-open"></i>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-[#003865]/10 text-[#003865] flex items-center justify-center text-2xl font-black shrink-0">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-black text-[#003865]">Panduan &amp; Contoh Tes Pauli</h2>
+                            <p class="text-xs text-slate-500">Bacalah instruksi di bawah ini dengan teliti sebelum memulai tes.</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-xl sm:text-2xl font-black text-[#003865]">Panduan &amp; Contoh Tes Pauli</h2>
-                        <p class="text-xs text-slate-500">Bacalah instruksi di bawah ini dengan teliti sebelum memulai tes.</p>
-                    </div>
+                    <button type="button" onclick="if(typeof pindahFase==='function'){pindahFase('view-dashboard');}"
+                        class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center gap-2 transition cursor-pointer shrink-0 self-start sm:self-auto">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Kembali ke Dashboard</span>
+                    </button>
                 </div>
 
                 <div class="space-y-5 text-sm text-slate-600">
@@ -1221,13 +1228,13 @@
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startISTTest()"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full sm:flex-1 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Mulai Tes 2: Inteligensi 1</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-ist')"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Dashboard
+                        class="w-full sm:w-auto sm:px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition cursor-pointer whitespace-nowrap">
+                        Kembali ke Dashboard
                     </button>
                 </div>
             </div>
@@ -1283,13 +1290,13 @@
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startPapiTest()"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full sm:flex-1 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Mulai Tes PAPI Kostick</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-papi')"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Dashboard
+                        class="w-full sm:w-auto sm:px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition cursor-pointer whitespace-nowrap">
+                        Kembali ke Dashboard
                     </button>
                 </div>
             </div>
@@ -1337,13 +1344,13 @@
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startDiscTest()"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full sm:flex-1 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Mulai Tes DISC</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-disc')"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Dashboard
+                        class="w-full sm:w-auto sm:px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition cursor-pointer whitespace-nowrap">
+                        Kembali ke Dashboard
                     </button>
                 </div>
             </div>
@@ -1399,13 +1406,13 @@
 
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startEppsTest()"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full sm:flex-1 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Mulai Tes EPPS</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-epps')"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Dashboard
+                        class="w-full sm:w-auto sm:px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition cursor-pointer whitespace-nowrap">
+                        Kembali ke Dashboard
                     </button>
                 </div>
             </div>
@@ -1462,13 +1469,13 @@
                 </div>
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
                     <button onclick="startDassFromModal()"
-                        class="w-full sm:w-2/3 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full sm:flex-1 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Mulai Ujian DASS-21</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <button onclick="closeModal('modal-module-dass')"
-                        class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition cursor-pointer">
-                        Dashboard
+                        class="w-full sm:w-auto sm:px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition cursor-pointer whitespace-nowrap">
+                        Kembali ke Dashboard
                     </button>
                 </div>
             </div>

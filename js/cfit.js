@@ -240,9 +240,6 @@
                                 <i class="fa-solid fa-shapes"></i>
                             </div>
                             <div>
-                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-widest mb-1.5">
-                                    <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2
-                                </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
                                     Inteligensi 2
                                 </h1>
@@ -251,12 +248,16 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
                             <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center shrink-0">
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-sky-200 block">Progres Tes</span>
                                 <span class="text-base font-black text-amber-300">${totalSelesai} / 4 Subtes</span>
                             </div>
-
+                            <button type="button" onclick="if(typeof bukaDashboardTahap2==='function'){bukaDashboardTahap2();}else if(typeof pindahFase==='function'){pindahFase('view-dashboard');}"
+                                class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/20 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                <span>Kembali ke Dashboard</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1221,9 +1222,9 @@
                     </div>
                 </div>
                 <div class="pt-2 max-w-lg mx-auto">
-                    <button type="button" onclick="if(typeof bukaDashboardTahap2==='function'){bukaDashboardTahap2();}else if(typeof pindahFase==='function'){pindahFase('view-dashboard-tahap2');}else{window.location.reload();}" class="w-full py-4 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black rounded-xl shadow-lg hover:shadow-xl transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <button type="button" onclick="if(typeof bukaDashboardTahap2==='function'){bukaDashboardTahap2();}else if(typeof pindahFase==='function'){pindahFase('view-dashboard');}else{window.location.reload();}" class="w-full py-4 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black rounded-xl shadow-lg hover:shadow-xl transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-arrow-left"></i>
-                        <span>Kembali ke Dashboard Asesmen Tahap 2</span>
+                        <span>Kembali ke Dashboard</span>
                     </button>
                 </div>
             </div>

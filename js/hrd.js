@@ -505,6 +505,8 @@ function viewCandidateChart(index) {
     if (!row) return;
 
     currentSelectedCandidate = row;
+    const printListEl = document.getElementById('hrdPrintDetectedList');
+    if (printListEl && printListEl.dataset) printListEl.dataset.renderedCandidateKey = '';
     if (typeof toggleHrdPrintAllPopover === 'function') toggleHrdPrintAllPopover(false);
     if (typeof cleanupHrdPrintMode === 'function') cleanupHrdPrintMode();
 
@@ -1387,7 +1389,7 @@ function inspectGrafisPayload(hasilGrafis) {
 /**
  * Mendeteksi daftar ID modul tes yang sudah dikerjakan kandidat sesuai urutan cetak baku.
  * @param {Object} candidate
- * @param {Object} [options] { includeGrafis?: boolean, includeFoto?: boolean }
+ * @param {Object} [options] { includeGrafis?: boolean, includeFoto?: boolean, selectedTests?: string[]|Set<string> }
  * @returns {string[]}
  */
 function getCompletedTestsForCandidate(candidate, options = {}) {
@@ -1414,9 +1416,41 @@ function getCompletedTestsForCandidate(candidate, options = {}) {
         foto: options.includeFoto === true
     };
 
+    const hasSelectedFilter = options && options.selectedTests !== undefined && options.selectedTests !== null;
+    const selectedCoreSet = hasSelectedFilter
+        ? (options.selectedTests instanceof Set
+            ? options.selectedTests
+            : new Set(Array.isArray(options.selectedTests) ? options.selectedTests : []))
+        : null;
+
     return HRD_PRINT_MODULE_SPECS
-        .filter(spec => Boolean(detectedMap[spec.id]))
+        .filter(spec => {
+            if (!detectedMap[spec.id]) return false;
+            if (spec.id === 'grafis' || spec.id === 'foto') return true;
+            return !selectedCoreSet || selectedCoreSet.has(spec.id);
+        })
         .map(spec => spec.id);
+}
+
+/**
+ * Menentukan segmen mode untuk nama file PDF cetak gabungan agar akurat.
+ */
+function resolveHrdPrintAllFilenameMode(availableCoreTests, selectedModules, selectedCoreIds) {
+    const coreAvailable = Array.isArray(availableCoreTests) ? availableCoreTests : [];
+    const modules = Array.isArray(selectedModules) ? selectedModules : [];
+    const coreSelected = Array.isArray(selectedCoreIds) ? selectedCoreIds : [];
+
+    const allCoreSelected = coreAvailable.length > 0 && coreAvailable.every(id => coreSelected.includes(id));
+    if (allCoreSelected) {
+        return 'all';
+    }
+    if (modules.length === 1) {
+        return modules[0];
+    }
+    if (modules.length > 1) {
+        return `Pilihan_${modules.length}_Tes`;
+    }
+    return 'all';
 }
 
 /**
@@ -1537,7 +1571,108 @@ function ensureModulePrintBanner(panel, spec, candidate) {
     `;
 }
 
+const HRD_PRINT_CHIP_CLASS_BASE = 'hrd-print-test-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition select-none cursor-pointer focus-within:ring-2 focus-within:ring-[#003865]/30';
+const HRD_PRINT_CHIP_CLASS_ACTIVE = 'bg-blue-50 text-[#003865] border-blue-300 shadow-sm';
+const HRD_PRINT_CHIP_CLASS_INACTIVE = 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300';
+
+function getCandidatePrintKey(candidate) {
+    if (!candidate || typeof candidate !== 'object') return '';
+    return String(candidate.id || candidate.token || candidate['No WhatsApp'] || candidate['Nama Lengkap'] || '');
+}
+
+function getHrdCorePrintCheckboxes() {
+    const listEl = document.getElementById('hrdPrintDetectedList');
+    if (!listEl) return [];
+    return Array.from(listEl.querySelectorAll('input[type="checkbox"][data-print-test-id]'));
+}
+
+function getSelectedCorePrintTests() {
+    return getHrdCorePrintCheckboxes()
+        .filter(cb => Boolean(cb.checked))
+        .map(cb => cb.getAttribute('data-print-test-id') || cb.value)
+        .filter(Boolean);
+}
+
+function updatePrintChipVisualState(checkbox) {
+    if (!checkbox) return;
+    const chipLabel = checkbox.parentNode;
+    if (!chipLabel || !chipLabel.classList) return;
+    chipLabel.className = `${HRD_PRINT_CHIP_CLASS_BASE} ${checkbox.checked ? HRD_PRINT_CHIP_CLASS_ACTIVE : HRD_PRINT_CHIP_CLASS_INACTIVE}`;
+}
+
+function syncHrdPrintSelectionState() {
+    const checkboxes = getHrdCorePrintCheckboxes();
+    let checkedCore = 0;
+    checkboxes.forEach(cb => {
+        if (cb.checked) checkedCore++;
+        updatePrintChipVisualState(cb);
+    });
+    const totalCore = checkboxes.length;
+
+    const countEl = document.getElementById('hrdPrintSelectedCount');
+    if (countEl) {
+        countEl.innerText = totalCore > 0
+            ? `Dipilih: ${checkedCore} dari ${totalCore} tes`
+            : '0 tes terdeteksi';
+    }
+
+    const btnSelectAll = document.getElementById('btnSelectAllCorePrint');
+    const btnClearAll = document.getElementById('btnClearAllCorePrint');
+    if (btnSelectAll) btnSelectAll.disabled = (totalCore === 0 || checkedCore === totalCore);
+    if (btnClearAll) btnClearAll.disabled = (totalCore === 0 || checkedCore === 0);
+
+    const chkGrafis = document.getElementById('chkPrintIncludeGrafis');
+    const chkFoto = document.getElementById('chkPrintIncludeFoto');
+    const includeGrafis = Boolean(chkGrafis && !chkGrafis.disabled && chkGrafis.checked);
+    const includeFoto = Boolean(chkFoto && chkFoto.checked);
+    const totalSelected = checkedCore + (includeGrafis ? 1 : 0) + (includeFoto ? 1 : 0);
+
+    const warnEl = document.getElementById('hrdPrintEmptyWarning');
+    if (warnEl) {
+        if (totalSelected === 0) {
+            warnEl.classList.remove('hidden');
+            warnEl.classList.add('flex');
+        } else {
+            warnEl.classList.add('hidden');
+            warnEl.classList.remove('flex');
+        }
+    }
+
+    const btnConfirm = document.getElementById('btnConfirmPrintAll');
+    if (btnConfirm && !isPreparingHrdPrint) {
+        btnConfirm.disabled = (totalSelected === 0);
+        btnConfirm.title = totalSelected === 0
+            ? 'Pilih minimal 1 tes atau lampiran untuk dicetak.'
+            : 'Cetak tes dan lampiran yang dipilih menjadi 1 dokumen PDF';
+    }
+
+    return { totalCore, checkedCore, includeGrafis, includeFoto, totalSelected };
+}
+
+function setAllHrdCorePrintCheckboxes(shouldCheck) {
+    const checkboxes = getHrdCorePrintCheckboxes();
+    checkboxes.forEach(cb => {
+        cb.checked = Boolean(shouldCheck);
+    });
+    return syncHrdPrintSelectionState();
+}
+
+function bindHrdPrintPopoverListeners() {
+    const popover = document.getElementById('hrdPrintAllPopover');
+    if (!popover || !popover.dataset || popover.dataset.printListenersBound === '1') return;
+    popover.dataset.printListenersBound = '1';
+    popover.addEventListener('change', (e) => {
+        const target = e && e.target;
+        if (!target) return;
+        const hasTestIdAttr = target.getAttribute && target.getAttribute('data-print-test-id');
+        if (hasTestIdAttr || target.id === 'chkPrintIncludeGrafis' || target.id === 'chkPrintIncludeFoto') {
+            syncHrdPrintSelectionState();
+        }
+    });
+}
+
 function populateHrdPrintAllOptions() {
+    bindHrdPrintPopoverListeners();
     const cand = currentSelectedCandidate;
     const listEl = document.getElementById('hrdPrintDetectedList');
     const chkGrafis = document.getElementById('chkPrintIncludeGrafis');
@@ -1553,17 +1688,21 @@ function populateHrdPrintAllOptions() {
     const grafisInfo = inspectGrafisPayload(cand.hasil_grafis);
 
     if (listEl) {
-        if (coreTests.length === 0 && !grafisInfo.hasFiles) {
-            listEl.innerHTML = '<span class="text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold">Belum ada tes yang selesai dikerjakan.</span>';
+        if (listEl.dataset) listEl.dataset.renderedCandidateKey = getCandidatePrintKey(cand);
+        if (coreTests.length === 0) {
+            if (grafisInfo.hasFiles) {
+                listEl.innerHTML = '<span class="text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold">Tes inti belum selesai. Kelola lampiran Tes Grafis di bawah.</span>';
+            } else {
+                listEl.innerHTML = '<span class="text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-semibold">Belum ada tes yang selesai dikerjakan.</span>';
+            }
         } else {
             const chips = coreTests.map(id => {
                 const spec = HRD_PRINT_MODULE_SPECS.find(s => s.id === id);
-                const name = spec ? spec.shortLabel.replace(/_/g, ' ') : id.toUpperCase();
-                return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-[#003865] border border-blue-200 font-bold"><i class="fa-solid fa-check text-[9px] text-emerald-600"></i>${escapeHtml(name)}</span>`;
+                const rawName = spec ? spec.shortLabel.replace(/_/g, ' ') : id.toUpperCase();
+                const safeId = escapeHtml(id);
+                const safeName = escapeHtml(rawName);
+                return `<label class="${HRD_PRINT_CHIP_CLASS_BASE} ${HRD_PRINT_CHIP_CLASS_ACTIVE}" data-print-chip-for="${safeId}"><input type="checkbox" class="hrd-print-core-checkbox w-3.5 h-3.5 rounded border-slate-300 text-[#003865] accent-[#003865] focus:ring-0 cursor-pointer" data-print-test-id="${safeId}" value="${safeId}" checked aria-label="Sertakan tes ${safeName}"><span>${safeName}</span></label>`;
             });
-            if (grafisInfo.hasFiles) {
-                chips.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold"><i class="fa-solid fa-palette text-[9px]"></i>Grafis (${grafisInfo.totalFiles} berkas)</span>`);
-            }
             listEl.innerHTML = chips.join('');
         }
     }
@@ -1593,9 +1732,9 @@ function populateHrdPrintAllOptions() {
         chkFoto.checked = false;
     }
     if (btnConfirm) {
-        btnConfirm.disabled = false;
         btnConfirm.innerHTML = '<i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>';
     }
+    syncHrdPrintSelectionState();
 }
 
 function toggleHrdPrintAllPopover(forceState) {
@@ -1671,6 +1810,7 @@ function cleanupHrdPrintMode() {
         btnConfirm.innerHTML = '<i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>';
     }
     isPreparingHrdPrint = false;
+    if (typeof syncHrdPrintSelectionState === 'function') syncHrdPrintSelectionState();
 }
 
 function handleHrdPrintMediaChange(e) {
@@ -1734,17 +1874,33 @@ async function executeHrdPrintAll() {
 
     const chkGrafis = document.getElementById('chkPrintIncludeGrafis');
     const chkFoto = document.getElementById('chkPrintIncludeFoto');
-    const includeGrafis = chkGrafis ? Boolean(chkGrafis.checked) : false;
+    const includeGrafis = chkGrafis ? Boolean(chkGrafis.checked && !chkGrafis.disabled) : false;
     const includeFoto = chkFoto ? Boolean(chkFoto.checked) : false;
+
+    const availableCoreTests = getCompletedTestsForCandidate(currentSelectedCandidate, {
+        includeGrafis: false,
+        includeFoto: false
+    });
+    const listEl = document.getElementById('hrdPrintDetectedList');
+    const candKey = getCandidatePrintKey(currentSelectedCandidate);
+    const hasRenderedSelection = Boolean(listEl && listEl.dataset && listEl.dataset.renderedCandidateKey === candKey);
+    const selectedCoreIds = hasRenderedSelection ? getSelectedCorePrintTests() : availableCoreTests;
 
     const selectedModules = getCompletedTestsForCandidate(currentSelectedCandidate, {
         includeGrafis,
-        includeFoto
+        includeFoto,
+        selectedTests: selectedCoreIds
     });
 
     if (selectedModules.length === 0) {
-        toggleHrdPrintAllPopover(false);
-        customAlert('Belum Ada Data Tes', 'Kandidat ini belum memiliki hasil tes yang dapat dicetak.', 'info');
+        const grafisInfo = inspectGrafisPayload(currentSelectedCandidate.hasil_grafis);
+        if (availableCoreTests.length === 0 && !grafisInfo.hasFiles) {
+            toggleHrdPrintAllPopover(false);
+            customAlert('Belum Ada Data Tes', 'Kandidat ini belum memiliki hasil tes yang dapat dicetak.', 'info');
+        } else {
+            syncHrdPrintSelectionState();
+            customAlert('Pilih Tes Terlebih Dahulu', 'Pilih minimal 1 tes atau lampiran yang ingin dicetak.', 'info');
+        }
         return;
     }
 
@@ -1849,7 +2005,8 @@ async function executeHrdPrintAll() {
         }
 
         await waitForPanelImagesToLoad(selectedPanels, 6000);
-        document.title = buildHrdPrintFilename(currentSelectedCandidate, 'all');
+        const filenameMode = resolveHrdPrintAllFilenameMode(availableCoreTests, selectedModules, selectedCoreIds);
+        document.title = buildHrdPrintFilename(currentSelectedCandidate, filenameMode);
         await waitPrintFrames(250);
 
         registerHrdPrintCleanupListeners();
@@ -1869,6 +2026,8 @@ function openAndPromptPrintAll(index) {
 }
 
 if (typeof document !== 'undefined') {
+    bindHrdPrintPopoverListeners();
+
     document.addEventListener('click', (e) => {
         const popover = document.getElementById('hrdPrintAllPopover');
         const menuBtn = document.getElementById('btnPrintAllMenu');
@@ -3910,15 +4069,15 @@ let IST_OFFICIAL_ANSWER_KEYS = null;
 
 // Kunci Jawaban Resmi Standar IST Psikodiagnostik Form A (Fallback Cerdas HRD)
 const IST_FALLBACK_ANSWER_KEYS = {
-    'SE': { 1: "E", 2: "C", 3: "D", 4: "D", 5: "D", 6: "C", 7: "C", 8: "A", 9: "E", 10: "B", 11: "C", 12: "D", 13: "D", 14: "E", 15: "C", 16: "A", 17: "B", 18: "B", 19: "C", 20: "B" },
-    'WA': { 1: "C", 2: "B", 3: "D", 4: "C", 5: "A", 6: "E", 7: "D", 8: "B", 9: "C", 10: "E", 11: "D", 12: "A", 13: "B", 14: "E", 15: "C", 16: "D", 17: "B", 18: "A", 19: "E", 20: "D" },
-    'AN': { 1: "D", 2: "C", 3: "B", 4: "E", 5: "A", 6: "C", 7: "E", 8: "B", 9: "D", 10: "A", 11: "C", 12: "E", 13: "B", 14: "D", 15: "A", 16: "E", 17: "C", 18: "B", 19: "D", 20: "A" },
-    'GE': { 1: "perkakas", 2: "waktu", 3: "indera", 4: "pengerat", 5: "musik", 6: "permata", 7: "geometri", 8: "makan", 9: "biji", 10: "olahraga", 11: "tumbuhan", 12: "penyakit", 13: "cairan", 14: "kendaraan", 15: "pakaian", 16: "emosi" },
-    'RA': { 1: "15", 2: "12", 3: "24", 4: "18", 5: "40", 6: "25", 7: "48", 8: "36", 9: "60", 10: "45", 11: "72", 12: "54", 13: "84", 14: "63", 15: "96", 16: "75", 17: "108", 18: "81", 19: "120", 20: "90" },
-    'ZR': { 1: "21", 2: "32", 3: "43", 4: "54", 5: "65", 6: "76", 7: "87", 8: "98", 9: "109", 10: "120", 11: "131", 12: "142", 13: "153", 14: "164", 15: "175", 16: "186", 17: "197", 18: "208", 19: "219", 20: "230" },
-    'FA': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
-    'WU': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" },
-    'ME': { 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "A", 7: "B", 8: "C", 9: "D", 10: "E", 11: "A", 12: "B", 13: "C", 14: "D", 15: "E", 16: "A", 17: "B", 18: "C", 19: "D", 20: "E" }
+    'SE': { 1: "E", 2: "C", 3: "D", 4: "D", 5: "D", 6: "B", 7: "C", 8: "A", 9: "E", 10: "B", 11: "C", 12: "D", 13: "D", 14: "E", 15: "C", 16: "A", 17: "B", 18: "B", 19: "C", 20: "B" },
+    'WA': { 1: "B", 2: "B", 3: "D", 4: "C", 5: "C", 6: "C", 7: "C", 8: "D", 9: "D", 10: "A", 11: "E", 12: "A", 13: "A", 14: "B", 15: "C", 16: "A", 17: "D", 18: "E", 19: "B", 20: "C" },
+    'AN': { 1: "C", 2: "E", 3: "D", 4: "D", 5: "D", 6: "D", 7: "D", 8: "B", 9: "E", 10: "D", 11: "C", 12: "C", 13: "C", 14: "C", 15: "D", 16: "C", 17: "C", 18: "D", 19: "E", 20: "E" },
+    'GE': { 1: "bunga", 2: "indera", 3: "kristal", 4: "cuaca", 5: "pembawa berita", 6: "optik", 7: "alat pencernaan", 8: "jumlah", 9: "bibit", 10: "simbol", 11: "makhluk hidup", 12: "wadah", 13: "batas", 14: "sifat - watak", 15: "pengertian ekonomi", 16: "pengertian ruang" },
+    'RA': { 1: "35", 2: "280", 3: "205", 4: "26", 5: "30", 6: "70", 7: "45", 8: "50", 9: "84", 10: "78", 11: "19", 12: "6", 13: "75", 14: "90", 15: "120", 16: "17", 17: "24", 18: "5", 19: "48", 20: "3" },
+    'ZR': { 1: "27", 2: "25", 3: "27", 4: "15", 5: "46", 6: "10", 7: "42", 8: "7", 9: "5", 10: "14", 11: "8", 12: "14", 13: "45", 14: "63", 15: "12", 16: "80", 17: "14", 18: "12", 19: "63", 20: "10" },
+    'FA': { 1: "A", 2: "C", 3: "B", 4: "A", 5: "D", 6: "B", 7: "C", 8: "E", 9: "E", 10: "D", 11: "E", 12: "B", 13: "D", 14: "C", 15: "B", 16: "A", 17: "B", 18: "D", 19: "C", 20: "C" },
+    'WU': { 1: "A", 2: "C", 3: "D", 4: "E", 5: "A", 6: "C", 7: "D", 8: "C", 9: "E", 10: "A", 11: "B", 12: "D", 13: "E", 14: "B", 15: "D", 16: "B", 17: "A", 18: "E", 19: "B", 20: "C" },
+    'ME': { 1: "D", 2: "E", 3: "B", 4: "A", 5: "C", 6: "A", 7: "D", 8: "E", 9: "C", 10: "B", 11: "B", 12: "A", 13: "E", 14: "C", 15: "D", 16: "B", 17: "E", 18: "A", 19: "C", 20: "D" }
 };
 
 /**
@@ -7854,12 +8013,30 @@ if (typeof window !== 'undefined') {
     window.determineDiscPattern = determineDiscPattern;
     window.calculateDiscFromAnswers = calculateDiscFromAnswers;
     window.DISC_PATTERNS = DISC_PATTERNS;
+    window.setAllHrdCorePrintCheckboxes = setAllHrdCorePrintCheckboxes;
+    window.syncHrdPrintSelectionState = syncHrdPrintSelectionState;
+    window.toggleHrdPrintAllPopover = toggleHrdPrintAllPopover;
+    window.executeHrdPrintAll = executeHrdPrintAll;
+    window.printHrdReport = printHrdReport;
+    window.openAndPromptPrintAll = openAndPromptPrintAll;
 }
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         determineDiscPattern,
         calculateDiscFromAnswers,
         DISC_PATTERNS,
-        renderDassResults
+        renderDassResults,
+        escapeHtml,
+        HRD_PRINT_MODULE_SPECS,
+        getCompletedTestsForCandidate,
+        resolveHrdPrintAllFilenameMode,
+        buildHrdPrintFilename,
+        populateHrdPrintAllOptions,
+        setAllHrdCorePrintCheckboxes,
+        syncHrdPrintSelectionState,
+        getSelectedCorePrintTests,
+        toggleHrdPrintAllPopover,
+        executeHrdPrintAll,
+        cleanupHrdPrintMode
     };
 }

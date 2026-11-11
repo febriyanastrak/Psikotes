@@ -193,7 +193,7 @@
         const selesai = hitungNomorSelesai();
         const sisa = total - selesai;
 
-        const pesan = `Batas waktu standar 15 menit telah habis!\n\nUntuk Tes DISC Assessment, seluruh ${total} soal WAJIB diselesaikan secara lengkap (masing-masing memiliki tepat 1 pilihan Paling [P] dan 1 pilihan Paling Tidak [K]) agar grafik profil kepribadian kerja Anda dapat dianalisis secara valid.\n\nMasih ada ${sisa} nomor yang belum lengkap. Silakan segera lengkapi seluruh nomor tersebut!`;
+        const pesan = `Batas waktu standar 15 menit telah habis!\n\nUntuk Tes DISC, seluruh ${total} soal WAJIB diselesaikan secara lengkap (masing-masing memiliki tepat 1 pilihan Paling [P] dan 1 pilihan Paling Tidak [K]) agar grafik profil kepribadian kerja Anda dapat dianalisis secara valid.\n\nMasih ada ${sisa} nomor yang belum lengkap. Silakan segera lengkapi seluruh nomor tersebut!`;
 
         if (typeof istUI !== 'undefined' && typeof istUI.showModal === 'function') {
             istUI.showModal({
@@ -349,7 +349,7 @@
                             <div class="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-widest text-[#0a4980]">
                                 <span>PT ALTRAK 1978</span> &bull; <span>MODUL 3</span>
                             </div>
-                            <h2 class="text-xl sm:text-2xl font-black text-[#003865] leading-tight">Tes 3: DISC Assessment</h2>
+                            <h2 class="text-xl sm:text-2xl font-black text-[#003865] leading-tight">DISC</h2>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 self-end md:self-auto">

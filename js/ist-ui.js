@@ -301,13 +301,13 @@ const istUI = {
                                 </div>
                                 <div>
                                     <p class="text-xs sm:text-sm font-bold text-slate-700">Penyelesaian Tes</p>
-                                    <p class="text-xs text-slate-500 font-medium">Anda harus menyelesaikan semua 9 bagian soal sebelum dapat melanjutkan ke modul berikutnya.</p>
+                                    <p class="text-xs text-slate-500 font-medium">Anda harus menyelesaikan semua 9 subtes sebelum dapat melanjutkan ke modul berikutnya.</p>
                                 </div>
                             </div>
                             <button type="button" disabled 
                                 class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80 shrink-0">
                                 <i class="fa-solid fa-lock text-slate-400"></i>
-                                <span>Selesaikan Seluruh 9 Bagian Soal Dahulu (${totalSelesai} / 9 Selesai)</span>
+                                <span>Selesaikan Seluruh 9 Subtes Dahulu (${totalSelesai} / 9 Selesai)</span>
                             </button>
                         </div>
                     `}
@@ -334,7 +334,7 @@ const istUI = {
 
         const subtestData = istLogic.getCurrentSubtestData();
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
-        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const subtestName = subtestData.nama || `Subtes ${subtestCode}`;
         const kodeSubtes = subtestData.kodeSubtes 
             || (typeof IST_SUBTESTS_LIST !== 'undefined' && IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1] ? IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1].kodeSubtes : '')
             || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : '');
@@ -396,7 +396,7 @@ const istUI = {
                         </button>
                         <button type="button" onclick="istLogic.tampilkanMenu9Subtes()"
                             class="w-full sm:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 sm:py-4 rounded-xl transition cursor-pointer text-sm text-center">
-                            Daftar Bagian Soal
+                            Daftar Subtes
                         </button>
                     </div>
                 </div>
@@ -426,7 +426,7 @@ const istUI = {
 
         const subtestData = istLogic.getCurrentSubtestData();
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
-        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const subtestName = subtestData.nama || `Subtes ${subtestCode}`;
 
         const m = Math.floor(Math.max(0, sisaDetik) / 60);
         const s = Math.max(0, sisaDetik) % 60;
@@ -546,7 +546,7 @@ const istUI = {
                         <button type="button" onclick="istLogic.tampilkanMenu9Subtes()" 
                             class="text-xs font-bold text-slate-500 hover:text-[#003865] flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-arrow-left"></i>
-                            <span>Kembali ke Daftar Bagian Soal</span>
+                            <span>Kembali ke Daftar Subtes</span>
                         </button>
 
                         <button type="button" onclick="istLogic.selesaiHafalanDanMulaiContoh()" 
@@ -594,7 +594,7 @@ const istUI = {
 
         const subtestData = istLogic.getCurrentSubtestData();
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
-        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const subtestName = subtestData.nama || `Subtes ${subtestCode}`;
         const isHafalan = subtestData.id === 'soal_09' || (subtestData.contoh && subtestData.contoh.some(c => c.tipe === 'layar_hafalan'));
 
         let contohCardsHtml = '';
@@ -964,7 +964,7 @@ const istUI = {
                         <button type="button" onclick="istLogic.tampilkanMenu9Subtes()" 
                             class="text-xs font-bold text-slate-500 hover:text-[#003865] flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-arrow-left"></i>
-                            <span>Kembali ke Daftar Bagian Soal</span>
+                            <span>Kembali ke Daftar Subtes</span>
                         </button>
 
                         <button type="button" onclick="istLogic.lanjutKeUjianUtama()" 
@@ -1234,7 +1234,7 @@ const istUI = {
         const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
         const totalSoal = subtestData.soal ? subtestData.soal.length : 20;
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
-        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const subtestName = subtestData.nama || `Subtes ${subtestCode}`;
         const kodeSubtes = subtestData.kodeSubtes 
             || (typeof IST_SUBTESTS_LIST !== 'undefined' && IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1] ? IST_SUBTESTS_LIST[istLogic.currentSubtestNo - 1].kodeSubtes : '')
             || (istLogic.getSubtestCode ? istLogic.getSubtestCode(istLogic.currentSubtestNo) : '');
@@ -1404,7 +1404,7 @@ const istUI = {
 
         const subtestData = istLogic.getCurrentSubtestData ? istLogic.getCurrentSubtestData() : istSubtes01;
         const subtestCode = String(istLogic.currentSubtestNo).padStart(2, '0');
-        const subtestName = subtestData.nama || `Soal ${subtestCode}`;
+        const subtestName = subtestData.nama || `Subtes ${subtestCode}`;
 
         const soal = subtestData.soal[istLogic.currentSoalIndex];
         if (!soal) return;
@@ -1745,7 +1745,7 @@ const istUI = {
                         <span class="font-bold text-[#003865]">${skorJson.id_peserta}</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
-                        <span class="text-slate-500">Bagian Diselesaikan:</span>
+                        <span class="text-slate-500">Subtes Diselesaikan:</span>
                         <span class="font-bold text-slate-800">Subtes 01</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
@@ -1763,7 +1763,7 @@ const istUI = {
                     <button type="button" onclick="istLogic.tampilkanMenu9Subtes()"
                         class="w-full py-4 bg-gradient-to-r from-[#003865] to-[#0a4980] hover:from-[#002747] hover:to-[#083c6b] text-white font-extrabold rounded-xl shadow-lg transition-all text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-list-ol"></i>
-                        <span>Kembali ke Daftar Bagian Soal</span>
+                        <span>Kembali ke Daftar Subtes</span>
                     </button>
 
                     <!-- Tombol Simpan & Selesaikan Modul IST ke Dashboard Utama -->

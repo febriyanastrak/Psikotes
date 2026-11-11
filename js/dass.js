@@ -680,7 +680,7 @@
         }
 
         // Tampilkan pesan sukses dan alihkan kembali ke dashboard
-        const pesanSukses = "Terima kasih! Lembar Asesmen DASS-21 (Kesehatan Mental & Ketahanan Stres) berhasil dikumpulkan dan tersimpan aman di sistem.";
+        const pesanSukses = "Terima kasih! Lembar Asesmen DASS-21 berhasil dikumpulkan dan tersimpan aman di sistem.";
         if (typeof customAlert === 'function') {
             customAlert(
                 "Asesmen DASS-21 Selesai",

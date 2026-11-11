@@ -171,9 +171,6 @@
                                 <i class="fa-solid fa-user-tie"></i>
                             </div>
                             <div>
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider mb-1">
-                                    <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2
-                                </div>
                                 <h1 class="text-lg sm:text-xl font-black text-white leading-tight">
                                     Management Style Diagnostic Test (MSDT)
                                 </h1>
@@ -182,11 +179,11 @@
                                 </p>
                             </div>
                         </div>
-                        <div>
-                            <button type="button" onclick="bukaDashboardTahap2()"
-                                class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/20 cursor-pointer">
+                        <div class="shrink-0">
+                            <button type="button" onclick="if(typeof bukaDashboardTahap2==='function'){bukaDashboardTahap2();}else if(typeof pindahFase==='function'){pindahFase('view-dashboard');}"
+                                class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/20 cursor-pointer shadow-sm whitespace-nowrap">
                                 <i class="fa-solid fa-arrow-left"></i>
-                                <span>Dashboard Tahap 2</span>
+                                <span>Kembali ke Dashboard</span>
                             </button>
                         </div>
                     </div>
@@ -255,12 +252,7 @@
                     </div>
 
                     <!-- TOMBOL MULAI PENGERJAAN -->
-                    <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <button type="button" onclick="bukaDashboardTahap2()"
-                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-arrow-left"></i>
-                            <span>Kembali ke Dashboard</span>
-                        </button>
+                    <div class="pt-3 border-t border-slate-100 flex justify-end">
                         <button type="button" onclick="window.msdtMulaiMengerjakan()"
                             class="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-[#003865] via-blue-700 to-[#003865] hover:from-[#002747] hover:to-[#083c6b] text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
                             <span>${answeredCount > 0 ? `Lanjutkan Pengerjaan Tes MSDT (${answeredCount}/64 Soal)` : 'Saya Paham & Mulai Pengerjaan Tes MSDT'}</span>
@@ -387,9 +379,6 @@
                             <i class="fa-solid fa-user-tie"></i>
                         </div>
                         <div>
-                            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black bg-blue-50 text-[#003865] border border-blue-200 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-crown text-amber-500"></i> Asesmen Kepemimpinan Tahap 2
-                            </div>
                             <h2 class="text-xl sm:text-2xl font-black text-[#003865]">
                                 Management Style Diagnostic Test (MSDT)
                             </h2>

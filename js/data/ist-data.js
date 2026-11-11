@@ -5,7 +5,7 @@
 
 const istSubtes01 = {
     id: "subtes_01",
-    nama: "Soal 01",
+    nama: "Subtes 01",
     kodeSubtes: "SE",
     waktuContoh: 120000, // 2 menit (120.000 ms)
     waktuUjian: 480000, // 8 menit (480.000 ms - hidden di background)
@@ -135,7 +135,7 @@ const istSubtes01 = {
 // ==========================================
 const istSoal02 = {
     id: "soal_02",
-    nama: "Soal 02",
+    nama: "Subtes 02",
     kodeSubtes: "WA",
     waktuContoh: 120000, // 3 menit (180.000 ms)
     waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background) 
@@ -185,7 +185,7 @@ const istSoal02 = {
 // ==========================================
 const istSoal03 = {
     id: "soal_03",
-    nama: "Soal 03",
+    nama: "Subtes 03",
     kodeSubtes: "AN",
     waktuContoh: 120000, // 3 menit (180.000 ms)
     waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background) 
@@ -235,7 +235,7 @@ const istSoal03 = {
 // ==========================================
 const istSoal04 = {
     id: "soal_04",
-    nama: "Soal 04",
+    nama: "Subtes 04",
     kodeSubtes: "GE",
     waktuContoh: 120000, // 3 menit (180.000 ms)
     waktuUjian: 480000, // 8 menit (480.000 ms - hidden di background)
@@ -281,7 +281,7 @@ const istSoal04 = {
 // ==========================================
 const istSoal05 = {
     id: "soal_05",
-    nama: "Soal 05",
+    nama: "Subtes 05",
     kodeSubtes: "RA",
     waktuContoh: 120000, // 3 menit (180.000 ms)
     waktuUjian: 1200000, // 20 menit (1.200.000 ms - hidden di background)
@@ -331,7 +331,7 @@ const istSoal05 = {
 // ==========================================
 const istSoal06 = {
     id: "soal_06",
-    nama: "Soal 06",
+    nama: "Subtes 06",
     kodeSubtes: "ZR",
     waktuContoh: 120000, // 3 menit (180.000 ms)
     waktuUjian: 960000, // 16 menit (960.000 ms - hidden di background)
@@ -381,7 +381,7 @@ const istSoal06 = {
 // ==========================================
 const istSoal07 = {
     id: "soal_07",
-    nama: "Soal 07",
+    nama: "Subtes 07",
     kodeSubtes: "FA",
     waktuContoh: 210000, // 3,5 menit (210.000 ms)
     waktuUjian: 420000, // 7 menit (420.000 ms - hidden di background)
@@ -438,7 +438,7 @@ const istSoal07 = {
 // ==========================================
 const istSoal08 = {
     id: "soal_08",
-    nama: "Soal 08",
+    nama: "Subtes 08",
     kodeSubtes: "WU",
     waktuContoh: 210000, // 3,5 menit (210.000 ms)
     waktuUjian: 840000, // 14 menit (840.000 ms - hidden di background)
@@ -504,7 +504,7 @@ const istSoal08 = {
 // ==========================================
 const istSoal09 = {
     id: "soal_09",
-    nama: "Soal 09",
+    nama: "Subtes 09",
     kodeSubtes: "ME",
     waktuHafalan: 240000, // 4 Menit untuk menghafal (240.000 ms)
     waktuContoh: 120000,  // 3 Menit untuk latihan contoh soal (180.000 ms)
@@ -586,15 +586,15 @@ const IST_SUBTEST_DATA = {
  * Daftar 9 Bagian Soal IST (Penamaan Resmi Sesuai Aturan: Soal 01 s/d Soal 09, Waktu Tersembunyi)
  */
 const IST_SUBTESTS_LIST = [
-    { no: "01", name: "Soal 01", kodeSubtes: "SE", totalSoal: 20, active: true },
-    { no: "02", name: "Soal 02", kodeSubtes: "WA", totalSoal: 20, active: true },
-    { no: "03", name: "Soal 03", kodeSubtes: "AN", totalSoal: 20, active: true },
-    { no: "04", name: "Soal 04", kodeSubtes: "GE", totalSoal: 16, active: true },
-    { no: "05", name: "Soal 05", kodeSubtes: "RA", totalSoal: 20, active: true },
-    { no: "06", name: "Soal 06", kodeSubtes: "ZR", totalSoal: 20, active: true },
-    { no: "07", name: "Soal 07", kodeSubtes: "FA", totalSoal: 20, active: true },
-    { no: "08", name: "Soal 08", kodeSubtes: "WU", totalSoal: 20, active: true },
-    { no: "09", name: "Soal 09", kodeSubtes: "ME", totalSoal: 20, active: true }
+    { no: "01", name: "Subtes 01", kodeSubtes: "SE", totalSoal: 20, active: true },
+    { no: "02", name: "Subtes 02", kodeSubtes: "WA", totalSoal: 20, active: true },
+    { no: "03", name: "Subtes 03", kodeSubtes: "AN", totalSoal: 20, active: true },
+    { no: "04", name: "Subtes 04", kodeSubtes: "GE", totalSoal: 16, active: true },
+    { no: "05", name: "Subtes 05", kodeSubtes: "RA", totalSoal: 20, active: true },
+    { no: "06", name: "Subtes 06", kodeSubtes: "ZR", totalSoal: 20, active: true },
+    { no: "07", name: "Subtes 07", kodeSubtes: "FA", totalSoal: 20, active: true },
+    { no: "08", name: "Subtes 08", kodeSubtes: "WU", totalSoal: 20, active: true },
+    { no: "09", name: "Subtes 09", kodeSubtes: "ME", totalSoal: 20, active: true }
 ];
 
 if (typeof window !== 'undefined') {

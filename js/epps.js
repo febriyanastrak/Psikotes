@@ -150,9 +150,6 @@
                                 <i class="fa-solid fa-layer-group"></i>
                             </div>
                             <div>
-                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 uppercase tracking-widest mb-1.5">
-                                    <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kepemimpinan Tahap 2
-                                </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
                                     Edwards Personal Preference Schedule (EPPS)
                                 </h1>
@@ -160,13 +157,6 @@
                                     Pedoman Pelaksanaan &amp; Pengenalan Format 225 Pasangan Pilihan Kebutuhan Kerja
                                 </p>
                             </div>
-                        </div>
-                        <div>
-                            <button type="button" onclick="bukaDashboardTahap2()"
-                                class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/20 cursor-pointer">
-                                <i class="fa-solid fa-arrow-left"></i>
-                                <span>Dashboard Tahap 2</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -425,9 +415,6 @@
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                         <div>
-                            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black bg-blue-50 text-[#003865] border border-blue-200 uppercase tracking-wider mb-1">
-                                <i class="fa-solid fa-crown text-amber-500"></i> Asesmen Kepemimpinan Tahap 2
-                            </div>
                             <h2 class="text-xl sm:text-2xl font-black text-[#003865]">
                                 Edwards Personal Preference Schedule (EPPS)
                             </h2>

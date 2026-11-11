@@ -343,15 +343,15 @@
                         </button>
 
                         <!-- Popover Opsi Cetak Semua Tes -->
-                        <div id="hrdPrintAllPopover" role="dialog" aria-modal="false" aria-label="Opsi Cetak Semua Tes"
-                            class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-2.5rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 z-30 text-left">
+                        <div id="hrdPrintAllPopover" role="dialog" aria-modal="false" aria-label="Opsi Cetak Dokumen Tes"
+                            class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-2.5rem)] max-h-[80vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 z-30 text-left">
                             <div class="flex items-start justify-between gap-2 pb-2.5 mb-3 border-b border-slate-100">
                                 <div>
                                     <h3 class="text-xs font-black text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
                                         <i class="fa-solid fa-file-pdf text-[#003865]"></i>
-                                        <span>Cetak Semua Tes Dikerjakan</span>
+                                        <span>Cetak Dokumen Gabungan</span>
                                     </h3>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Menggabungkan modul yang selesai menjadi 1 dokumen siap cetak / PDF.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Centang tes yang ingin digabungkan menjadi 1 dokumen siap cetak / PDF.</p>
                                 </div>
                                 <button type="button" onclick="toggleHrdPrintAllPopover(false)" aria-label="Tutup opsi cetak"
                                     class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
@@ -360,9 +360,22 @@
                             </div>
 
                             <div class="mb-3">
-                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tes Terdeteksi Sudah Dikerjakan</div>
-                                <div id="hrdPrintDetectedList" class="flex flex-wrap gap-1.5 text-[11px]">
-                                    <span class="text-slate-400 italic">Membaca data kandidat...</span>
+                                <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Pilih Tes yang Dicetak</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span id="hrdPrintSelectedCount" class="text-[10px] font-bold text-[#003865] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md">Dipilih: 0 dari 0 tes</span>
+                                        <button type="button" id="btnSelectAllCorePrint" onclick="setAllHrdCorePrintCheckboxes(true)"
+                                            class="text-[10px] font-bold text-[#003865] hover:bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                            Pilih Semua
+                                        </button>
+                                        <button type="button" id="btnClearAllCorePrint" onclick="setAllHrdCorePrintCheckboxes(false)"
+                                            class="text-[10px] font-bold text-slate-600 hover:bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                            Kosongkan
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="hrdPrintDetectedList" role="group" aria-label="Daftar tes yang dapat dipilih untuk dicetak" class="flex flex-wrap gap-1.5 text-[11px]">
+                                    <span class="text-slate-500 italic">Membaca data kandidat...</span>
                                 </div>
                             </div>
 
@@ -389,13 +402,18 @@
                                 </label>
                             </div>
 
+                            <div id="hrdPrintEmptyWarning" role="alert" class="hidden mb-3 p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600 shrink-0"></i>
+                                <span>Pilih minimal 1 tes atau lampiran untuk dicetak.</span>
+                            </div>
+
                             <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                                 <button type="button" onclick="toggleHrdPrintAllPopover(false)"
                                     class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
                                     Batal
                                 </button>
                                 <button type="button" id="btnConfirmPrintAll" onclick="executeHrdPrintAll()"
-                                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#003865] hover:bg-[#0a4980] text-white shadow-sm flex items-center gap-1.5 transition cursor-pointer">
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#003865] hover:bg-[#0a4980] text-white shadow-sm flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-print"></i> <span>Cetak Dokumen</span>
                                 </button>
                             </div>

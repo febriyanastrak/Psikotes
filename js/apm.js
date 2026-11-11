@@ -266,9 +266,6 @@
                                 <i class="fa-solid fa-cubes"></i>
                             </div>
                             <div>
-                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-widest mb-1.5">
-                                    <i class="fa-solid fa-crown text-amber-400"></i> Asesmen Kemampuan Analitik
-                                </div>
                                 <h1 class="text-xl sm:text-3xl font-black text-white leading-tight">
                                     Inteligensi 3
                                 </h1>
@@ -277,9 +274,16 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 text-center sm:text-right shrink-0">
-                            <div class="text-[11px] uppercase tracking-wider text-blue-200 font-bold">Progres Pengerjaan</div>
-                            <div class="text-2xl font-black text-[#ffbe1a] mt-0.5">${totalSelesai} / 2 Selesai</div>
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+                            <div class="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 text-center sm:text-right shrink-0">
+                                <div class="text-[11px] uppercase tracking-wider text-blue-200 font-bold">Progres Pengerjaan</div>
+                                <div class="text-2xl font-black text-[#ffbe1a] mt-0.5">${totalSelesai} / 2 Selesai</div>
+                            </div>
+                            <button type="button" onclick="if(typeof pindahFase==='function'){pindahFase('view-dashboard');}else if(typeof showPage==='function'){showPage('view-dashboard');}"
+                                class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/20 cursor-pointer shadow-sm shrink-0 whitespace-nowrap">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                <span>Kembali ke Dashboard</span>
+                            </button>
                         </div>
                     </div>
                 </div>
